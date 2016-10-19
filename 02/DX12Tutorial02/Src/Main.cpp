@@ -16,15 +16,13 @@ HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 using Microsoft::WRL::ComPtr;
 
-static const int frameBufferCount = 3;
+static const int frameBufferCount = 2;
 
 ComPtr<ID3D12Device> device;
 ComPtr<IDXGISwapChain3> swapChain;
 ComPtr<ID3D12CommandQueue> commandQueue;
 ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap;
-ComPtr<ID3D12DescriptorHeap> dsvDescriptorHeap;
 ComPtr<ID3D12Resource> renderTargetList[frameBufferCount];
-ComPtr<ID3D12Resource> depthStencilBuffer;
 ComPtr<ID3D12CommandAllocator> commandAllocator[frameBufferCount];
 ComPtr<ID3D12GraphicsCommandList> commandList;
 ComPtr<ID3D12Fence> fence;
