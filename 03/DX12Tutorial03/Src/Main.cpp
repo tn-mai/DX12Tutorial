@@ -182,8 +182,8 @@ bool InitializeD3D()
 
 	// DSV用のデスクリプタヒープ及びデスクリプタを作成.
 	D3D12_DESCRIPTOR_HEAP_DESC dsvDesc = {};
-	dsvDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	dsvDesc.NumDescriptors = frameBufferCount;
+	dsvDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvDesc.NumDescriptors = 1;
 	dsvDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	if (FAILED(device->CreateDescriptorHeap(&dsvDesc, IID_PPV_ARGS(&dsvDescriptorHeap)))) {
 		return false;
