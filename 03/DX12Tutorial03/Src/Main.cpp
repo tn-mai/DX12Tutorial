@@ -82,7 +82,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		if (msg.message == WM_QUIT) {
 			break;
 		}
-		Render();
+		if (!Render()) {
+			break;
+		}
 	}
 	FinalizeD3D();
 
