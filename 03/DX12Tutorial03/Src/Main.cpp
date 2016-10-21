@@ -111,7 +111,6 @@ bool InitializeD3D()
 	if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)))) {
 		return false;
 	}
-//	dxgiFactory->MakeWindowAssociation(hwnd, 0);
 
 	// 機能レベル11を満たすハードウェアアダプタを検索し、そのデバイスインターフェイスを取得する.
 	ComPtr<IDXGIAdapter1> dxgiAdapter; // デバイス情報を取得するためのインターフェイス
