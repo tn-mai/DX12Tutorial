@@ -284,7 +284,6 @@ bool Render()
 
 bool WaitForPreviousFrame()
 {
-	currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 	if (fence->GetCompletedValue() < fenceValue[currentFrameIndex]) {
 		if (FAILED(fence->SetEventOnCompletion(fenceValue[currentFrameIndex], fenceEvent))) {
 			return false;
@@ -292,11 +291,13 @@ bool WaitForPreviousFrame()
 		WaitForSingleObject(fenceEvent, INFINITE);
 	}
 	++fenceValue[currentFrameIndex];
+	currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 	return true;
 }
 
 bool WaitForGpu()
 {
+	++fenceValue[currentFrameIndex];
 	if (FAILED(commandQueue->Signal(fence.Get(), fenceValue[currentFrameIndex]))) {
 		return false;
 	}
