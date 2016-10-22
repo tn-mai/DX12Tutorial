@@ -52,7 +52,7 @@ bool Render();
 bool WaitForPreviousFrame();
 bool WaitForGpu();
 
-bool LoadShader(const wchar_t* filename, const char* target, ComPtr<ID3DBlob>& blob);
+bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob);
 bool CreatePSO();
 bool CreateVertexBuffer();
 void DrawTriangle();
@@ -60,16 +60,15 @@ void DrawTriangle();
 /// 頂点データ型.
 struct Vertex
 {
-	XMFLOAT3 pos;
-	XMFLOAT4 color;
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT4 color;
 };
 
-/// 頂点データ型のレイアウト..
-static const D3D12_INPUT_ELEMENT_DESC vertexLayout[] = {
+/// 頂点データ型のレイアウト.
+const D3D12_INPUT_ELEMENT_DESC vertexLayout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 };
-
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
@@ -382,8 +381,7 @@ bool WaitForGpu()
 bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob)
 {
 	ComPtr<ID3DBlob> errorBuffer;
-	HRESULT hr = D3DCompileFromFile(filename, nullptr, nullptr, "main", target, D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, blob, &errorBuffer);
-	if (FAILED(hr)) {
+	if (FAILED(D3DCompileFromFile(filename, nullptr, nullptr, "main", target, D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, blob, &errorBuffer))) {
 		if (errorBuffer) {
 			OutputDebugStringA(static_cast<char*>(errorBuffer->GetBufferPointer()));
 		}
@@ -410,8 +408,7 @@ bool CreatePSO()
 			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
 		};
 		ComPtr<ID3DBlob> signatureBlob;
-		ComPtr<ID3DBlob> error;
-		if (FAILED(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &error))) {
+		if (FAILED(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &signatureBlob, nullptr))) {
 			return false;
 		}
 		if (FAILED(device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)))) {
