@@ -395,6 +395,17 @@ bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob)
 */
 bool CreatePSO()
 {
+	// 頂点シェーダを作成.
+	ComPtr<ID3DBlob> vertexShaderBlob;
+	if (!LoadShader(L"Res/VertexShader.hlsl", "vs_5_0", &vertexShaderBlob)) {
+		return false;
+	}
+	// ピクセルシェーダを作成.
+	ComPtr<ID3DBlob> pixelShaderBlob;
+	if (!LoadShader(L"Res/PixelShader.hlsl", "ps_5_0", &pixelShaderBlob)) {
+		return false;
+	}
+
 	// ルートシグネチャを作成.
 	// ルートパラメータのShaderVisibilityは適切に設定する必要がある.
 	// ルートシグネチャが正しく設定されていない場合でも、シグネチャの作成には成功することがある.
@@ -414,17 +425,6 @@ bool CreatePSO()
 		if (FAILED(device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)))) {
 			return false;
 		}
-	}
-
-	// 頂点シェーダを作成.
-	ComPtr<ID3DBlob> vertexShaderBlob;
-	if (!LoadShader(L"Res/VertexShader.hlsl", "vs_5_0", &vertexShaderBlob)) {
-		return false;
-	}
-	// ピクセルシェーダを作成.
-	ComPtr<ID3DBlob> pixelShaderBlob;
-	if (!LoadShader(L"Res/PixelShader.hlsl", "ps_5_0", &pixelShaderBlob)) {
-		return false;
 	}
 
 	// パイプラインステートオブジェクト(PSO)を作成.
