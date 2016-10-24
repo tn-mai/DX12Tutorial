@@ -60,14 +60,31 @@ void DrawTriangle();
 /// 頂点データ型.
 struct Vertex
 {
-	DirectX::XMFLOAT3 position;
-	DirectX::XMFLOAT4 color;
+	XMFLOAT3 position;
+	XMFLOAT4 color;
 };
 
 /// 頂点データ型のレイアウト.
 const D3D12_INPUT_ELEMENT_DESC vertexLayout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+};
+
+/**
+* 頂点データ配列.
+*/
+static const Vertex vertices[] = {
+	{ XMFLOAT3(0.0f,  0.5f, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+	{ XMFLOAT3(0.3f, -0.0f, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+	{ XMFLOAT3(-0.3f, -0.0f, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+
+	{ XMFLOAT3(-0.3f,  0.0f, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+	{ XMFLOAT3(0.0f, -0.5f, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+	{ XMFLOAT3(-0.6f, -0.5f, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+
+	{ XMFLOAT3(0.3f,  0.0f, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+	{ XMFLOAT3(0.6f, -0.5f, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+	{ XMFLOAT3(0.0f, -0.5f, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
 };
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
@@ -274,8 +291,12 @@ bool InitializeD3D()
 		fenceValue[i] = 0;
 	}
 
-	CreatePSO();
-	CreateVertexBuffer();
+	if (!CreatePSO()) {
+		return false;
+	}
+	if (!CreateVertexBuffer()) {
+		return false;
+	}
 
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
@@ -288,8 +309,6 @@ bool InitializeD3D()
 	scissorRect.top = 0;
 	scissorRect.right = clientWidth;
 	scissorRect.bottom = clientHeight;
-
-	WaitForGpu();
 
 	return true;
 }
@@ -432,10 +451,8 @@ bool CreatePSO()
 	// PSOによって、多くのステートに対してそれぞれ状態変更コマンドを送らずとも、単にPSOを切り替えるコマンドを送るだけで済む.
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.pRootSignature = rootSignature.Get();
-	psoDesc.VS.pShaderBytecode = vertexShaderBlob->GetBufferPointer();
-	psoDesc.VS.BytecodeLength = vertexShaderBlob->GetBufferSize();
-	psoDesc.PS.pShaderBytecode = pixelShaderBlob->GetBufferPointer();
-	psoDesc.PS.BytecodeLength = pixelShaderBlob->GetBufferSize();
+	psoDesc.VS = { vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize() };
+	psoDesc.PS = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = 0xffffffff;
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -446,7 +463,7 @@ bool CreatePSO()
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-	psoDesc.SampleDesc.Count = 1;
+	psoDesc.SampleDesc = { 1, 0 };
 	if (warp) {
 		psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG;
 	}
@@ -456,18 +473,15 @@ bool CreatePSO()
 	return true;
 }
 
+/**
+* 頂点バッファを作成する.
+*/
 bool CreateVertexBuffer()
 {
-	static const Vertex vertices[] = {
-		{ { 0.0f, 0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-		{ { 0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-		{ { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-	};
-	const D3D12_RESOURCE_DESC verticesDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices));
 	if (FAILED(device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
-		&verticesDesc,
+		&CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices)),
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(&vertexBuffer)))) {
@@ -475,9 +489,9 @@ bool CreateVertexBuffer()
 	}
 	vertexBuffer->SetName(L"Vertex buffer");
 
-	UINT8* pVertexDataBegin;
-	CD3DX12_RANGE readRange(0, 0);
-	if (FAILED(vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)))) {
+	void* pVertexDataBegin;
+	const D3D12_RANGE readRange = { 0, 0 };
+	if (FAILED(vertexBuffer->Map(0, &readRange, &pVertexDataBegin))) {
 		return false;
 	}
 	memcpy(pVertexDataBegin, vertices, sizeof(vertices));
@@ -490,6 +504,9 @@ bool CreateVertexBuffer()
 	return true;
 }
 
+/**
+* 三角形を描画する.
+*/
 void DrawTriangle()
 {
 	commandList->SetPipelineState(pso.Get());
@@ -498,5 +515,5 @@ void DrawTriangle()
 	commandList->RSSetScissorRects(1, &scissorRect);
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-	commandList->DrawInstanced(3, 1, 0, 0);
+	commandList->DrawInstanced(_countof(vertices), 1, 0, 0);
 }
