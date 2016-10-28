@@ -586,13 +586,6 @@ void DrawTriangle()
 */
 void DrawRectangle()
 {
-	commandList->SetPipelineState(pso.Get());
-	commandList->SetGraphicsRootSignature(rootSignature.Get());
-	commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
-	commandList->RSSetViewports(1, &viewport);
-	commandList->RSSetScissorRects(1, &scissorRect);
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 	commandList->IASetIndexBuffer(&indexBufferView);
 	commandList->DrawIndexedInstanced(_countof(indices), 1, 0, triangleVertexCount, 0);
 }
