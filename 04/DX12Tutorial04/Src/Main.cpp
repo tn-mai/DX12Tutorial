@@ -256,10 +256,6 @@ bool InitializeD3D()
 	}
 
 	// デプスステンシルバッファを作成.
-	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
-	depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-	depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
 	D3D12_CLEAR_VALUE dsClearValue = {};
 	dsClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 	dsClearValue.DepthStencil.Depth = 1.0f;
@@ -283,7 +279,11 @@ bool InitializeD3D()
 	if (FAILED(device->CreateDescriptorHeap(&dsvDesc, IID_PPV_ARGS(&dsvDescriptorHeap)))) {
 		return false;
 	}
-	device->CreateDepthStencilView(depthStencilBuffer.Get(), nullptr, dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDesc = {};
+	depthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthStencilDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
+	device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilDesc, dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
 	// コマンドアロケータを作成.
 	for (int i = 0; i < frameBufferCount; ++i) {
