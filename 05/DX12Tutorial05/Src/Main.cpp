@@ -7,6 +7,7 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 #include <wrl/client.h>
+#include "Texture.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -49,6 +50,9 @@ D3D12_INDEX_BUFFER_VIEW indexBufferView;
 D3D12_VIEWPORT viewport;
 D3D12_RECT scissorRect;
 XMFLOAT4X4 matViewProjection;
+
+ComPtr<ID3D12DescriptorHeap> csuDescriptorHeap;
+int csuDescriptorSize;
 
 bool InitializeD3D();
 void FinalizeD3D();
@@ -139,6 +143,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 	UpdateWindow(hwnd);
 
 	InitializeD3D();
+
 	for (;;) {
 		MSG msg = {};
 		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -285,6 +290,16 @@ bool InitializeD3D()
 	depthStencilDesc.Flags = D3D12_DSV_FLAG_NONE;
 	device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilDesc, dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
+	// CBV/SRV/UAV用のデスクリプタヒープを作成.
+	D3D12_DESCRIPTOR_HEAP_DESC csuDesc = {};
+	csuDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	csuDesc.NumDescriptors = 1;
+	csuDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	if (FAILED(device->CreateDescriptorHeap(&csuDesc, IID_PPV_ARGS(&csuDescriptorHeap)))) {
+		return false;
+	}
+	csuDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 	// コマンドアロケータを作成.
 	for (int i = 0; i < frameBufferCount; ++i) {
 		if (FAILED(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator[i])))) {
@@ -338,6 +353,10 @@ bool InitializeD3D()
 	const XMMATRIX ortho = XMMatrixOrthographicLH(static_cast<float>(clientWidth), static_cast<float>(clientHeight), 1.0f, 1000.0f);
 	XMStoreFloat4x4(&matViewProjection, scaling * ortho);
 
+	CoInitialize(nullptr);
+	if (!Texture::Initialize(csuDescriptorHeap, commandList, csuDescriptorSize)) {
+		return false;
+	}
 	return true;
 }
 
@@ -345,6 +364,8 @@ void FinalizeD3D()
 {
 	WaitForGpu();
 	CloseHandle(fenceEvent);
+	Texture::Finalize();
+	CoUninitialize();
 }
 
 bool Render()
