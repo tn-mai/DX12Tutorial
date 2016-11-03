@@ -63,8 +63,6 @@ bool CreateIndexBuffer();
 void DrawTriangle();
 void DrawRectangle();
 
-bool LoadTexture(const wchar_t* filename);
-
 /// 頂点データ型.
 struct Vertex
 {
