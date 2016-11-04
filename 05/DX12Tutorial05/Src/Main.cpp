@@ -53,6 +53,7 @@ XMFLOAT4X4 matViewProjection;
 
 ComPtr<ID3D12DescriptorHeap> csuDescriptorHeap;
 int csuDescriptorSize;
+Texture::Texture texBackground;
 
 bool InitializeD3D();
 void FinalizeD3D();
@@ -72,31 +73,38 @@ struct Vertex
 {
 	XMFLOAT3 position;
 	XMFLOAT4 color;
+	XMFLOAT2 texcoord;
 };
 
 /// 頂点データ型のレイアウト.
 const D3D12_INPUT_ELEMENT_DESC vertexLayout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12 + 16, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 };
 
 /**
 * 頂点データ配列.
 */
 static const Vertex vertices[] = {
-	{ XMFLOAT3( 0.0f,  0.5f, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-	{ XMFLOAT3( 0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-	{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+	{ XMFLOAT3( 0.0f,  0.5f, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3( 0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
 
-	{ XMFLOAT3(-0.3f,  0.4f, 0.4f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-	{ XMFLOAT3( 0.2f,  0.4f, 0.4f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-	{ XMFLOAT3( 0.2f, -0.1f, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-	{ XMFLOAT3(-0.3f, -0.1f, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+	{ XMFLOAT3(-0.3f,  0.4f, 0.4f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3( 0.2f,  0.4f, 0.4f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3( 0.2f, -0.1f, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3(-0.3f, -0.1f, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
 
-	{ XMFLOAT3(-0.2f,  0.1f, 0.6f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-	{ XMFLOAT3( 0.3f,  0.1f, 0.6f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-	{ XMFLOAT3( 0.3f, -0.4f, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-	{ XMFLOAT3(-0.2f, -0.4f, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+	{ XMFLOAT3(-0.2f,  0.1f, 0.6f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3( 0.3f,  0.1f, 0.6f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3( 0.3f, -0.4f, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3(-0.2f, -0.4f, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+
+	{ XMFLOAT3(-1.0f,  1.0f, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3( 1.0f,  1.0f, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+	{ XMFLOAT3( 1.0f, -1.0f, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	{ XMFLOAT3(-1.0f, -1.0f, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 };
 
 /**
@@ -105,6 +113,7 @@ static const Vertex vertices[] = {
 static const uint32_t indices[] = {
 	0, 1, 2, 2, 3, 0,
 	4, 5, 6, 6, 7, 4,
+	8, 9,10,10,11, 8,
 };
 
 /// 三角形の描画で使用する頂点数.
@@ -311,9 +320,6 @@ bool InitializeD3D()
 	if (FAILED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator[currentFrameIndex].Get(), nullptr, IID_PPV_ARGS(&commandList)))) {
 		return false;
 	}
-	if (FAILED(commandList->Close())) {
-		return false;
-	}
 
 	// フェンスとフェンスイベントを作成.
 	if (FAILED(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)))) {
@@ -352,11 +358,23 @@ bool InitializeD3D()
 	const XMMATRIX scaling = XMMatrixScaling(100.0f, 100.0f, 1.0f);
 	const XMMATRIX ortho = XMMatrixOrthographicLH(static_cast<float>(clientWidth), static_cast<float>(clientHeight), 1.0f, 1000.0f);
 	XMStoreFloat4x4(&matViewProjection, scaling * ortho);
+	XMStoreFloat4x4(&matViewProjection, XMMatrixIdentity());
 
 	CoInitialize(nullptr);
 	if (!Texture::Initialize(csuDescriptorHeap, commandList, csuDescriptorSize)) {
 		return false;
 	}
+	ComPtr<ID3D12Resource> uploadBuffer = Texture::LoadFromFile(0, texBackground, L"Res/UnknownPlanet.png");
+	if (!uploadBuffer) {
+		return false;
+	}
+	if (FAILED(commandList->Close())) {
+		return false;
+	}
+	ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
+	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	WaitForGpu();
+
 	return true;
 }
 
@@ -389,6 +407,8 @@ bool Render()
 	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	ID3D12DescriptorHeap* heapList[] = { csuDescriptorHeap.Get() };
+	commandList->SetDescriptorHeaps(_countof(heapList), heapList);
 
 	DrawTriangle();
 	DrawRectangle();
@@ -466,12 +486,12 @@ bool CreatePSO()
 {
 	// 頂点シェーダを作成.
 	ComPtr<ID3DBlob> vertexShaderBlob;
-	if (!LoadShader(L"Res/VertexShader.hlsl", "vs_5_1", &vertexShaderBlob)) {
+	if (!LoadShader(L"Res/VertexShader.hlsl", "vs_5_0", &vertexShaderBlob)) {
 		return false;
 	}
 	// ピクセルシェーダを作成.
 	ComPtr<ID3DBlob> pixelShaderBlob;
-	if (!LoadShader(L"Res/PixelShader.hlsl", "ps_5_1", &pixelShaderBlob)) {
+	if (!LoadShader(L"Res/PixelShader.hlsl", "ps_5_0", &pixelShaderBlob)) {
 		return false;
 	}
 
@@ -480,13 +500,21 @@ bool CreatePSO()
 	// ルートシグネチャが正しく設定されていない場合でも、シグネチャの作成には成功することがある.
 	// しかしその場合、PSO作成時にエラーが発生する.
 	{
-		CD3DX12_ROOT_PARAMETER rootParameters[1];
+		D3D12_DESCRIPTOR_RANGE descRange[1] = {};
+		descRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		descRange[0].NumDescriptors = 1;
+		descRange[0].BaseShaderRegister = 0;
+		descRange[0].RegisterSpace = 0;
+		descRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		CD3DX12_ROOT_PARAMETER rootParameters[2];
 		rootParameters[0].InitAsConstants(16, 0, 0);
+		rootParameters[1].InitAsDescriptorTable(_countof(descRange), descRange);
+		D3D12_STATIC_SAMPLER_DESC staticSampler[] = { CD3DX12_STATIC_SAMPLER_DESC(0) };
 		D3D12_ROOT_SIGNATURE_DESC rsDesc = {
 			_countof(rootParameters),
 			rootParameters,
-			0,
-			nullptr,
+			_countof(staticSampler),
+			staticSampler,
 			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
 		};
 		ComPtr<ID3DBlob> signatureBlob;
@@ -595,6 +623,7 @@ void DrawTriangle()
 	commandList->SetPipelineState(pso.Get());
 	commandList->SetGraphicsRootSignature(rootSignature.Get());
 	commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
+	commandList->SetGraphicsRootDescriptorTable(1, texBackground.handle);
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissorRect);
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

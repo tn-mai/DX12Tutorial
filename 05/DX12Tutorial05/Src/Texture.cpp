@@ -170,9 +170,9 @@ bool Initialize(ComPtr<ID3D12DescriptorHeap> heap, ComPtr<ID3D12GraphicsCommandL
 */
 void Finalize()
 {
-	descriptorHeap.Reset();
 	device.Reset();
 	commandList.Reset();
+	descriptorHeap.Reset();
 	imagingFactory.Reset();
 }
 
@@ -213,7 +213,7 @@ bool LoadFromFile(const wchar_t* filename, std::vector<uint8_t>& imageData, D3D1
 		if (compatibleFormat == GUID_WICPixelFormatDontCare) {
 			return false;
 		}
-		dxgiFormat = GetDXGIFormatFromWICFormat(pixelFormat);
+		dxgiFormat = GetDXGIFormatFromWICFormat(compatibleFormat);
 		if (FAILED(imagingFactory->CreateFormatConverter(converter.GetAddressOf()))) {
 			return false;
 		}
@@ -267,20 +267,20 @@ bool LoadFromFile(const wchar_t* filename, std::vector<uint8_t>& imageData, D3D1
 * @param texture         読み込んだテクスチャを管理するオブジェクト.
 * @param filename        テクスチャファイル名.
 *
-* @retval true 読み込みに成功.
-* @retval false 読み込みに失敗.
+* @retval 非nullptr 読み込みに成功.
+* @retval nullptr 読み込みに失敗.
 */
-bool LoadFromFile(INT descriptorIndex, Texture& texture, const wchar_t* filename)
+ComPtr<ID3D12Resource> LoadFromFile(INT descriptorIndex, Texture& texture, const wchar_t* filename)
 {
 	if (!device || !descriptorHeap || !commandList) {
-		return false;
+		return nullptr;
 	}
 
 	D3D12_RESOURCE_DESC textureDesc;
 	int imageBytesPerRow;
 	std::vector<uint8_t> imageData;
 	if (!LoadFromFile(filename, imageData, textureDesc, imageBytesPerRow)) {
-		return false;
+		return nullptr;
 	}
 
 	UINT64 textureHeapSize;
@@ -294,7 +294,7 @@ bool LoadFromFile(INT descriptorIndex, Texture& texture, const wchar_t* filename
 		nullptr,
 		IID_PPV_ARGS(&texture.resource)
 	))) {
-		return false;
+		return nullptr;
 	}
 	texture.resource->SetName(filename);
 
@@ -307,14 +307,14 @@ bool LoadFromFile(INT descriptorIndex, Texture& texture, const wchar_t* filename
 		nullptr,
 		IID_PPV_ARGS(&uploadBuffer)
 	))) {
-		return false;
+		return nullptr;
 	}
 	D3D12_SUBRESOURCE_DATA subresource = {};
 	subresource.pData = imageData.data();
 	subresource.RowPitch = imageBytesPerRow;
 	subresource.SlicePitch = imageBytesPerRow * textureDesc.Height;
 	if (UpdateSubresources<1>(commandList.Get(), texture.resource.Get(), uploadBuffer.Get(), 0, 0, 1, &subresource) == 0) {
-		return false;
+		return nullptr;
 	}
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture.resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
@@ -328,7 +328,7 @@ bool LoadFromFile(INT descriptorIndex, Texture& texture, const wchar_t* filename
 	texture.handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, descriptorSize);
 	texture.format = textureDesc.Format;
 
-	return true;
+	return uploadBuffer;
 }
 
 } // namespace Texture

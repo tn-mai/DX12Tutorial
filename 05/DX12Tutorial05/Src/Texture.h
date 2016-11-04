@@ -26,7 +26,7 @@ struct Texture
 
 bool Initialize(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> cmdList, UINT descSize);
 void Finalize();
-bool LoadFromFile(INT descriptorIndex, Texture& texture, const wchar_t* filename);
+Microsoft::WRL::ComPtr<ID3D12Resource> LoadFromFile(INT descriptorIndex, Texture& texture, const wchar_t* filename);
 
 } // namespace Texture
 
