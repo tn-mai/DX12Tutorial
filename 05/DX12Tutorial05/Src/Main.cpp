@@ -34,6 +34,7 @@ ComPtr<ID3D12GraphicsCommandList> commandList;
 ComPtr<ID3D12Fence> fence;
 HANDLE fenceEvent;
 UINT64 fenceValue[frameBufferCount];
+UINT64 masterFenceValue;
 int currentFrameIndex;
 int rtvDescriptorSize;
 bool warp;
@@ -332,6 +333,7 @@ bool InitializeD3D()
 	for (int i = 0; i < frameBufferCount; ++i) {
 		fenceValue[i] = 0;
 	}
+	masterFenceValue = 1;
 
 	if (!CreatePSO()) {
 		return false;
@@ -424,33 +426,34 @@ bool Render()
 	if (FAILED(swapChain->Present(1, 0))) {
 		return false;
 	}
-
-	if (FAILED(commandQueue->Signal(fence.Get(), fenceValue[currentFrameIndex]))) {
+	fenceValue[currentFrameIndex] = masterFenceValue;
+	if (FAILED(commandQueue->Signal(fence.Get(), masterFenceValue))) {
 		return false;
 	}
+	++masterFenceValue;
 	return true;
 }
 
 bool WaitForPreviousFrame()
 {
-	if (fence->GetCompletedValue() < fenceValue[currentFrameIndex]) {
+	if (fenceValue[currentFrameIndex] && fence->GetCompletedValue() < fenceValue[currentFrameIndex]) {
 		if (FAILED(fence->SetEventOnCompletion(fenceValue[currentFrameIndex], fenceEvent))) {
 			return false;
 		}
 		WaitForSingleObject(fenceEvent, INFINITE);
 	}
-	++fenceValue[currentFrameIndex];
 	currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 	return true;
 }
 
 bool WaitForGpu()
 {
-	++fenceValue[currentFrameIndex];
-	if (FAILED(commandQueue->Signal(fence.Get(), fenceValue[currentFrameIndex]))) {
+	const UINT64 currentFenceValue = masterFenceValue;
+	if (FAILED(commandQueue->Signal(fence.Get(), currentFenceValue))) {
 		return false;
 	}
-	if (FAILED(fence->SetEventOnCompletion(fenceValue[currentFrameIndex], fenceEvent))) {
+	++masterFenceValue;
+	if (FAILED(fence->SetEventOnCompletion(currentFenceValue, fenceEvent))) {
 		return false;
 	}
 	WaitForSingleObject(fenceEvent, INFINITE);
