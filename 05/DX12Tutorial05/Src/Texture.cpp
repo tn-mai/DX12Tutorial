@@ -3,19 +3,11 @@
 */
 #include "Texture.h"
 #include "d3dx12.h"
-#include <wrl/client.h>
-#include <wincodec.h>
 
 namespace Texture
 {
 
 using Microsoft::WRL::ComPtr;
-
-ComPtr<ID3D12Device> device;
-ComPtr<IWICImagingFactory> imagingFactory;
-ComPtr<ID3D12DescriptorHeap> descriptorHeap;
-ComPtr<ID3D12GraphicsCommandList> commandList;
-UINT descriptorSize;
 
 /**
 * WICフォーマットから対応するDXGIフォーマットを得る.
@@ -119,46 +111,56 @@ WICPixelFormatGUID GetDXGICompatibleWICFormat(const WICPixelFormatGUID& wicForma
 }
 
 /**
-* DXGIフォーマットから1ピクセルのビット数を得る.
+* DXGIフォーマットから1ピクセルのバイト数を得る.
 *
 * @param dxgiFormat DXGIフォーマット.
 *
 * @return dxgiFormatに対応するビット数.
-*         対応するものがない場合は0を返す.
 */
-int GetDXGIFormatBitsPerPixel(DXGI_FORMAT dxgiFormat)
+int GetDXGIFormatBitesPerPixel(DXGI_FORMAT dxgiFormat)
 {
 	switch (dxgiFormat) {
-	case DXGI_FORMAT_R32G32B32A32_FLOAT: return 128;
-	case DXGI_FORMAT_R16G16B16A16_FLOAT: return 64;
-	case DXGI_FORMAT_R16G16B16A16_UNORM: return 64;
-	case DXGI_FORMAT_R8G8B8A8_UNORM: return 32;
-	case DXGI_FORMAT_B8G8R8A8_UNORM: return 32;
-	case DXGI_FORMAT_B8G8R8X8_UNORM: return 32;
-	case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM: return 32;
-	case DXGI_FORMAT_R10G10B10A2_UNORM: return 32;
-	case DXGI_FORMAT_B5G5R5A1_UNORM: return 16;
-	case DXGI_FORMAT_B5G6R5_UNORM: return 16;
-	case DXGI_FORMAT_R32_FLOAT: return 32;
-	case DXGI_FORMAT_R16_FLOAT: return 16;
-	case DXGI_FORMAT_R16_UNORM: return 16;
-	case DXGI_FORMAT_R8_UNORM: return 8;
-	case DXGI_FORMAT_A8_UNORM: return 8;
+	case DXGI_FORMAT_R32G32B32A32_FLOAT: return 16;
+	case DXGI_FORMAT_R16G16B16A16_FLOAT: return 8;
+	case DXGI_FORMAT_R16G16B16A16_UNORM: return 8;
+	case DXGI_FORMAT_R8G8B8A8_UNORM: return 4;
+	case DXGI_FORMAT_B8G8R8A8_UNORM: return 4;
+	case DXGI_FORMAT_B8G8R8X8_UNORM: return 4;
+	case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM: return 4;
+	case DXGI_FORMAT_R10G10B10A2_UNORM: return 4;
+	case DXGI_FORMAT_B5G5R5A1_UNORM: return 2;
+	case DXGI_FORMAT_B5G6R5_UNORM: return 2;
+	case DXGI_FORMAT_R32_FLOAT: return 4;
+	case DXGI_FORMAT_R16_FLOAT: return 2;
+	case DXGI_FORMAT_R16_UNORM: return 2;
+	case DXGI_FORMAT_R8_UNORM: return 1;
+	case DXGI_FORMAT_A8_UNORM: return 1;
+	default: return 1;
 	}
-	return 0;
 }
 
 /**
-* イメージローダーを初期化する.
+* テクスチャ読み込みを開始する.
+*
+* @param heap テクスチャ用のRTVデスクリプタ取得先のデスクリプタヒープ.
+*
+* @retval true  初期化成功.
+* @retval false 初期化失敗.
 */
-bool Initialize(ComPtr<ID3D12DescriptorHeap> heap, ComPtr<ID3D12GraphicsCommandList> cmdList, UINT descSize)
+bool TextureLoader::Begin(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap)
 {
 	descriptorHeap = heap;
-	commandList = cmdList;
-	descriptorSize = descSize;
 	if (FAILED(descriptorHeap->GetDevice(IID_PPV_ARGS(&device)))) {
 		return false;
 	}
+	if (FAILED(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)))) {
+		return false;
+	}
+	if (FAILED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)))) {
+		return false;
+	}
+	descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 	if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&imagingFactory)))) {
 		return false;
 	}
@@ -166,28 +168,89 @@ bool Initialize(ComPtr<ID3D12DescriptorHeap> heap, ComPtr<ID3D12GraphicsCommandL
 }
 
 /**
-* イメージローダーを破棄する.
+* テクスチャ読み込みを終了する.
+*
+* @return コマンドリストへのポインタ.
 */
-void Finalize()
+ID3D12GraphicsCommandList* TextureLoader::End()
 {
-	device.Reset();
-	commandList.Reset();
-	descriptorHeap.Reset();
-	imagingFactory.Reset();
+	commandList->Close();
+	return commandList.Get();
+}
+
+/**
+* バイト列からテクスチャを作成する.
+*
+* @param texture  作成したテクスチャを管理するオブジェクト.
+* @param index    作成したテクスチャ用のRTVデスクリプタのインデックス.
+* @param desc     テクスチャの詳細情報.
+* @param data     テクスチャ作成に使用するバイト列へのポインタ.
+* @param name     テクスチャリソースに付ける名前(デバッグ用). nullptrを渡すと名前を付けない.
+*
+* @retval true  作成成功.
+* @retval false 作成失敗.
+*/
+bool TextureLoader::Create(Texture& texture, int index, const D3D12_RESOURCE_DESC& desc, const void* data, const wchar_t* name)
+{
+	ComPtr<ID3D12Resource> textureBuffer;
+	if (FAILED(device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&textureBuffer)
+	))) {
+		return false;
+	}
+	if (name) {
+		textureBuffer->SetName(name);
+	}
+
+	UINT64 textureHeapSize;
+	device->GetCopyableFootprints(&desc, 0, 1, 0, nullptr, nullptr, nullptr, &textureHeapSize);
+	ComPtr<ID3D12Resource> uploadBuffer;
+	if (FAILED(device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(textureHeapSize),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&uploadBuffer)
+	))) {
+		return false;
+	}
+	const int bytesPerRow = static_cast<int>(desc.Width * GetDXGIFormatBitesPerPixel(desc.Format));
+	D3D12_SUBRESOURCE_DATA subresource = {};
+	subresource.pData = data;
+	subresource.RowPitch = bytesPerRow;
+	subresource.SlicePitch = bytesPerRow * desc.Height;
+	if (UpdateSubresources<1>(commandList.Get(), textureBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subresource) == 0) {
+		return false;
+	}
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(textureBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	uploadHeapList.push_back(uploadBuffer);
+
+	device->CreateShaderResourceView(textureBuffer.Get(), nullptr, CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeap->GetCPUDescriptorHandleForHeapStart(), index, descriptorSize));
+
+	texture.resource = textureBuffer;
+	texture.format = desc.Format;
+	texture.handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), index, descriptorSize);
+
+	return true;
 }
 
 /**
 * ファイルからテクスチャを読み込む.
 *
-* @param filename    テクスチャファイル名.
-* @param imageData   テクスチャデータの読み込み先バッファ.
-* @param desc        読み込んだテクスチャのリソース記述子.
-* @param bytgePerRow 読み込んだテクスチャの横1列のバイト数.
+* @param texture   読み込んだテクスチャを管理するオブジェクト.
+* @param index     読み込んだテクスチャ用のRTVデスクリプタのインデックス.
+* @param filename  テクスチャファイル名.
 *
-* @retval true 読み込みに成功.
-* @retval false 読み込みに失敗.
+* @retval true  読み込み成功.
+* @retval false 読み込み失敗.
 */
-bool LoadFromFile(const wchar_t* filename, std::vector<uint8_t>& imageData, D3D12_RESOURCE_DESC& desc, int& bytesPerRow)
+bool TextureLoader::LoadFromFile(Texture& texture, int index, const wchar_t* filename)
 {
 	ComPtr<IWICBitmapDecoder> decoder;
 	if (FAILED(imagingFactory->CreateDecoderFromFilename(filename, nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, decoder.GetAddressOf()))) {
@@ -229,9 +292,9 @@ bool LoadFromFile(const wchar_t* filename, std::vector<uint8_t>& imageData, D3D1
 		}
 		imageConverted = true;
 	}
-	const int bitsPerPixel = GetDXGIFormatBitsPerPixel(dxgiFormat);
-	bytesPerRow = (width * bitsPerPixel + 7) / 8;
+	const int bytesPerRow = width * GetDXGIFormatBitesPerPixel(dxgiFormat);
 	const int imageSize = bytesPerRow * height;
+	std::vector<uint8_t> imageData;
 	imageData.resize(imageSize);
 	if (imageConverted) {
 		if (FAILED(converter->CopyPixels(nullptr, bytesPerRow, imageSize, imageData.data()))) {
@@ -244,7 +307,7 @@ bool LoadFromFile(const wchar_t* filename, std::vector<uint8_t>& imageData, D3D1
 		}
 	}
 
-	desc = {};
+	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
 	desc.Width = width;
@@ -257,78 +320,10 @@ bool LoadFromFile(const wchar_t* filename, std::vector<uint8_t>& imageData, D3D1
 	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
+	if (!Create(texture, index, desc, imageData.data(), filename)) {
+		return false;
+	}
 	return true;
-}
-
-/**
-* ファイルからテクスチャを読み込む.
-*
-* @param descriptorIndex 読み込んだテクスチャを指すデスクリプタのインデックス.
-* @param texture         読み込んだテクスチャを管理するオブジェクト.
-* @param filename        テクスチャファイル名.
-*
-* @retval 非nullptr 読み込みに成功.
-* @retval nullptr 読み込みに失敗.
-*/
-ComPtr<ID3D12Resource> LoadFromFile(INT descriptorIndex, Texture& texture, const wchar_t* filename)
-{
-	if (!device || !descriptorHeap || !commandList) {
-		return nullptr;
-	}
-
-	D3D12_RESOURCE_DESC textureDesc;
-	int imageBytesPerRow;
-	std::vector<uint8_t> imageData;
-	if (!LoadFromFile(filename, imageData, textureDesc, imageBytesPerRow)) {
-		return nullptr;
-	}
-
-	UINT64 textureHeapSize;
-	device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &textureHeapSize);
-
-	if (FAILED(device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-		D3D12_HEAP_FLAG_NONE,
-		&textureDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		IID_PPV_ARGS(&texture.resource)
-	))) {
-		return nullptr;
-	}
-	texture.resource->SetName(filename);
-
-	ComPtr<ID3D12Resource> uploadBuffer;
-	if (FAILED(device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(textureHeapSize),
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&uploadBuffer)
-	))) {
-		return nullptr;
-	}
-	D3D12_SUBRESOURCE_DATA subresource = {};
-	subresource.pData = imageData.data();
-	subresource.RowPitch = imageBytesPerRow;
-	subresource.SlicePitch = imageBytesPerRow * textureDesc.Height;
-	if (UpdateSubresources<1>(commandList.Get(), texture.resource.Get(), uploadBuffer.Get(), 0, 0, 1, &subresource) == 0) {
-		return nullptr;
-	}
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture.resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = textureDesc.Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = 1;
-	device->CreateShaderResourceView(texture.resource.Get(), &srvDesc, CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeap->GetCPUDescriptorHandleForHeapStart(), descriptorIndex, descriptorSize));
-
-	texture.handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, descriptorSize);
-	texture.format = textureDesc.Format;
-
-	return uploadBuffer;
 }
 
 } // namespace Texture

@@ -54,6 +54,7 @@ XMFLOAT4X4 matViewProjection;
 
 ComPtr<ID3D12DescriptorHeap> csuDescriptorHeap;
 int csuDescriptorSize;
+Texture::Texture texNoise;
 Texture::Texture texBackground;
 
 bool InitializeD3D();
@@ -66,6 +67,7 @@ bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob);
 bool CreatePSO();
 bool CreateVertexBuffer();
 bool CreateIndexBuffer();
+bool CreateNoiseTexture(Texture::TextureLoader&);
 void DrawTriangle();
 void DrawRectangle();
 
@@ -81,26 +83,26 @@ struct Vertex
 const D3D12_INPUT_ELEMENT_DESC vertexLayout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12 + 16, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 };
 
 /**
 * 頂点データ配列.
 */
 static const Vertex vertices[] = {
-	{ XMFLOAT3( 0.0f,  0.5f, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-	{ XMFLOAT3( 0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-	{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3( 0.0f,  0.5f, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.5f, 0.0f) },
+	{ XMFLOAT3( 0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 
 	{ XMFLOAT3(-0.3f,  0.4f, 0.4f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-	{ XMFLOAT3( 0.2f,  0.4f, 0.4f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-	{ XMFLOAT3( 0.2f, -0.1f, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-	{ XMFLOAT3(-0.3f, -0.1f, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3( 0.2f,  0.4f, 0.4f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+	{ XMFLOAT3( 0.2f, -0.1f, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	{ XMFLOAT3(-0.3f, -0.1f, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 
 	{ XMFLOAT3(-0.2f,  0.1f, 0.6f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-	{ XMFLOAT3( 0.3f,  0.1f, 0.6f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-	{ XMFLOAT3( 0.3f, -0.4f, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-	{ XMFLOAT3(-0.2f, -0.4f, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3( 0.3f,  0.1f, 0.6f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+	{ XMFLOAT3( 0.3f, -0.4f, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	{ XMFLOAT3(-0.2f, -0.4f, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 
 	{ XMFLOAT3(-1.0f,  1.0f, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
 	{ XMFLOAT3( 1.0f,  1.0f, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
@@ -303,7 +305,7 @@ bool InitializeD3D()
 	// CBV/SRV/UAV用のデスクリプタヒープを作成.
 	D3D12_DESCRIPTOR_HEAP_DESC csuDesc = {};
 	csuDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	csuDesc.NumDescriptors = 1;
+	csuDesc.NumDescriptors = 2;
 	csuDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	if (FAILED(device->CreateDescriptorHeap(&csuDesc, IID_PPV_ARGS(&csuDescriptorHeap)))) {
 		return false;
@@ -319,6 +321,9 @@ bool InitializeD3D()
 
 	// コマンドリストを作成.
 	if (FAILED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator[currentFrameIndex].Get(), nullptr, IID_PPV_ARGS(&commandList)))) {
+		return false;
+	}
+	if (FAILED(commandList->Close())) {
 		return false;
 	}
 
@@ -363,17 +368,17 @@ bool InitializeD3D()
 	XMStoreFloat4x4(&matViewProjection, XMMatrixIdentity());
 
 	CoInitialize(nullptr);
-	if (!Texture::Initialize(csuDescriptorHeap, commandList, csuDescriptorSize)) {
+	Texture::TextureLoader loader;
+	if (!loader.Begin(csuDescriptorHeap)) {
 		return false;
 	}
-	ComPtr<ID3D12Resource> uploadBuffer = Texture::LoadFromFile(0, texBackground, L"Res/UnknownPlanet.png");
-	if (!uploadBuffer) {
+	if (!loader.LoadFromFile(texBackground, 0, L"Res/UnknownPlanet.png")) {
 		return false;
 	}
-	if (FAILED(commandList->Close())) {
+	if (!CreateNoiseTexture(loader)) {
 		return false;
 	}
-	ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
+	ID3D12CommandList* ppCommandLists[] = { loader.End() };
 	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	WaitForGpu();
 
@@ -384,7 +389,6 @@ void FinalizeD3D()
 {
 	WaitForGpu();
 	CloseHandle(fenceEvent);
-	Texture::Finalize();
 	CoUninitialize();
 }
 
@@ -626,7 +630,7 @@ void DrawTriangle()
 	commandList->SetPipelineState(pso.Get());
 	commandList->SetGraphicsRootSignature(rootSignature.Get());
 	commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
-	commandList->SetGraphicsRootDescriptorTable(1, texBackground.handle);
+	commandList->SetGraphicsRootDescriptorTable(1, texNoise.handle);
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissorRect);
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -639,6 +643,79 @@ void DrawTriangle()
 */
 void DrawRectangle()
 {
+	commandList->SetGraphicsRootDescriptorTable(1, texBackground.handle);
 	commandList->IASetIndexBuffer(&indexBufferView);
 	commandList->DrawIndexedInstanced(_countof(indices), 1, 0, triangleVertexCount, 0);
+}
+
+float NoiseSeed(float x, float y)
+{
+	float i;
+	return std::modf(std::sin(x * 12.9898f + y * 78.233f) * 43758.5453123f, &i);
+}
+
+float Noise(float x, float y)
+{
+	float iy;
+	const float fy = std::modf(y, &iy);
+	const float uy = fy * fy * (3.0f - 2.0f * fy);
+	float ix;
+	const float fx = std::modf(x, &ix);
+	const float ux = fx * fx * (3.0f - 2.0f * fx);
+	const float a = NoiseSeed(ix, iy);
+	const float b = NoiseSeed(ix + 1.0f, iy);
+	const float c = NoiseSeed(ix, iy + 1.0f);
+	const float d = NoiseSeed(ix + 1.0f, iy + 1.0f);
+	const float value = (a * (1.0f - ux) + b * ux) + (c - a) * uy * (1.0f - ux) + (d - b) * uy * ux;
+	if (value < 0.0f) {
+		return 0.0f;
+	}
+	return value;
+}
+
+/**
+* テクスチャを作成する.
+*/
+bool CreateNoiseTexture(Texture::TextureLoader& loader)
+{
+	D3D12_RESOURCE_DESC desc = {};
+	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Alignment = 0;
+	desc.Width = 128;
+	desc.Height = 128;
+	desc.DepthOrArraySize = 1;
+	desc.MipLevels = 1;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	std::vector<uint8_t> noise;
+	noise.resize(static_cast<size_t>(desc.Width * desc.Height) * 4);
+	uint8_t* p = noise.data();
+	for (float y = 0; y < desc.Height; ++y) {
+		const float fy = y / (desc.Height - 1);
+		for (float x = 0; x < desc.Width; ++x) {
+			const float fx = x / (desc.Width - 1);
+			float val = 0.0f;
+			float scale = 0.5f;
+			float freq = 4.0f;
+			for (int i = 0; i < 4; ++i) {
+				val += Noise(fx * freq, fy * freq) * scale;
+				scale *= 0.5f;
+				freq *= 2.0f;
+			}
+			const uint8_t col = static_cast<uint8_t>(val * 255.0f);
+			p[0] = col;
+			p[1] = col;
+			p[2] = col;
+			p[3] = 255;
+			p += 4;
+		}
+	}
+	if (!loader.Create(texNoise, 1, desc, noise.data(), L"texNoise")) {
+		return false;
+	}
+	return true;
 }
