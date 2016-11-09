@@ -67,6 +67,7 @@ bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob);
 bool CreatePSO();
 bool CreateVertexBuffer();
 bool CreateIndexBuffer();
+bool LoadTexture();
 bool CreateNoiseTexture(Texture::TextureLoader&);
 void DrawTriangle();
 void DrawRectangle();
@@ -349,6 +350,10 @@ bool InitializeD3D()
 	if (!CreateIndexBuffer()) {
 		return false;
 	}
+	CoInitialize(nullptr);
+	if (!LoadTexture()) {
+		return false;
+	}
 
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
@@ -366,21 +371,6 @@ bool InitializeD3D()
 	const XMMATRIX ortho = XMMatrixOrthographicLH(static_cast<float>(clientWidth), static_cast<float>(clientHeight), 1.0f, 1000.0f);
 	XMStoreFloat4x4(&matViewProjection, scaling * ortho);
 	XMStoreFloat4x4(&matViewProjection, XMMatrixIdentity());
-
-	CoInitialize(nullptr);
-	Texture::TextureLoader loader;
-	if (!loader.Begin(csuDescriptorHeap)) {
-		return false;
-	}
-	if (!loader.LoadFromFile(texBackground, 0, L"Res/UnknownPlanet.png")) {
-		return false;
-	}
-	if (!CreateNoiseTexture(loader)) {
-		return false;
-	}
-	ID3D12CommandList* ppCommandLists[] = { loader.End() };
-	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-	WaitForGpu();
 
 	return true;
 }
@@ -717,5 +707,26 @@ bool CreateNoiseTexture(Texture::TextureLoader& loader)
 	if (!loader.Create(texNoise, 1, desc, noise.data(), L"texNoise")) {
 		return false;
 	}
+	return true;
+}
+
+/**
+* テクスチャを読み込む.
+*/
+bool LoadTexture()
+{
+	Texture::TextureLoader loader;
+	if (!loader.Begin(csuDescriptorHeap)) {
+		return false;
+	}
+	if (!loader.LoadFromFile(texBackground, 0, L"Res/UnknownPlanet.png")) {
+		return false;
+	}
+	if (!CreateNoiseTexture(loader)) {
+		return false;
+	}
+	ID3D12CommandList* ppCommandLists[] = { loader.End() };
+	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	WaitForGpu();
 	return true;
 }
