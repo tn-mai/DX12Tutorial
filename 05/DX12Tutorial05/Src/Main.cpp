@@ -407,7 +407,7 @@ bool Render()
 	commandList->SetDescriptorHeaps(_countof(heapList), heapList);
 
 	DrawTriangle();
-	DrawRectangle();
+	//DrawRectangle();
 
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargetList[currentFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
@@ -497,12 +497,7 @@ bool CreatePSO()
 	// ルートシグネチャが正しく設定されていない場合でも、シグネチャの作成には成功することがある.
 	// しかしその場合、PSO作成時にエラーが発生する.
 	{
-		D3D12_DESCRIPTOR_RANGE descRange[1] = {};
-		descRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		descRange[0].NumDescriptors = 1;
-		descRange[0].BaseShaderRegister = 0;
-		descRange[0].RegisterSpace = 0;
-		descRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		D3D12_DESCRIPTOR_RANGE descRange[] = { CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0) };
 		CD3DX12_ROOT_PARAMETER rootParameters[2];
 		rootParameters[0].InitAsConstants(16, 0, 0);
 		rootParameters[1].InitAsDescriptorTable(_countof(descRange), descRange);
@@ -668,22 +663,26 @@ float Noise(float x, float y)
 */
 bool CreateNoiseTexture(Texture::TextureLoader& loader)
 {
-	D3D12_RESOURCE_DESC desc = {};
-	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	desc.Alignment = 0;
-	desc.Width = 128;
-	desc.Height = 128;
-	desc.DepthOrArraySize = 1;
-	desc.MipLevels = 1;
-	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.SampleDesc.Count = 1;
-	desc.SampleDesc.Quality = 0;
-	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
+	const D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 256, 256);
 	std::vector<uint8_t> noise;
 	noise.resize(static_cast<size_t>(desc.Width * desc.Height) * 4);
 	uint8_t* p = noise.data();
+#if 1
+	for (float y = 0; y < desc.Height; ++y) {
+		const float fy = (y / (desc.Height - 1) * 2.0f) - 1.35f;
+		for (float x = 0; x < desc.Width; ++x) {
+			const float fx = (x / (desc.Width - 1) * 2.0f) - 1.0f;
+			const float distance = std::sqrt(fx * fx + fy * fy);
+			const float t = 0.02f / std::abs(0.1f - std::fmod(distance, 0.2f));
+			const uint8_t col = t < 1.0f ? static_cast<uint8_t>(t * 255.0f) : 255;
+			p[0] = col;
+			p[1] = col;
+			p[2] = col;
+			p[3] = 255;
+			p += 4;
+		}
+	}
+#else
 	for (float y = 0; y < desc.Height; ++y) {
 		const float fy = y / (desc.Height - 1);
 		for (float x = 0; x < desc.Width; ++x) {
@@ -704,10 +703,8 @@ bool CreateNoiseTexture(Texture::TextureLoader& loader)
 			p += 4;
 		}
 	}
-	if (!loader.Create(texNoise, 1, desc, noise.data(), L"texNoise")) {
-		return false;
-	}
-	return true;
+#endif
+	return loader.Create(texNoise, 1, desc, noise.data(), L"texNoise");
 }
 
 /**
