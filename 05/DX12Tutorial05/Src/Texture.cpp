@@ -12,12 +12,12 @@ using Microsoft::WRL::ComPtr;
 /**
 * WICフォーマットから対応するDXGIフォーマットを得る.
 *
-* @param wicFormatGUID WICフォーマット.
+* @param wicFormat WICフォーマットを示すGUID.
 *
-* @return wicFormatGUIDに対応するDXGIフォーマット.
+* @return wicFormatに対応するDXGIフォーマット.
 *         対応するフォーマットが見つからない場合はDXGI_FORMAT_UNKNOWNを返す.
 */
-DXGI_FORMAT GetDXGIFormatFromWICFormat(const WICPixelFormatGUID& wicFormatGUID)
+DXGI_FORMAT GetDXGIFormatFromWICFormat(const WICPixelFormatGUID& wicFormat)
 {
 	static const struct {
 		WICPixelFormatGUID guid;
@@ -39,9 +39,9 @@ DXGI_FORMAT GetDXGIFormatFromWICFormat(const WICPixelFormatGUID& wicFormatGUID)
 		{ GUID_WICPixelFormat8bppGray, DXGI_FORMAT_R8_UNORM },
 		{ GUID_WICPixelFormat8bppAlpha, DXGI_FORMAT_A8_UNORM },
 	};
-	for (int i = 0; i < _countof(wicToDxgiList); ++i) {
-		if (wicToDxgiList[i].guid == wicFormatGUID) {
-			return wicToDxgiList[i].format;
+	for (auto e : wicToDxgiList) {
+		if (e.guid == wicFormat) {
+			return e.format;
 		}
 	}
 	return DXGI_FORMAT_UNKNOWN;
@@ -50,17 +50,16 @@ DXGI_FORMAT GetDXGIFormatFromWICFormat(const WICPixelFormatGUID& wicFormatGUID)
 /**
 * 任意のWICフォーマットからDXGIフォーマットと互換性のあるWICフォーマットを得る.
 *
-* @param wicFormatGUID WICフォーマット.
+* @param wicFormat WICフォーマットのGUID.
 *
 * @return DXGIフォーマットと互換性のあるWICフォーマット.
 *         元の形式をできるだけ再現できるようなフォーマットが選ばれる.
 *         そのようなフォーマットが見つからない場合はGUID_WICPixelFormatDontCareを返す.
 */
-WICPixelFormatGUID GetDXGICompatibleWICFormat(const WICPixelFormatGUID& wicFormatGUID)
+WICPixelFormatGUID GetDXGICompatibleWICFormat(const WICPixelFormatGUID& wicFormat)
 {
 	static const struct {
-		WICPixelFormatGUID guid;
-		WICPixelFormatGUID compatible;
+		WICPixelFormatGUID guid, compatible;
 	} guidToCompatibleList[] = {
 		{ GUID_WICPixelFormatBlackWhite, GUID_WICPixelFormat8bppGray },
 		{ GUID_WICPixelFormat1bppIndexed, GUID_WICPixelFormat32bppRGBA },
@@ -102,9 +101,9 @@ WICPixelFormatGUID GetDXGICompatibleWICFormat(const WICPixelFormatGUID& wicForma
 		{ GUID_WICPixelFormat64bppRGB, GUID_WICPixelFormat64bppRGBA },
 		{ GUID_WICPixelFormat64bppPRGBAHalf, GUID_WICPixelFormat64bppRGBAHalf },
 	};
-	for (int i = 0; i < _countof(guidToCompatibleList); ++i) {
-		if (guidToCompatibleList[i].guid == wicFormatGUID) {
-			return guidToCompatibleList[i].compatible;
+	for (auto e : guidToCompatibleList) {
+		if (e.guid == wicFormat) {
+			return e.compatible;
 		}
 	}
 	return GUID_WICPixelFormatDontCare;
@@ -260,19 +259,19 @@ bool TextureLoader::LoadFromFile(Texture& texture, int index, const wchar_t* fil
 	if (FAILED(decoder->GetFrame(0, frame.GetAddressOf()))) {
 		return false;
 	}
-	WICPixelFormatGUID pixelFormat;
-	if (FAILED(frame->GetPixelFormat(&pixelFormat))) {
+	WICPixelFormatGUID wicFormat;
+	if (FAILED(frame->GetPixelFormat(&wicFormat))) {
 		return false;
 	}
 	UINT width, height;
 	if (FAILED(frame->GetSize(&width, &height))) {
 		return false;
 	}
-	DXGI_FORMAT dxgiFormat = GetDXGIFormatFromWICFormat(pixelFormat);
+	DXGI_FORMAT dxgiFormat = GetDXGIFormatFromWICFormat(wicFormat);
 	bool imageConverted = false;
 	ComPtr<IWICFormatConverter> converter;
 	if (dxgiFormat == DXGI_FORMAT_UNKNOWN) {
-		const WICPixelFormatGUID compatibleFormat = GetDXGICompatibleWICFormat(pixelFormat);
+		const WICPixelFormatGUID compatibleFormat = GetDXGICompatibleWICFormat(wicFormat);
 		if (compatibleFormat == GUID_WICPixelFormatDontCare) {
 			return false;
 		}
@@ -281,13 +280,13 @@ bool TextureLoader::LoadFromFile(Texture& texture, int index, const wchar_t* fil
 			return false;
 		}
 		BOOL canConvert = FALSE;
-		if (FAILED(converter->CanConvert(pixelFormat, compatibleFormat, &canConvert))) {
+		if (FAILED(converter->CanConvert(wicFormat, compatibleFormat, &canConvert))) {
 			return false;
 		}
 		if (!canConvert) {
 			return false;
 		}
-		if (FAILED(converter->Initialize(frame.Get(), compatibleFormat, WICBitmapDitherTypeNone, 0, 0, WICBitmapPaletteTypeCustom))) {
+		if (FAILED(converter->Initialize(frame.Get(), compatibleFormat, WICBitmapDitherTypeNone, nullptr, 0, WICBitmapPaletteTypeCustom))) {
 			return false;
 		}
 		imageConverted = true;
@@ -300,26 +299,13 @@ bool TextureLoader::LoadFromFile(Texture& texture, int index, const wchar_t* fil
 		if (FAILED(converter->CopyPixels(nullptr, bytesPerRow, imageSize, imageData.data()))) {
 			return false;
 		}
-	}
-	else {
+	} else {
 		if (FAILED(frame->CopyPixels(nullptr, bytesPerRow, imageSize, imageData.data()))) {
 			return false;
 		}
 	}
 
-	D3D12_RESOURCE_DESC desc = {};
-	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	desc.Alignment = 0;
-	desc.Width = width;
-	desc.Height = height;
-	desc.DepthOrArraySize = 1;
-	desc.MipLevels = 1;
-	desc.Format = dxgiFormat;
-	desc.SampleDesc.Count = 1;
-	desc.SampleDesc.Quality = 0;
-	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
+	const D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(dxgiFormat, width, height, 1, 1);
 	if (!Create(texture, index, desc, imageData.data(), filename)) {
 		return false;
 	}

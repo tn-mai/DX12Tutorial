@@ -125,6 +125,8 @@ const UINT triangleVertexCount = 3;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
+	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
 	WNDCLASSEX wc = {};
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -171,6 +173,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		}
 	}
 	FinalizeD3D();
+
+	CoUninitialize();
 
 	return 0;
 }
@@ -306,7 +310,7 @@ bool InitializeD3D()
 	// CBV/SRV/UAV用のデスクリプタヒープを作成.
 	D3D12_DESCRIPTOR_HEAP_DESC csuDesc = {};
 	csuDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	csuDesc.NumDescriptors = 2;
+	csuDesc.NumDescriptors = 1024;
 	csuDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	if (FAILED(device->CreateDescriptorHeap(&csuDesc, IID_PPV_ARGS(&csuDescriptorHeap)))) {
 		return false;
@@ -350,7 +354,6 @@ bool InitializeD3D()
 	if (!CreateIndexBuffer()) {
 		return false;
 	}
-	CoInitialize(nullptr);
 	if (!LoadTexture()) {
 		return false;
 	}
@@ -379,7 +382,6 @@ void FinalizeD3D()
 {
 	WaitForGpu();
 	CloseHandle(fenceEvent);
-	CoUninitialize();
 }
 
 bool Render()
@@ -407,7 +409,7 @@ bool Render()
 	commandList->SetDescriptorHeaps(_countof(heapList), heapList);
 
 	DrawTriangle();
-	//DrawRectangle();
+	DrawRectangle();
 
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargetList[currentFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
@@ -663,7 +665,7 @@ float Noise(float x, float y)
 */
 bool CreateNoiseTexture(Texture::TextureLoader& loader)
 {
-	const D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 256, 256);
+	const D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 256, 256, 1, 1);
 	std::vector<uint8_t> noise;
 	noise.resize(static_cast<size_t>(desc.Width * desc.Height) * 4);
 	uint8_t* p = noise.data();
