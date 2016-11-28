@@ -50,7 +50,6 @@ D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
 D3D12_VIEWPORT viewport;
 D3D12_RECT scissorRect;
-XMFLOAT4X4 matViewProjection;
 
 ComPtr<ID3D12DescriptorHeap> csuDescriptorHeap;
 int csuDescriptorSize;
@@ -157,7 +156,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
-	InitializeD3D();
+	if (!InitializeD3D()) {
+		return 0;
+	}
 
 	for (;;) {
 		MSG msg = {};
@@ -370,11 +371,6 @@ bool InitializeD3D()
 	scissorRect.right = clientWidth;
 	scissorRect.bottom = clientHeight;
 
-	const XMMATRIX scaling = XMMatrixScaling(100.0f, 100.0f, 1.0f);
-	const XMMATRIX ortho = XMMatrixOrthographicLH(static_cast<float>(clientWidth), static_cast<float>(clientHeight), 1.0f, 1000.0f);
-	XMStoreFloat4x4(&matViewProjection, scaling * ortho);
-	XMStoreFloat4x4(&matViewProjection, XMMatrixIdentity());
-
 	return true;
 }
 
@@ -500,9 +496,8 @@ bool CreatePSO()
 	// ‚µ‚©‚µ‚»‚Ìê‡APSOì¬Žž‚ÉƒGƒ‰[‚ª”­¶‚·‚é.
 	{
 		D3D12_DESCRIPTOR_RANGE descRange[] = { CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0) };
-		CD3DX12_ROOT_PARAMETER rootParameters[2];
-		rootParameters[0].InitAsConstants(16, 0, 0);
-		rootParameters[1].InitAsDescriptorTable(_countof(descRange), descRange);
+		CD3DX12_ROOT_PARAMETER rootParameters[1];
+		rootParameters[0].InitAsDescriptorTable(_countof(descRange), descRange);
 		D3D12_STATIC_SAMPLER_DESC staticSampler[] = { CD3DX12_STATIC_SAMPLER_DESC(0) };
 		D3D12_ROOT_SIGNATURE_DESC rsDesc = {
 			_countof(rootParameters),
@@ -616,8 +611,7 @@ void DrawTriangle()
 {
 	commandList->SetPipelineState(pso.Get());
 	commandList->SetGraphicsRootSignature(rootSignature.Get());
-	commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
-	commandList->SetGraphicsRootDescriptorTable(1, texNoise.handle);
+	commandList->SetGraphicsRootDescriptorTable(0, texNoise.handle);
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissorRect);
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -630,7 +624,7 @@ void DrawTriangle()
 */
 void DrawRectangle()
 {
-	commandList->SetGraphicsRootDescriptorTable(1, texBackground.handle);
+	commandList->SetGraphicsRootDescriptorTable(0, texBackground.handle);
 	commandList->IASetIndexBuffer(&indexBufferView);
 	commandList->DrawIndexedInstanced(_countof(indices), 1, 0, triangleVertexCount, 0);
 }
