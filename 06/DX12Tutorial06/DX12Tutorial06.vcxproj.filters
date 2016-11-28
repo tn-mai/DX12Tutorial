@@ -37,6 +37,9 @@
     <FxCompile Include="Res\PixelShader.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="Res\NoiseTexture.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Res\UnknownPlanet.png">

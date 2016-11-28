@@ -39,8 +39,24 @@ int currentFrameIndex;
 int rtvDescriptorSize;
 bool warp;
 
-ComPtr<ID3D12RootSignature> rootSignature;
-ComPtr<ID3D12PipelineState> pso;
+/**
+* ルートシグネチャとPSOをまとめた構造体.
+*/
+struct PSO
+{
+	ComPtr<ID3D12RootSignature> rootSignature;
+	ComPtr<ID3D12PipelineState> pso;
+};
+std::vector<PSO> psoList;
+
+/**
+* PSOの種類.
+*/
+enum PSOType {
+	PSOType_Simple,
+	PSOType_NoiseTexture,
+	countof_PSOType
+};
 
 ComPtr<ID3D12Resource> vertexBuffer;
 D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
@@ -64,7 +80,8 @@ bool WaitForPreviousFrame();
 bool WaitForGpu();
 
 bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob);
-bool CreatePSO();
+bool CreatePSOList();
+bool CreatePSO(PSO&, const wchar_t* vs, const wchar_t* ps);
 bool CreateVertexBuffer();
 bool CreateIndexBuffer();
 bool LoadTexture();
@@ -347,7 +364,7 @@ bool InitializeD3D()
 	}
 	masterFenceValue = 1;
 
-	if (!CreatePSO()) {
+	if (!CreatePSOList()) {
 		return false;
 	}
 	if (!CreateVertexBuffer()) {
@@ -480,17 +497,24 @@ bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob)
 
 /**
 * ルートシグネチャとPSOを作成する.
+*
+* @param pso 作成するPSOオブジェクト.
+* @param vs  作成するPSOに設定する頂点シェーダファイル名.
+* @param ps  作成するPSOに設定するピクセルシェーダファイル名.
+*
+* @retval true  作成成功.
+* @retval false 作成失敗.
 */
-bool CreatePSO()
+bool CreatePSO(PSO& pso, const wchar_t* vs, const wchar_t* ps)
 {
 	// 頂点シェーダを作成.
 	ComPtr<ID3DBlob> vertexShaderBlob;
-	if (!LoadShader(L"Res/VertexShader.hlsl", "vs_5_0", &vertexShaderBlob)) {
+	if (!LoadShader(vs, "vs_5_0", &vertexShaderBlob)) {
 		return false;
 	}
 	// ピクセルシェーダを作成.
 	ComPtr<ID3DBlob> pixelShaderBlob;
-	if (!LoadShader(L"Res/PixelShader.hlsl", "ps_5_0", &pixelShaderBlob)) {
+	if (!LoadShader(ps, "ps_5_0", &pixelShaderBlob)) {
 		return false;
 	}
 
@@ -515,7 +539,7 @@ bool CreatePSO()
 		if (FAILED(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &signatureBlob, nullptr))) {
 			return false;
 		}
-		if (FAILED(device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)))) {
+		if (FAILED(device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&pso.rootSignature)))) {
 			return false;
 		}
 	}
@@ -524,7 +548,7 @@ bool CreatePSO()
 	// PSOは、レンダリングパイプラインの状態を素早く、一括して変更できるように導入された.
 	// PSOによって、多くのステートに対してそれぞれ状態変更コマンドを送らずとも、単にPSOを切り替えるコマンドを送るだけで済む.
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	psoDesc.pRootSignature = rootSignature.Get();
+	psoDesc.pRootSignature = pso.rootSignature.Get();
 	psoDesc.VS = { vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize() };
 	psoDesc.PS = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -541,7 +565,22 @@ bool CreatePSO()
 	if (warp) {
 		psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG;
 	}
-	if (FAILED(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)))) {
+	if (FAILED(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso.pso)))) {
+		return false;
+	}
+	return true;
+}
+
+/**
+* PSOを作成する.
+*/
+bool CreatePSOList()
+{
+	psoList.resize(countof_PSOType);
+	if (!CreatePSO(psoList[PSOType_Simple], L"Res/VertexShader.hlsl", L"Res/PixelShader.hlsl")) {
+		return false;
+	}
+	if (!CreatePSO(psoList[PSOType_NoiseTexture], L"Res/VertexShader.hlsl", L"Res/NoiseTexture.hlsl")) {
 		return false;
 	}
 	return true;
@@ -614,8 +653,9 @@ bool CreateIndexBuffer()
 */
 void DrawTriangle()
 {
-	commandList->SetPipelineState(pso.Get());
-	commandList->SetGraphicsRootSignature(rootSignature.Get());
+	PSO& pso = psoList[PSOType_Simple];
+	commandList->SetPipelineState(pso.pso.Get());
+	commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
 	commandList->SetGraphicsRootDescriptorTable(0, texNoise.handle);
 	commandList->SetGraphicsRoot32BitConstants(1, 16, &matViewProjection, 0);
 	commandList->RSSetViewports(1, &viewport);
@@ -630,6 +670,9 @@ void DrawTriangle()
 */
 void DrawRectangle()
 {
+	PSO& pso = psoList[PSOType_NoiseTexture];
+	commandList->SetPipelineState(pso.pso.Get());
+	commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
 	commandList->SetGraphicsRootDescriptorTable(0, texBackground.handle);
 	commandList->IASetIndexBuffer(&indexBufferView);
 	commandList->DrawIndexedInstanced(_countof(indices), 1, 0, triangleVertexCount, 0);
