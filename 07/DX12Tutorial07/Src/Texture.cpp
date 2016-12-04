@@ -177,6 +177,47 @@ ID3D12GraphicsCommandList* TextureLoader::End()
 	return commandList.Get();
 }
 
+/*
+* データをデフォルトヒープに転送する.
+*/
+bool TextureLoader::Upload(Microsoft::WRL::ComPtr<ID3D12Resource>& defaultHeap, const D3D12_RESOURCE_DESC& desc, D3D12_SUBRESOURCE_DATA data, D3D12_RESOURCE_STATES stateAfter, const wchar_t* name)
+{
+	if (FAILED(device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&defaultHeap)
+	))) {
+		return false;
+	}
+	if (name) {
+		defaultHeap->SetName(name);
+	}
+
+	UINT64 heapSize;
+	device->GetCopyableFootprints(&desc, 0, 1, 0, nullptr, nullptr, nullptr, &heapSize);
+	ComPtr<ID3D12Resource> uploadHeap;
+	if (FAILED(device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(heapSize),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&uploadHeap)
+	))) {
+		return false;
+	}
+	if (UpdateSubresources<1>(commandList.Get(), defaultHeap.Get(), uploadHeap.Get(), 0, 0, 1, &data) == 0) {
+		return false;
+	}
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(defaultHeap.Get(), D3D12_RESOURCE_STATE_COPY_DEST, stateAfter));
+	uploadHeapList.push_back(uploadHeap);
+
+	return true;
+}
+
 /**
 * バイト列からテクスチャを作成する.
 *
@@ -192,43 +233,11 @@ ID3D12GraphicsCommandList* TextureLoader::End()
 bool TextureLoader::Create(Texture& texture, int index, const D3D12_RESOURCE_DESC& desc, const void* data, const wchar_t* name)
 {
 	ComPtr<ID3D12Resource> textureBuffer;
-	if (FAILED(device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-		D3D12_HEAP_FLAG_NONE,
-		&desc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		IID_PPV_ARGS(&textureBuffer)
-	))) {
-		return false;
-	}
-	if (name) {
-		textureBuffer->SetName(name);
-	}
-
-	UINT64 textureHeapSize;
-	device->GetCopyableFootprints(&desc, 0, 1, 0, nullptr, nullptr, nullptr, &textureHeapSize);
-	ComPtr<ID3D12Resource> uploadBuffer;
-	if (FAILED(device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(textureHeapSize),
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&uploadBuffer)
-	))) {
-		return false;
-	}
 	const int bytesPerRow = static_cast<int>(desc.Width * GetDXGIFormatBitesPerPixel(desc.Format));
-	D3D12_SUBRESOURCE_DATA subresource = {};
-	subresource.pData = data;
-	subresource.RowPitch = bytesPerRow;
-	subresource.SlicePitch = bytesPerRow * desc.Height;
-	if (UpdateSubresources<1>(commandList.Get(), textureBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subresource) == 0) {
+	D3D12_SUBRESOURCE_DATA subresource = { data, bytesPerRow, static_cast<LONG_PTR>(bytesPerRow * desc.Height) };
+	if (!Upload(textureBuffer, desc, subresource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, name)) {
 		return false;
 	}
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(textureBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	uploadHeapList.push_back(uploadBuffer);
 
 	device->CreateShaderResourceView(textureBuffer.Get(), nullptr, CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeap->GetCPUDescriptorHandleForHeapStart(), index, descriptorSize));
 

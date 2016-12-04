@@ -43,6 +43,7 @@ public:
 	~TextureLoader() = default;
 	bool Begin(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap);
 	ID3D12GraphicsCommandList* End();
+	bool Upload(Microsoft::WRL::ComPtr<ID3D12Resource>& defaultHeap, const D3D12_RESOURCE_DESC& desc, D3D12_SUBRESOURCE_DATA data, D3D12_RESOURCE_STATES stateAfter, const wchar_t* name = nullptr);
 	bool Create(Texture& texture, int index, const D3D12_RESOURCE_DESC& desc, const void* data, const wchar_t* name = nullptr);
 	bool LoadFromFile(Texture& texture, int index, const wchar_t* filename);
 
