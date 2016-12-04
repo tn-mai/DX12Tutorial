@@ -21,7 +21,7 @@ const D3D12_INPUT_ELEMENT_DESC vertexLayout[] = {
 };
 
 bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob);
-bool CreatePSO(PSO&, ID3D12Device* device, bool warp, const wchar_t* vs, const wchar_t* ps);
+bool CreatePSO(PSO& pso, ID3D12Device* device, bool warp, const wchar_t* vs, const wchar_t* ps, const D3D12_BLEND_DESC& blendDesc);
 
 /**
 * シェーダを読み込む.
