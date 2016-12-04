@@ -139,14 +139,14 @@ int GetDXGIFormatBitesPerPixel(DXGI_FORMAT dxgiFormat)
 }
 
 /**
-* テクスチャ読み込みを開始する.
+* リソース読み込みを開始する.
 *
 * @param heap テクスチャ用のRTVデスクリプタ取得先のデスクリプタヒープ.
 *
 * @retval true  初期化成功.
 * @retval false 初期化失敗.
 */
-bool TextureLoader::Begin(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap)
+bool ResourceLoader::Begin(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap)
 {
 	descriptorHeap = heap;
 	if (FAILED(descriptorHeap->GetDevice(IID_PPV_ARGS(&device)))) {
@@ -167,11 +167,11 @@ bool TextureLoader::Begin(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap)
 }
 
 /**
-* テクスチャ読み込みを終了する.
+* リソース読み込みを終了する.
 *
 * @return コマンドリストへのポインタ.
 */
-ID3D12GraphicsCommandList* TextureLoader::End()
+ID3D12GraphicsCommandList* ResourceLoader::End()
 {
 	commandList->Close();
 	return commandList.Get();
@@ -180,7 +180,7 @@ ID3D12GraphicsCommandList* TextureLoader::End()
 /*
 * データをデフォルトヒープに転送する.
 */
-bool TextureLoader::Upload(Microsoft::WRL::ComPtr<ID3D12Resource>& defaultHeap, const D3D12_RESOURCE_DESC& desc, D3D12_SUBRESOURCE_DATA data, D3D12_RESOURCE_STATES stateAfter, const wchar_t* name)
+bool ResourceLoader::Upload(Microsoft::WRL::ComPtr<ID3D12Resource>& defaultHeap, const D3D12_RESOURCE_DESC& desc, D3D12_SUBRESOURCE_DATA data, D3D12_RESOURCE_STATES stateAfter, const wchar_t* name)
 {
 	if (FAILED(device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
@@ -230,7 +230,7 @@ bool TextureLoader::Upload(Microsoft::WRL::ComPtr<ID3D12Resource>& defaultHeap, 
 * @retval true  作成成功.
 * @retval false 作成失敗.
 */
-bool TextureLoader::Create(Texture& texture, int index, const D3D12_RESOURCE_DESC& desc, const void* data, const wchar_t* name)
+bool ResourceLoader::Create(Texture& texture, int index, const D3D12_RESOURCE_DESC& desc, const void* data, const wchar_t* name)
 {
 	ComPtr<ID3D12Resource> textureBuffer;
 	const int bytesPerRow = static_cast<int>(desc.Width * GetDXGIFormatBitesPerPixel(desc.Format));
@@ -258,7 +258,7 @@ bool TextureLoader::Create(Texture& texture, int index, const D3D12_RESOURCE_DES
 * @retval true  読み込み成功.
 * @retval false 読み込み失敗.
 */
-bool TextureLoader::LoadFromFile(Texture& texture, int index, const wchar_t* filename)
+bool ResourceLoader::LoadFromFile(Texture& texture, int index, const wchar_t* filename)
 {
 	ComPtr<IWICBitmapDecoder> decoder;
 	if (FAILED(imagingFactory->CreateDecoderFromFilename(filename, nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad, decoder.GetAddressOf()))) {

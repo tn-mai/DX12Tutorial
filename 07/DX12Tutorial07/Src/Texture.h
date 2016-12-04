@@ -26,21 +26,21 @@ struct Texture
 };
 
 /**
-* テクスチャ読み込みクラス.
+* リソース読み込みクラス.
 *
 * テクスチャの作成・読み込みの手順.
-* -# TextureLoaderオブジェクトを作成する.
+* -# ResourceLoaderオブジェクトを作成する.
 * -# Beginを呼ぶ.
 * -# Create, LoadFromFileでテクスチャを作成または読み込む.
 * -# Endでデータ転送用コマンドリストを取得し、コマンドキューに積んで実行.
-* -# TextureLoaderオブジェクトを破棄する.
+* -# ResourceLoaderオブジェクトを破棄する.
 *    データ転送用バッファはこのタイミングで解放される.
 */
-class TextureLoader
+class ResourceLoader
 {
 public:
-	TextureLoader() = default;
-	~TextureLoader() = default;
+	ResourceLoader() = default;
+	~ResourceLoader() = default;
 	bool Begin(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap);
 	ID3D12GraphicsCommandList* End();
 	bool Upload(Microsoft::WRL::ComPtr<ID3D12Resource>& defaultHeap, const D3D12_RESOURCE_DESC& desc, D3D12_SUBRESOURCE_DATA data, D3D12_RESOURCE_STATES stateAfter, const wchar_t* name = nullptr);

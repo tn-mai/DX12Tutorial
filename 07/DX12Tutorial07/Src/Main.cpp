@@ -63,7 +63,7 @@ bool WaitForGpu();
 bool CreateVertexBuffer();
 bool CreateIndexBuffer();
 bool LoadTexture();
-bool CreateNoiseTexture(Texture::TextureLoader&);
+bool CreateNoiseTexture(Texture::ResourceLoader&);
 void DrawTriangle();
 void DrawRectangle();
 
@@ -569,7 +569,7 @@ float Noise(float x, float y)
 /**
 * テクスチャを作成する.
 */
-bool CreateNoiseTexture(Texture::TextureLoader& loader)
+bool CreateNoiseTexture(Texture::ResourceLoader& loader)
 {
 	const D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 256, 256, 1, 1);
 	std::vector<uint8_t> noise;
@@ -620,7 +620,7 @@ bool CreateNoiseTexture(Texture::TextureLoader& loader)
 */
 bool LoadTexture()
 {
-	Texture::TextureLoader loader;
+	Texture::ResourceLoader loader;
 	if (!loader.Begin(csuDescriptorHeap)) {
 		return false;
 	}
