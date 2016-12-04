@@ -8,6 +8,7 @@
 #include <wrl/client.h>
 #include "Texture.h"
 #include "PSO.h"
+#include "Sprite.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -53,6 +54,9 @@ ComPtr<ID3D12DescriptorHeap> csuDescriptorHeap;
 int csuDescriptorSize;
 Resource::Texture texNoise;
 Resource::Texture texBackground;
+
+std::vector<Sprite::Sprite> spriteList;
+Sprite::Renderer spriteRenderer;
 
 bool InitializeD3D();
 void FinalizeD3D();
@@ -111,6 +115,13 @@ static const uint32_t indices[] = {
 /// 三角形の描画で使用する頂点数.
 const UINT triangleVertexCount = 3;
 
+const Sprite::Cell cellList[] = {
+	{ 0, 0.0f, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1), XMFLOAT2(0, 0), XMFLOAT2(1, 1), XMFLOAT2(80, 60) },
+};
+
+/**
+* エントリポイント.
+*/
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
 	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
@@ -348,6 +359,18 @@ bool InitializeD3D()
 		return false;
 	}
 
+	Resource::ResourceLoader loader;
+	if (!loader.Begin(csuDescriptorHeap)) {
+		return false;
+	}
+	if (!spriteRenderer.Init(device, frameBufferCount, 10000, loader)) {
+		return false;
+	}
+	ID3D12CommandList* ppCommandLists[] = { loader.End() };
+	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	WaitForGpu();
+	spriteList.push_back(Sprite::Sprite(&cellList[0], XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
+
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
 	viewport.Width = clientWidth;
@@ -398,6 +421,20 @@ bool Render()
 
 	DrawTriangle();
 	DrawRectangle();
+
+	Sprite::RenderingInfo spriteRenderingInfo;
+	spriteRenderingInfo.frameIndex = currentFrameIndex;
+	spriteRenderingInfo.spriteList = spriteList;
+	spriteRenderingInfo.textureList.push_back(texBackground);
+	spriteRenderingInfo.pso = GetPSO(PSOType_Sprite);
+	spriteRenderingInfo.commandList = commandList.Get();
+	spriteRenderingInfo.rtvHandle = &rtvHandle;
+	spriteRenderingInfo.dsvHandle = &dsvHandle;
+	spriteRenderingInfo.viewport = viewport;
+	spriteRenderingInfo.scissorRect = scissorRect;
+	spriteRenderingInfo.texDescHeap = csuDescriptorHeap.Get();
+	spriteRenderingInfo.constants = &matViewProjection;
+	spriteRenderer.Draw(spriteRenderingInfo);
 
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargetList[currentFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
