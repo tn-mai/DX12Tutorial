@@ -4,7 +4,7 @@
 #include "Texture.h"
 #include "d3dx12.h"
 
-namespace Texture
+namespace Resource
 {
 
 using Microsoft::WRL::ComPtr;
@@ -321,4 +321,4 @@ bool ResourceLoader::LoadFromFile(Texture& texture, int index, const wchar_t* fi
 	return true;
 }
 
-} // namespace Texture
+} // namespace Resource

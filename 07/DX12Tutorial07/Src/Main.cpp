@@ -51,8 +51,8 @@ XMFLOAT4X4 matViewProjection;
 
 ComPtr<ID3D12DescriptorHeap> csuDescriptorHeap;
 int csuDescriptorSize;
-Texture::Texture texNoise;
-Texture::Texture texBackground;
+Resource::Texture texNoise;
+Resource::Texture texBackground;
 
 bool InitializeD3D();
 void FinalizeD3D();
@@ -63,7 +63,7 @@ bool WaitForGpu();
 bool CreateVertexBuffer();
 bool CreateIndexBuffer();
 bool LoadTexture();
-bool CreateNoiseTexture(Texture::ResourceLoader&);
+bool CreateNoiseTexture(Resource::ResourceLoader&);
 void DrawTriangle();
 void DrawRectangle();
 
@@ -569,7 +569,7 @@ float Noise(float x, float y)
 /**
 * テクスチャを作成する.
 */
-bool CreateNoiseTexture(Texture::ResourceLoader& loader)
+bool CreateNoiseTexture(Resource::ResourceLoader& loader)
 {
 	const D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 256, 256, 1, 1);
 	std::vector<uint8_t> noise;
@@ -620,7 +620,7 @@ bool CreateNoiseTexture(Texture::ResourceLoader& loader)
 */
 bool LoadTexture()
 {
-	Texture::ResourceLoader loader;
+	Resource::ResourceLoader loader;
 	if (!loader.Begin(csuDescriptorHeap)) {
 		return false;
 	}

@@ -10,9 +10,9 @@
 #include <vector>
 
 /**
-* テクスチャ管理用名前空間.
+* リソース管理用名前空間.
 */
-namespace Texture
+namespace Resource
 {
 
 /**
@@ -57,6 +57,6 @@ private:
 	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> uploadHeapList;
 };
 
-} // namespace Texture
+} // namespace Resource
 
 #endif // DX12TUTORIAL_SRC_TEXTURE_H_
