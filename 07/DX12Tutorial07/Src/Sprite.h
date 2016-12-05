@@ -28,11 +28,11 @@ struct Sprite
 {
 	Sprite(const Cell* c, DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col);
 
-	const Cell* cell;
-	DirectX::XMFLOAT3 pos;
-	float rotation;
-	DirectX::XMFLOAT2 scale;
-	DirectX::XMFLOAT4 color;
+	const Cell* cell; ///< 表示するCellデータ.
+	DirectX::XMFLOAT3 pos; ///< スクリーン座標上のスプライトの位置.
+	float rotation; ///< 画像の回転角(ラジアン).
+	DirectX::XMFLOAT2 scale; ///< 画像の拡大率.
+	DirectX::XMFLOAT4 color; ///< 画像の色.
 };
 
 /**
