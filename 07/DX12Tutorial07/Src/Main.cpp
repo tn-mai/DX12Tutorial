@@ -460,17 +460,14 @@ bool Render()
 	DrawRectangle();
 
 	Sprite::RenderingInfo spriteRenderingInfo;
-	spriteRenderingInfo.frameIndex = currentFrameIndex;
-	spriteRenderingInfo.spriteList = spriteList;
 	spriteRenderingInfo.texture = texBackground;
-	spriteRenderingInfo.pso = GetPSO(PSOType_Sprite);
 	spriteRenderingInfo.rtvHandle = rtvHandle;
 	spriteRenderingInfo.dsvHandle = dsvHandle;
 	spriteRenderingInfo.viewport = viewport;
 	spriteRenderingInfo.scissorRect = scissorRect;
 	spriteRenderingInfo.texDescHeap = csuDescriptorHeap.Get();
 	spriteRenderingInfo.matViewProjection = matViewProjection;
-	spriteRenderer.Draw(spriteRenderingInfo);
+	spriteRenderer.Draw(spriteList, GetPSO(PSOType_Sprite), spriteRenderingInfo, currentFrameIndex);
 
 	if (FAILED(commandList->Close())) {
 		return false;

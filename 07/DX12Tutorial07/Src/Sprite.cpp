@@ -137,14 +137,16 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 * スプライトを描画.
 *
 * @param spriteList 描画するスプライトのリスト.
+* @param pso        描画に使用するPSO.
 * @param info       描画情報.
+* @param frameIndex 現在のフレームバッファのインデックス.
 *
 * @retval true  コマンドリスト作成成功.
 * @retval false コマンドリスト作成失敗.
 */
-bool Renderer::Draw(std::vector<Sprite> spriteList, RenderingInfo& info)
+bool Renderer::Draw(std::vector<Sprite> spriteList, const PSO& pso, RenderingInfo& info, int frameIndex)
 {
-	FrameResource& fr = frameResourceList[info.frameIndex];
+	FrameResource& fr = frameResourceList[frameIndex];
 
 	if (FAILED(fr.commandAllocator->Reset())) {
 		return false;
@@ -161,8 +163,8 @@ bool Renderer::Draw(std::vector<Sprite> spriteList, RenderingInfo& info)
 		return true;
 	}
 
-	commandList->SetGraphicsRootSignature(info.pso.rootSignature.Get());
-	commandList->SetPipelineState(info.pso.pso.Get());
+	commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
+	commandList->SetPipelineState(pso.pso.Get());
 	ID3D12DescriptorHeap* heapList[] = { info.texDescHeap };
 	commandList->SetDescriptorHeaps(_countof(heapList), heapList);
 	commandList->SetGraphicsRootDescriptorTable(0, info.texture.handle);

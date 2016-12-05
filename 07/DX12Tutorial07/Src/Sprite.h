@@ -40,8 +40,6 @@ struct Sprite
 */
 struct RenderingInfo
 {
-	int frameIndex; ///< 描画するフレームのインデックス.
-	PSO pso; ///< スプライト描画用PSO.
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle; ///< スプライト描画先レンダーターゲット.
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle; ///< スプライト描画先深度バッファ.
 	D3D12_VIEWPORT viewport;
@@ -59,7 +57,7 @@ class Renderer
 public:
 	Renderer();
 	bool Init(Microsoft::WRL::ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSprite, Resource::ResourceLoader& resourceLoader);
-	bool Draw(std::vector<Sprite> spriteList, RenderingInfo& info);
+	bool Draw(std::vector<Sprite> spriteList, const PSO& pso, RenderingInfo& info, int frameIndex);
 	ID3D12GraphicsCommandList* GetCommandList() { return commandList.Get(); }
 
 private:
