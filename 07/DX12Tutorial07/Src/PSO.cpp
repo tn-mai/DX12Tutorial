@@ -156,14 +156,6 @@ bool CreatePSOList(ID3D12Device* device, bool warp)
 }
 
 /**
-* PSO‚ð”jŠü‚·‚é.
-*/
-void DestroyPSOList()
-{
-	psoList.clear();
-}
-
-/**
 * PSO‚ðŽæ“¾‚·‚é.
 *
 * @param type Žæ“¾‚·‚éPSO‚ÌŽí—Þ.

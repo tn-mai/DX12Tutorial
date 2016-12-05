@@ -26,7 +26,6 @@ enum PSOType {
 };
 
 bool CreatePSOList(ID3D12Device* device, bool warp);
-void DestroyPSOList();
 const PSO& GetPSO(PSOType);
 
 #endif // DX12TUTORIAL_SRC_PSO_H_
