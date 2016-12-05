@@ -32,6 +32,8 @@ ComPtr<ID3D12DescriptorHeap> dsvDescriptorHeap;
 ComPtr<ID3D12Resource> depthStencilBuffer;
 ComPtr<ID3D12CommandAllocator> commandAllocator[frameBufferCount];
 ComPtr<ID3D12GraphicsCommandList> commandList;
+ComPtr<ID3D12GraphicsCommandList> prologueCommandList;
+ComPtr<ID3D12GraphicsCommandList> epilogueCommandList;
 ComPtr<ID3D12Fence> fence;
 HANDLE fenceEvent;
 UINT64 fenceValue[frameBufferCount];
@@ -196,6 +198,20 @@ HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
+/**
+* コマンドリストを作成.
+*/
+bool CreateCommandList(ComPtr<ID3D12Device>& device, ComPtr<ID3D12CommandAllocator>& allocator, ComPtr<ID3D12GraphicsCommandList>& commandList)
+{
+	if (FAILED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator.Get(), nullptr, IID_PPV_ARGS(&commandList)))) {
+		return false;
+	}
+	if (FAILED(commandList->Close())) {
+		return false;
+	}
+	return true;
+}
+
 bool InitializeD3D()
 {
 #ifndef NDEBUG
@@ -326,10 +342,13 @@ bool InitializeD3D()
 	}
 
 	// コマンドリストを作成.
-	if (FAILED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator[currentFrameIndex].Get(), nullptr, IID_PPV_ARGS(&commandList)))) {
+	if (!CreateCommandList(device, commandAllocator[currentFrameIndex], commandList)) {
 		return false;
 	}
-	if (FAILED(commandList->Close())) {
+	if (!CreateCommandList(device, commandAllocator[currentFrameIndex], prologueCommandList)) {
+		return false;
+	}
+	if (!CreateCommandList(device, commandAllocator[currentFrameIndex], epilogueCommandList)) {
 		return false;
 	}
 
@@ -404,11 +423,29 @@ bool Render()
 	if (FAILED(commandAllocator[currentFrameIndex]->Reset())) {
 		return false;
 	}
+
+	// プロローグコマンドを作成.
+	if (FAILED(prologueCommandList->Reset(commandAllocator[currentFrameIndex].Get(), nullptr))) {
+		return false;
+	}
+	prologueCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargetList[currentFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	if (FAILED(prologueCommandList->Close())) {
+		return false;
+	}
+
+	// エピローグコマンドを作成.
+	if (FAILED(epilogueCommandList->Reset(commandAllocator[currentFrameIndex].Get(), nullptr))) {
+		return false;
+	}
+	epilogueCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargetList[currentFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+	if (FAILED(epilogueCommandList->Close())) {
+		return false;
+	}
+
 	if (FAILED(commandList->Reset(commandAllocator[currentFrameIndex].Get(), nullptr))) {
 		return false;
 	}
 
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargetList[currentFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	rtvHandle.ptr += currentFrameIndex * rtvDescriptorSize;
@@ -436,13 +473,11 @@ bool Render()
 	spriteRenderingInfo.constants = &matViewProjection;
 	spriteRenderer.Draw(spriteRenderingInfo);
 
-	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargetList[currentFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-
 	if (FAILED(commandList->Close())) {
 		return false;
 	}
 
-	ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
+	ID3D12CommandList* ppCommandLists[] = { prologueCommandList.Get(), commandList.Get(), epilogueCommandList.Get() };
 	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	if (FAILED(swapChain->Present(1, 0))) {
 		return false;
