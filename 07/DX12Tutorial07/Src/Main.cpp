@@ -469,7 +469,7 @@ bool Render()
 	spriteRenderingInfo.viewport = viewport;
 	spriteRenderingInfo.scissorRect = scissorRect;
 	spriteRenderingInfo.texDescHeap = csuDescriptorHeap.Get();
-	spriteRenderingInfo.constants = &matViewProjection;
+	spriteRenderingInfo.matViewProjection = matViewProjection;
 	spriteRenderer.Draw(spriteRenderingInfo);
 
 	if (FAILED(commandList->Close())) {

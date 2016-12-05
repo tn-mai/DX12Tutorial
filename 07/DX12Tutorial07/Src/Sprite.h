@@ -40,16 +40,16 @@ struct Sprite
 */
 struct RenderingInfo
 {
-	int frameIndex;
-	std::vector<Sprite> spriteList;
-	PSO pso;
-	const D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandle;
-	const D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle;
+	int frameIndex; ///< 描画するフレームのインデックス.
+	std::vector<Sprite> spriteList; ///< 描画するスプライトのリスト.
+	PSO pso; ///< スプライト描画用PSO.
+	const D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandle; ///< スプライト描画先レンダーターゲット.
+	const D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle; ///< スプライト描画先深度バッファ.
 	D3D12_VIEWPORT viewport;
 	D3D12_RECT scissorRect;
-	ID3D12DescriptorHeap* texDescHeap;
-	Resource::Texture texture;
-	const void* constants;
+	ID3D12DescriptorHeap* texDescHeap; ///< テクスチャ用のデスクリプタヒープ.
+	Resource::Texture texture; ///< スプライト描画用テクスチャ.
+	DirectX::XMFLOAT4X4 matViewProjection;
 };
 
 /**
