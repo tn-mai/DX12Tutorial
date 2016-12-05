@@ -464,7 +464,6 @@ bool Render()
 	spriteRenderingInfo.spriteList = spriteList;
 	spriteRenderingInfo.texture = texBackground;
 	spriteRenderingInfo.pso = GetPSO(PSOType_Sprite);
-	spriteRenderingInfo.commandList = commandList.Get();
 	spriteRenderingInfo.rtvHandle = &rtvHandle;
 	spriteRenderingInfo.dsvHandle = &dsvHandle;
 	spriteRenderingInfo.viewport = viewport;
@@ -477,7 +476,7 @@ bool Render()
 		return false;
 	}
 
-	ID3D12CommandList* ppCommandLists[] = { prologueCommandList.Get(), commandList.Get(), epilogueCommandList.Get() };
+	ID3D12CommandList* ppCommandLists[] = { prologueCommandList.Get(), commandList.Get(), spriteRenderer.GetCommandList(), epilogueCommandList.Get() };
 	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	if (FAILED(swapChain->Present(1, 0))) {
 		return false;

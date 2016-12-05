@@ -43,7 +43,6 @@ struct RenderingInfo
 	int frameIndex;
 	std::vector<Sprite> spriteList;
 	PSO pso;
-	ID3D12GraphicsCommandList* commandList;
 	const D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandle;
 	const D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle;
 	D3D12_VIEWPORT viewport;
@@ -61,7 +60,8 @@ class Renderer
 public:
 	Renderer();
 	bool Init(Microsoft::WRL::ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSprite, Resource::ResourceLoader& resourceLoader);
-	void Draw(RenderingInfo& info);
+	bool Draw(RenderingInfo& info);
+	ID3D12GraphicsCommandList* GetCommandList() { return commandList.Get(); }
 
 private:
 	size_t maxSpriteCount;
@@ -69,12 +69,14 @@ private:
 
 	struct FrameResource
 	{
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 		void* vertexBufferGPUAddress;
 	};
 	std::vector<FrameResource> frameResourceList;
 
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;
 	Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
 	D3D12_INDEX_BUFFER_VIEW indexBufferView;
 };

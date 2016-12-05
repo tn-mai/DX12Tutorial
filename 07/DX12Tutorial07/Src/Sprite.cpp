@@ -81,6 +81,9 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 	frameResourceList.resize(numFrameBuffer);
 
 	for (int i = 0; i < frameBufferCount; ++i) {
+		if (FAILED(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&frameResourceList[i].commandAllocator)))) {
+			return false;
+		}
 		if (FAILED(device->CreateCommittedResource(
 			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 			D3D12_HEAP_FLAG_NONE,
@@ -100,6 +103,14 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 		frameResourceList[i].vertexBufferView.StrideInBytes = sizeof(Vertex);
 		frameResourceList[i].vertexBufferView.SizeInBytes = static_cast<UINT>(maxSpriteCount * sizeof(Vertex));
 	}
+
+	if (FAILED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frameResourceList[0].commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)))) {
+		return false;
+	}
+	if (FAILED(commandList->Close())) {
+		return false;
+	}
+
 	std::vector<DWORD> indexList;
 	indexList.resize(maxSpriteCount * 6);
 	for (size_t i = 0; i < maxSpriteCount; ++i) {
@@ -127,14 +138,24 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 *
 * @param sprite 描画するスプライト情報.
 */
-void Renderer::Draw(RenderingInfo& info)
+bool Renderer::Draw(RenderingInfo& info)
 {
-	if (info.spriteList.empty()) {
-		return;
+	FrameResource& fr = frameResourceList[info.frameIndex];
+
+	if (FAILED(fr.commandAllocator->Reset())) {
+		return false;
 	}
 
-	FrameResource& fr = frameResourceList[info.frameIndex];
-	ID3D12GraphicsCommandList* commandList = info.commandList;
+	if (FAILED(commandList->Reset(fr.commandAllocator.Get(), nullptr))) {
+		return false;
+	}
+
+	if (info.spriteList.empty()) {
+		if (FAILED(commandList->Close())) {
+			return false;
+		}
+		return true;
+	}
 
 	commandList->SetGraphicsRootSignature(info.pso.rootSignature.Get());
 	commandList->SetPipelineState(info.pso.pso.Get());
@@ -165,6 +186,11 @@ void Renderer::Draw(RenderingInfo& info)
 	if (numGroupSprites) {
 		commandList->DrawIndexedInstanced(numGroupSprites * 6, 1, 0, vertexLocation, 0);
 	}
+
+	if (FAILED(commandList->Close())) {
+		return false;
+	}
+	return true;
 }
 
 } // namespace Sprite
