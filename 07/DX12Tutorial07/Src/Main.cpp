@@ -388,7 +388,7 @@ bool InitializeD3D()
 	ID3D12CommandList* ppCommandLists[] = { loader.End() };
 	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	WaitForGpu();
-	spriteList.push_back(Sprite::Sprite(&cellList[0], XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
+	spriteList.push_back({ &cellList[0], XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1) });
 
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
