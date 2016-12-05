@@ -60,7 +60,7 @@ public:
 	Renderer();
 	bool Init(Microsoft::WRL::ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSprite, Resource::ResourceLoader& resourceLoader);
 	bool Draw(std::vector<Sprite> spriteList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info);
-	ID3D12GraphicsCommandList* GetCommandList() { return commandList.Get(); }
+	ID3D12GraphicsCommandList* GetCommandList();
 
 private:
 	size_t maxSpriteCount;

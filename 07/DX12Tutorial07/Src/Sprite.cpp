@@ -24,39 +24,37 @@ struct Vertex {
 
 /**
 * ひとつのスプライトデータを頂点バッファに設定.
+*
+* @param sprite スプライトデータ.
+* @param v      頂点データを描き込むアドレス.
+* @param offset スクリーン左上座標.
 */
-void AddVertex(const Sprite& sprite, volatile Vertex* v, XMFLOAT2 screenOffset)
+void AddVertex(const Sprite& sprite, Vertex* v, XMFLOAT2 offset)
 {
-	// 0-1
-	// |\|
-	// 3-2
-	const DirectX::XMFLOAT2 curPos(screenOffset.x + sprite.pos.x, screenOffset.y - sprite.pos.y);
-	DirectX::XMFLOAT2 halfSize(sprite.cell->ssize.x * 0.5f * sprite.scale.x, sprite.cell->ssize.y * 0.5f * sprite.scale.y);
+	const XMFLOAT2 center(offset.x + sprite.pos.x, offset.y - sprite.pos.y);
+	XMFLOAT2 halfSize(sprite.cell->ssize.x * 0.5f * sprite.scale.x, sprite.cell->ssize.y * 0.5f * sprite.scale.y);
 
 	for (int i = 0; i < 4; ++i) {
-		v[i].color.x = sprite.color.x;
-		v[i].color.y = sprite.color.y;
-		v[i].color.z = sprite.color.z;
-		v[i].color.w = sprite.color.w;
+		v[i].color = sprite.color;
 		v[i].position.z = sprite.pos.z;
 	}
-	v[0].position.x = curPos.x - halfSize.x;
-	v[0].position.y = curPos.y + halfSize.y;
+	v[0].position.x = center.x - halfSize.x;
+	v[0].position.y = center.y + halfSize.y;
 	v[0].texcoord.x = sprite.cell->uv.x;
 	v[0].texcoord.y = sprite.cell->uv.y;
 
-	v[1].position.x = curPos.x + halfSize.x;
-	v[1].position.y = curPos.y + halfSize.y;
+	v[1].position.x = center.x + halfSize.x;
+	v[1].position.y = center.y + halfSize.y;
 	v[1].texcoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
 	v[1].texcoord.y = sprite.cell->uv.y;
 
-	v[2].position.x = curPos.x + halfSize.x;
-	v[2].position.y = curPos.y - halfSize.y;
+	v[2].position.x = center.x + halfSize.x;
+	v[2].position.y = center.y - halfSize.y;
 	v[2].texcoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
 	v[2].texcoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
 
-	v[3].position.x = curPos.x - halfSize.x;
-	v[3].position.y = curPos.y - halfSize.y;
+	v[3].position.x = center.x - halfSize.x;
+	v[3].position.y = center.y - halfSize.y;
 	v[3].texcoord.x = sprite.cell->uv.x;
 	v[3].texcoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
 }
@@ -78,12 +76,22 @@ Renderer::Renderer() :
 {
 }
 
+/**
+* Rendererを初期化する.
+*
+* @param device           D3Dデバイス.
+* @param frameBufferCount フレームバッファの数.
+* @param maxSprite        描画できる最大スプライト数.
+*
+* @retval true  初期化成功.
+* @retval false 初期化失敗.
+*/
 bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSprite, Resource::ResourceLoader& resourceLoader)
 {
 	maxSpriteCount = maxSprite;
 	frameBufferCount = numFrameBuffer;
-	frameResourceList.resize(numFrameBuffer);
 
+	frameResourceList.resize(numFrameBuffer);
 	for (int i = 0; i < frameBufferCount; ++i) {
 		if (FAILED(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&frameResourceList[i].commandAllocator)))) {
 			return false;
@@ -94,7 +102,7 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 			&CD3DX12_RESOURCE_DESC::Buffer(maxSpriteCount * sizeof(Vertex)),
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(frameResourceList[i].vertexBuffer.GetAddressOf())
+			IID_PPV_ARGS(&frameResourceList[i].vertexBuffer)
 		))) {
 			return false;
 		}
@@ -115,6 +123,35 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 		return false;
 	}
 
+	const int indexListSize = static_cast<int>(maxSpriteCount * 6 * sizeof(DWORD));
+#if 1
+	if (FAILED(device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(indexListSize),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&indexBuffer)
+	))) {
+		return false;
+	}
+	indexBuffer->SetName(L"Sprite Index Buffer");
+	CD3DX12_RANGE range(0, 0);
+	void* tmpIndexBufferAddress;
+	if (FAILED(indexBuffer->Map(0, &range, &tmpIndexBufferAddress))) {
+		return false;
+	}
+	DWORD* pIndexBuffer = static_cast<DWORD*>(tmpIndexBufferAddress);
+	for (size_t i = 0; i < maxSpriteCount; ++i) {
+		pIndexBuffer[i * 6 + 0] = i * 4 + 0;
+		pIndexBuffer[i * 6 + 1] = i * 4 + 1;
+		pIndexBuffer[i * 6 + 2] = i * 4 + 2;
+		pIndexBuffer[i * 6 + 3] = i * 4 + 2;
+		pIndexBuffer[i * 6 + 4] = i * 4 + 3;
+		pIndexBuffer[i * 6 + 5] = i * 4 + 0;
+	}
+	indexBuffer->Unmap(0, nullptr);
+#else
 	std::vector<DWORD> indexList;
 	indexList.resize(maxSpriteCount * 6);
 	for (size_t i = 0; i < maxSpriteCount; ++i) {
@@ -125,11 +162,12 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 		indexList[i * 6 + 4] = i * 4 + 3;
 		indexList[i * 6 + 5] = i * 4 + 0;
 	}
-	const int indexListSize = static_cast<int>(maxSpriteCount * 6 * sizeof(DWORD));
+
 	D3D12_SUBRESOURCE_DATA subresource = { indexList.data(), indexListSize, indexListSize };
 	if (!resourceLoader.Upload(indexBuffer, CD3DX12_RESOURCE_DESC::Buffer(indexListSize), subresource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, L"Sprite Index Buffer")) {
 		return false;
 	}
+#endif
 	indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
 	indexBufferView.SizeInBytes = indexListSize;
 	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
@@ -156,16 +194,11 @@ bool Renderer::Draw(std::vector<Sprite> spriteList, const PSO& pso, const Resour
 	if (FAILED(fr.commandAllocator->Reset())) {
 		return false;
 	}
-
 	if (FAILED(commandList->Reset(fr.commandAllocator.Get(), nullptr))) {
 		return false;
 	}
-
 	if (spriteList.empty()) {
-		if (FAILED(commandList->Close())) {
-			return false;
-		}
-		return true;
+		return SUCCEEDED(commandList->Close());
 	}
 
 	commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
@@ -181,27 +214,34 @@ bool Renderer::Draw(std::vector<Sprite> spriteList, const PSO& pso, const Resour
 	commandList->RSSetViewports(1, &info.viewport);
 	commandList->RSSetScissorRects(1, &info.scissorRect);
 
-	const XMFLOAT2 screenOffset(-(info.viewport.Width * 0.5f), info.viewport.Height * 0.5f);
-	int numGroupSprites = 0;
-	int vertexLocation = 0;
+	const XMFLOAT2 offset(-(info.viewport.Width * 0.5f), info.viewport.Height * 0.5f);
+	const int maxSprite = fr.vertexBufferView.SizeInBytes / fr.vertexBufferView.StrideInBytes / 4;
+	int numSprite = 0;
 	Vertex* v = static_cast<Vertex*>(fr.vertexBufferGPUAddress);
-	const Vertex* const vEnd = v + maxSpriteCount * 4;
 	for (const Sprite& sprite : spriteList) {
-		AddVertex(sprite, v, screenOffset);
-		++numGroupSprites;
-		v += 4;
-		if (v >= vEnd) {
+		AddVertex(sprite, v, offset);
+		++numSprite;
+		if (numSprite >= maxSprite) {
 			break;
 		}
+		v += 4;
 	}
-	if (numGroupSprites) {
-		commandList->DrawIndexedInstanced(numGroupSprites * 6, 1, 0, vertexLocation, 0);
-	}
+	commandList->DrawIndexedInstanced(numSprite * 6, 1, 0, 0, 0);
 
 	if (FAILED(commandList->Close())) {
 		return false;
 	}
 	return true;
+}
+
+/**
+* コマンドリストを取得する.
+*
+* @return ID3D12GraphicsCommandListインターフェイスへのポインタ.
+*/
+ID3D12GraphicsCommandList* Renderer::GetCommandList()
+{
+	return commandList.Get();
 }
 
 } // namespace Sprite
