@@ -138,13 +138,14 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 *
 * @param spriteList 描画するスプライトのリスト.
 * @param pso        描画に使用するPSO.
-* @param info       描画情報.
+* @param texture    描画に使用するテクスチャ.
 * @param frameIndex 現在のフレームバッファのインデックス.
+* @param info       描画情報.
 *
 * @retval true  コマンドリスト作成成功.
 * @retval false コマンドリスト作成失敗.
 */
-bool Renderer::Draw(std::vector<Sprite> spriteList, const PSO& pso, RenderingInfo& info, int frameIndex)
+bool Renderer::Draw(std::vector<Sprite> spriteList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info)
 {
 	FrameResource& fr = frameResourceList[frameIndex];
 
@@ -167,7 +168,7 @@ bool Renderer::Draw(std::vector<Sprite> spriteList, const PSO& pso, RenderingInf
 	commandList->SetPipelineState(pso.pso.Get());
 	ID3D12DescriptorHeap* heapList[] = { info.texDescHeap };
 	commandList->SetDescriptorHeaps(_countof(heapList), heapList);
-	commandList->SetGraphicsRootDescriptorTable(0, info.texture.handle);
+	commandList->SetGraphicsRootDescriptorTable(0, texture.handle);
 	commandList->SetGraphicsRoot32BitConstants(1, 16, &info.matViewProjection, 0);
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetVertexBuffers(0, 1, &fr.vertexBufferView);
