@@ -116,7 +116,7 @@ static const uint32_t indices[] = {
 const UINT triangleVertexCount = 3;
 
 const Sprite::Cell cellList[] = {
-	{ 0, 0.0f, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1), XMFLOAT2(0, 0), XMFLOAT2(1, 1), XMFLOAT2(80, 60) },
+	{ XMFLOAT2(0, 0), XMFLOAT2(1, 1), XMFLOAT2(80, 60) },
 };
 
 /**
@@ -425,7 +425,7 @@ bool Render()
 	Sprite::RenderingInfo spriteRenderingInfo;
 	spriteRenderingInfo.frameIndex = currentFrameIndex;
 	spriteRenderingInfo.spriteList = spriteList;
-	spriteRenderingInfo.textureList.push_back(texBackground);
+	spriteRenderingInfo.texture = texBackground;
 	spriteRenderingInfo.pso = GetPSO(PSOType_Sprite);
 	spriteRenderingInfo.commandList = commandList.Get();
 	spriteRenderingInfo.rtvHandle = &rtvHandle;

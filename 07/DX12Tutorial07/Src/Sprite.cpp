@@ -3,9 +3,6 @@
 */
 #include "Sprite.h"
 #include "Texture.h"
-#include <algorithm>
-#include <fstream>
-#include <limits>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -143,6 +140,7 @@ void Renderer::Draw(RenderingInfo& info)
 	commandList->SetPipelineState(info.pso.pso.Get());
 	ID3D12DescriptorHeap* heapList[] = { info.texDescHeap };
 	commandList->SetDescriptorHeaps(_countof(heapList), heapList);
+	commandList->SetGraphicsRootDescriptorTable(0, info.texture.handle);
 	commandList->SetGraphicsRoot32BitConstants(1, 16, info.constants, 0);
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetVertexBuffers(0, 1, &fr.vertexBufferView);
@@ -151,32 +149,12 @@ void Renderer::Draw(RenderingInfo& info)
 	commandList->RSSetViewports(1, &info.viewport);
 	commandList->RSSetScissorRects(1, &info.scissorRect);
 
-	std::stable_sort(
-		info.spriteList.begin(),
-		info.spriteList.end(),
-		[](const Sprite& lhs, const Sprite& rhs) { return lhs.cell->texId < rhs.cell->texId; }
-	);
-
 	const XMFLOAT2 screenOffset(-(info.viewport.Width * 0.5f), info.viewport.Height * 0.5f);
-	uint32_t texId = info.spriteList[0].cell->texId;
-	if (texId < info.textureList.size()) {
-		commandList->SetGraphicsRootDescriptorTable(0, info.textureList[texId].handle);
-	}
 	int numGroupSprites = 0;
 	int vertexLocation = 0;
 	Vertex* v = static_cast<Vertex*>(fr.vertexBufferGPUAddress);
 	const Vertex* const vEnd = v + maxSpriteCount * 4;
 	for (const Sprite& sprite : info.spriteList) {
-		if (texId != sprite.cell->texId) {
-			commandList->DrawIndexedInstanced(numGroupSprites * 6, 1, 0, vertexLocation, 0);
-			vertexLocation += numGroupSprites * 6;
-			numGroupSprites = 0;
-
-			texId = sprite.cell->texId;
-			if (texId < info.textureList.size()) {
-				commandList->SetGraphicsRootDescriptorTable(0, info.textureList[texId].handle);
-			}
-		}
 		AddVertex(sprite, v, screenOffset);
 		++numGroupSprites;
 		v += 4;
