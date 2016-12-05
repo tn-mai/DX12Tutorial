@@ -3,6 +3,8 @@
 */
 #include "Sprite.h"
 #include "Texture.h"
+#include "PSO.h"
+#include "d3dx12.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;

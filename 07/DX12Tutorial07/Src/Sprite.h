@@ -2,13 +2,16 @@
 * @file Sprite.h
 */
 #pragma once
-#include "Texture.h"
-#include "PSO.h"
-#include "Texture.h"
-#include "d3dx12.h"
+#include <d3d12.h>
 #include <DirectXMath.h>
+#include <wrl/client.h>
 #include <vector>
-#include <stdint.h>
+
+namespace Resource {
+struct Texture;
+class ResourceLoader;
+}
+struct PSO;
 
 namespace Sprite {
 
@@ -40,12 +43,12 @@ struct Sprite
 */
 struct RenderingInfo
 {
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle; ///< スプライト描画先レンダーターゲット.
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle; ///< スプライト描画先深度バッファ.
-	D3D12_VIEWPORT viewport;
-	D3D12_RECT scissorRect;
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle; ///< 描画先レンダーターゲット.
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle; ///< 描画先深度バッファ.
+	D3D12_VIEWPORT viewport; ///< 描画用ビューポート.
+	D3D12_RECT scissorRect; ///< 描画用シザリング矩形.
 	ID3D12DescriptorHeap* texDescHeap; ///< テクスチャ用のデスクリプタヒープ.
-	DirectX::XMFLOAT4X4 matViewProjection;
+	DirectX::XMFLOAT4X4 matViewProjection; ///< 描画に使用する座標変換行列.
 };
 
 /**
