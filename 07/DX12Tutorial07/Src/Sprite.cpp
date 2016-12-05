@@ -27,9 +27,9 @@ struct Vertex {
 */
 void AddVertex(const Sprite& sprite, volatile Vertex* v, XMFLOAT2 screenOffset)
 {
-	// 0-3
+	// 0-1
 	// |\|
-	// 2-1
+	// 3-2
 	const DirectX::XMFLOAT2 curPos(screenOffset.x + sprite.pos.x, screenOffset.y - sprite.pos.y);
 	DirectX::XMFLOAT2 halfSize(sprite.cell->ssize.x * 0.5f * sprite.scale.x, sprite.cell->ssize.y * 0.5f * sprite.scale.y);
 
@@ -44,18 +44,21 @@ void AddVertex(const Sprite& sprite, volatile Vertex* v, XMFLOAT2 screenOffset)
 	v[0].position.y = curPos.y + halfSize.y;
 	v[0].texcoord.x = sprite.cell->uv.x;
 	v[0].texcoord.y = sprite.cell->uv.y;
+
 	v[1].position.x = curPos.x + halfSize.x;
-	v[1].position.y = curPos.y - halfSize.y;
+	v[1].position.y = curPos.y + halfSize.y;
 	v[1].texcoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
-	v[1].texcoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
-	v[2].position.x = curPos.x - halfSize.x;
+	v[1].texcoord.y = sprite.cell->uv.y;
+
+	v[2].position.x = curPos.x + halfSize.x;
 	v[2].position.y = curPos.y - halfSize.y;
-	v[2].texcoord.x = sprite.cell->uv.x;
+	v[2].texcoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
 	v[2].texcoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
-	v[3].position.x = curPos.x + halfSize.x;
-	v[3].position.y = curPos.y + halfSize.y;
-	v[3].texcoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
-	v[3].texcoord.y = sprite.cell->uv.y;
+
+	v[3].position.x = curPos.x - halfSize.x;
+	v[3].position.y = curPos.y - halfSize.y;
+	v[3].texcoord.x = sprite.cell->uv.x;
+	v[3].texcoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
 }
 
 } // unnamed namedpace
@@ -118,9 +121,9 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 		indexList[i * 6 + 0] = i * 4 + 0;
 		indexList[i * 6 + 1] = i * 4 + 1;
 		indexList[i * 6 + 2] = i * 4 + 2;
-		indexList[i * 6 + 3] = i * 4 + 0;
+		indexList[i * 6 + 3] = i * 4 + 2;
 		indexList[i * 6 + 4] = i * 4 + 3;
-		indexList[i * 6 + 5] = i * 4 + 1;
+		indexList[i * 6 + 5] = i * 4 + 0;
 	}
 	const int indexListSize = static_cast<int>(maxSpriteCount * 6 * sizeof(DWORD));
 	D3D12_SUBRESOURCE_DATA subresource = { indexList.data(), indexListSize, indexListSize };
