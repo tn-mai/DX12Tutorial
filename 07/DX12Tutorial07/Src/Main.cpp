@@ -464,8 +464,8 @@ bool Render()
 	spriteRenderingInfo.spriteList = spriteList;
 	spriteRenderingInfo.texture = texBackground;
 	spriteRenderingInfo.pso = GetPSO(PSOType_Sprite);
-	spriteRenderingInfo.rtvHandle = &rtvHandle;
-	spriteRenderingInfo.dsvHandle = &dsvHandle;
+	spriteRenderingInfo.rtvHandle = rtvHandle;
+	spriteRenderingInfo.dsvHandle = dsvHandle;
 	spriteRenderingInfo.viewport = viewport;
 	spriteRenderingInfo.scissorRect = scissorRect;
 	spriteRenderingInfo.texDescHeap = csuDescriptorHeap.Get();

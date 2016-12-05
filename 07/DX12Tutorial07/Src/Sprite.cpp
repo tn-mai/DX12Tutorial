@@ -136,9 +136,13 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 /**
 * スプライトを描画.
 *
-* @param sprite 描画するスプライト情報.
+* @param spriteList 描画するスプライトのリスト.
+* @param info       描画情報.
+*
+* @retval true  コマンドリスト作成成功.
+* @retval false コマンドリスト作成失敗.
 */
-bool Renderer::Draw(RenderingInfo& info)
+bool Renderer::Draw(std::vector<Sprite> spriteList, RenderingInfo& info)
 {
 	FrameResource& fr = frameResourceList[info.frameIndex];
 
@@ -150,7 +154,7 @@ bool Renderer::Draw(RenderingInfo& info)
 		return false;
 	}
 
-	if (info.spriteList.empty()) {
+	if (spriteList.empty()) {
 		if (FAILED(commandList->Close())) {
 			return false;
 		}
@@ -166,7 +170,7 @@ bool Renderer::Draw(RenderingInfo& info)
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetVertexBuffers(0, 1, &fr.vertexBufferView);
 	commandList->IASetIndexBuffer(&indexBufferView);
-	commandList->OMSetRenderTargets(1, info.rtvHandle, FALSE, info.dsvHandle);
+	commandList->OMSetRenderTargets(1, &info.rtvHandle, FALSE, &info.dsvHandle);
 	commandList->RSSetViewports(1, &info.viewport);
 	commandList->RSSetScissorRects(1, &info.scissorRect);
 
@@ -175,7 +179,7 @@ bool Renderer::Draw(RenderingInfo& info)
 	int vertexLocation = 0;
 	Vertex* v = static_cast<Vertex*>(fr.vertexBufferGPUAddress);
 	const Vertex* const vEnd = v + maxSpriteCount * 4;
-	for (const Sprite& sprite : info.spriteList) {
+	for (const Sprite& sprite : spriteList) {
 		AddVertex(sprite, v, screenOffset);
 		++numGroupSprites;
 		v += 4;
