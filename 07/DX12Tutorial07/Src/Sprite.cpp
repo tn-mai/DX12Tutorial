@@ -17,10 +17,9 @@ namespace /* unnamed */ {
 * スプライト描画用頂点データ型.
 */
 struct Vertex {
-	constexpr Vertex(float x, float y, float z, float r, float g, float b, float a, float u, float v) : pos(x, y, z), col(r, g, b, a), texCoord(u, v) {}
-	DirectX::XMFLOAT3 pos;
-	DirectX::XMFLOAT4 col;
-	DirectX::XMFLOAT2 texCoord;
+	XMFLOAT3 position;
+	XMFLOAT4 color;
+	XMFLOAT2 texcoord;
 };
 
 /**
@@ -35,28 +34,28 @@ void AddVertex(const Sprite& sprite, volatile Vertex* v, XMFLOAT2 screenOffset)
 	DirectX::XMFLOAT2 halfSize(sprite.cell->ssize.x * 0.5f * sprite.scale.x, sprite.cell->ssize.y * 0.5f * sprite.scale.y);
 
 	for (int i = 0; i < 4; ++i) {
-		v[i].col.x = sprite.color.x;
-		v[i].col.y = sprite.color.y;
-		v[i].col.z = sprite.color.z;
-		v[i].col.w = sprite.color.w;
-		v[i].pos.z = sprite.pos.z;
+		v[i].color.x = sprite.color.x;
+		v[i].color.y = sprite.color.y;
+		v[i].color.z = sprite.color.z;
+		v[i].color.w = sprite.color.w;
+		v[i].position.z = sprite.pos.z;
 	}
-	v[0].pos.x = curPos.x - halfSize.x;
-	v[0].pos.y = curPos.y + halfSize.y;
-	v[0].texCoord.x = sprite.cell->uv.x;
-	v[0].texCoord.y = sprite.cell->uv.y;
-	v[1].pos.x = curPos.x + halfSize.x;
-	v[1].pos.y = curPos.y - halfSize.y;
-	v[1].texCoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
-	v[1].texCoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
-	v[2].pos.x = curPos.x - halfSize.x;
-	v[2].pos.y = curPos.y - halfSize.y;
-	v[2].texCoord.x = sprite.cell->uv.x;
-	v[2].texCoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
-	v[3].pos.x = curPos.x + halfSize.x;
-	v[3].pos.y = curPos.y + halfSize.y;
-	v[3].texCoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
-	v[3].texCoord.y = sprite.cell->uv.y;
+	v[0].position.x = curPos.x - halfSize.x;
+	v[0].position.y = curPos.y + halfSize.y;
+	v[0].texcoord.x = sprite.cell->uv.x;
+	v[0].texcoord.y = sprite.cell->uv.y;
+	v[1].position.x = curPos.x + halfSize.x;
+	v[1].position.y = curPos.y - halfSize.y;
+	v[1].texcoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
+	v[1].texcoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
+	v[2].position.x = curPos.x - halfSize.x;
+	v[2].position.y = curPos.y - halfSize.y;
+	v[2].texcoord.x = sprite.cell->uv.x;
+	v[2].texcoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
+	v[3].position.x = curPos.x + halfSize.x;
+	v[3].position.y = curPos.y + halfSize.y;
+	v[3].texcoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
+	v[3].texcoord.y = sprite.cell->uv.y;
 }
 
 } // unnamed namedpace
