@@ -60,11 +60,34 @@ Resource::Texture texBackground;
 std::vector<Sprite::Sprite> spriteList;
 Sprite::Renderer spriteRenderer;
 
+/**
+* ゲームパッド入力を模した構造体.
+*/
+struct GamePad
+{
+	enum {
+		DPAD_UP = 0x0001,
+		DPAD_DOWN = 0x0002,
+		DPAD_LEFT = 0x0004,
+		DPAD_RIGHT = 0x0008,
+		START = 0x0010,
+		A = 0x0020,
+		B = 0x0040,
+		X = 0x0080,
+		Y = 0x0100,
+		L = 0x0200,
+		R = 0x0400,
+	};
+	uint32_t buttons;
+};
+GamePad gamepad;
+
 bool InitializeD3D();
 void FinalizeD3D();
 bool Render();
 bool WaitForPreviousFrame();
 bool WaitForGpu();
+void Update();
 
 bool CreateVertexBuffer();
 bool CreateIndexBuffer();
@@ -171,6 +194,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		if (msg.message == WM_QUIT) {
 			break;
 		}
+		Update();
 		if (!Render()) {
 			break;
 		}
@@ -189,6 +213,22 @@ HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		if (wparam == VK_ESCAPE) {
 			DestroyWindow(hwnd);
 			return 0;
+		}
+		switch (wparam) {
+		case 'W': gamepad.buttons |= GamePad::DPAD_UP; break;
+		case 'A': gamepad.buttons |= GamePad::DPAD_LEFT; break;
+		case 'S': gamepad.buttons |= GamePad::DPAD_DOWN; break;
+		case 'D': gamepad.buttons |= GamePad::DPAD_RIGHT; break;
+		case VK_SPACE: gamepad.buttons |= GamePad::A; break;
+		}
+		break;
+	case WM_KEYUP:
+		switch (wparam) {
+		case 'W': gamepad.buttons &= ~GamePad::DPAD_UP; break;
+		case 'A': gamepad.buttons &= ~GamePad::DPAD_LEFT; break;
+		case 'S': gamepad.buttons &= ~GamePad::DPAD_DOWN; break;
+		case 'D': gamepad.buttons &= ~GamePad::DPAD_RIGHT; break;
+		case VK_SPACE: gamepad.buttons |= GamePad::A; break;
 		}
 		break;
 	case WM_DESTROY:
@@ -509,6 +549,23 @@ bool WaitForGpu()
 	}
 	WaitForSingleObject(fenceEvent, INFINITE);
 	return true;
+}
+
+/**
+* アプリケーションの状態を更新する.
+*/
+void Update()
+{
+	if (gamepad.buttons & GamePad::DPAD_LEFT) {
+		spriteList[0].pos.x -= 5.0f;
+	} else if (gamepad.buttons & GamePad::DPAD_RIGHT) {
+		spriteList[0].pos.x += 5.0f;
+	}
+	if (gamepad.buttons & GamePad::DPAD_UP) {
+		spriteList[0].pos.y -= 5.0f;
+	} else if (gamepad.buttons & GamePad::DPAD_DOWN) {
+		spriteList[0].pos.y += 5.0f;
+	}
 }
 
 /**
