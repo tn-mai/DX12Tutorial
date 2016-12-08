@@ -21,7 +21,7 @@ const D3D12_INPUT_ELEMENT_DESC vertexLayout[] = {
 };
 
 bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob);
-bool CreatePSO(PSO& pso, ID3D12Device* device, bool warp, const wchar_t* vs, const wchar_t* ps);
+bool CreatePSO(PSO& pso, ID3D12Device* device, bool warp, const wchar_t* vs, const wchar_t* ps, const D3D12_BLEND_DESC& blendDesc);
 
 /**
 * シェーダを読み込む.
@@ -55,7 +55,7 @@ bool LoadShader(const wchar_t* filename, const char* target, ID3DBlob** blob)
 * @retval true  作成成功.
 * @retval false 作成失敗.
 */
-bool CreatePSO(PSO& pso, ID3D12Device* device, bool warp, const wchar_t* vs, const wchar_t* ps)
+bool CreatePSO(PSO& pso, ID3D12Device* device, bool warp, const wchar_t* vs, const wchar_t* ps, const D3D12_BLEND_DESC& blendDesc)
 {
 	// 頂点シェーダを作成.
 	ComPtr<ID3DBlob> vertexShaderBlob;
@@ -101,7 +101,7 @@ bool CreatePSO(PSO& pso, ID3D12Device* device, bool warp, const wchar_t* vs, con
 	psoDesc.pRootSignature = pso.rootSignature.Get();
 	psoDesc.VS = { vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize() };
 	psoDesc.PS = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
-	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.BlendState = blendDesc;
 	psoDesc.SampleMask = 0xffffffff;
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
@@ -131,14 +131,20 @@ bool CreatePSO(PSO& pso, ID3D12Device* device, bool warp, const wchar_t* vs, con
 */
 bool CreatePSOList(ID3D12Device* device, bool warp)
 {
+	CD3DX12_BLEND_DESC blendDesc(D3D12_DEFAULT);
+
 	psoList.resize(countof_PSOType);
-	if (!CreatePSO(psoList[PSOType_Simple], device, warp, L"Res/VertexShader.hlsl", L"Res/PixelShader.hlsl")) {
+	if (!CreatePSO(psoList[PSOType_Simple], device, warp, L"Res/VertexShader.hlsl", L"Res/PixelShader.hlsl", blendDesc)) {
 		return false;
 	}
-	if (!CreatePSO(psoList[PSOType_NoiseTexture], device, warp, L"Res/VertexShader.hlsl", L"Res/NoiseTexture.hlsl")) {
+	if (!CreatePSO(psoList[PSOType_NoiseTexture], device, warp, L"Res/VertexShader.hlsl", L"Res/NoiseTexture.hlsl", blendDesc)) {
 		return false;
 	}
-	if (!CreatePSO(psoList[PSOType_Sprite], device, warp, L"Res/VertexShader.hlsl", L"Res/PixelShader.hlsl")) {
+	blendDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+	if (!CreatePSO(psoList[PSOType_Sprite], device, warp, L"Res/VertexShader.hlsl", L"Res/PixelShader.hlsl", blendDesc)) {
 		return false;
 	}
 	return true;
