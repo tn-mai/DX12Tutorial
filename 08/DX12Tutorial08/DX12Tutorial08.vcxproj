@@ -168,6 +168,7 @@
     <ClCompile Include="Src\PSO.cpp" />
     <ClCompile Include="Src\Sprite.cpp" />
     <ClCompile Include="Src\Texture.cpp" />
+    <ClCompile Include="Src\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Animation.h" />
@@ -175,6 +176,7 @@
     <ClInclude Include="Src\PSO.h" />
     <ClInclude Include="Src\Sprite.h" />
     <ClInclude Include="Src\Texture.h" />
+    <ClInclude Include="Src\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Res\PixelShader.hlsl">

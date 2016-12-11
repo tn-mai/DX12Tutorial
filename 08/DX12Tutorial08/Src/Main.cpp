@@ -9,6 +9,7 @@
 #include "Texture.h"
 #include "PSO.h"
 #include "Sprite.h"
+#include "Timer.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -88,7 +89,7 @@ void FinalizeD3D();
 bool Render();
 bool WaitForPreviousFrame();
 bool WaitForGpu();
-void Update();
+void Update(double delta);
 
 bool CreateVertexBuffer();
 bool CreateIndexBuffer();
@@ -145,10 +146,25 @@ const UINT triangleVertexCount = 3;
 * スプライト用セルデータ.
 */
 const Sprite::Cell cellList[] = {
-	{ XMFLOAT2(0, 0), XMFLOAT2(1.0f / 16.0f, 1.0f / 16.0f), XMFLOAT2(64, 64) },
-	{ XMFLOAT2(1.0f / 16.0f, 0), XMFLOAT2(1.0f / 16.0f, 1.0f / 16.0f), XMFLOAT2(64, 64) },
-	{ XMFLOAT2(2.0f / 16.0f, 0), XMFLOAT2(1.0f / 16.0f, 1.0f / 16.0f), XMFLOAT2(64, 64) },
-	{ XMFLOAT2(3.0f / 16.0f, 0), XMFLOAT2(1.0f / 16.0f, 1.0f / 16.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(0.0f / 32.0f, 0.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(2.0f / 32.0f, 0.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(4.0f / 32.0f, 0.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(6.0f / 32.0f, 0.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+
+	{ XMFLOAT2(0.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 1.0f / 32.0f), XMFLOAT2(32, 32) },
+	{ XMFLOAT2(1.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 1.0f / 32.0f), XMFLOAT2(32, 32) },
+	{ XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 1.0f / 32.0f), XMFLOAT2(32, 32) },
+
+	{ XMFLOAT2(3.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(32, 64) },
+	{ XMFLOAT2(4.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(32, 64) },
+	{ XMFLOAT2(5.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(32, 64) },
+
+	{ XMFLOAT2(0.0f / 32.0f, 3.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 1.0f / 32.0f), XMFLOAT2(32, 32) },
+
+	{ XMFLOAT2(0.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(2.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(4.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(6.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
 };
 
 /**
@@ -192,6 +208,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		return 0;
 	}
 
+	Timer timer;
 	for (;;) {
 		MSG msg = {};
 		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -201,7 +218,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 		if (msg.message == WM_QUIT) {
 			break;
 		}
-		Update();
+		Update(timer.GetFrameDelta());
 		if (!Render()) {
 			break;
 		}
@@ -235,7 +252,7 @@ HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case 'A': gamepad.buttons &= ~GamePad::DPAD_LEFT; break;
 		case 'S': gamepad.buttons &= ~GamePad::DPAD_DOWN; break;
 		case 'D': gamepad.buttons &= ~GamePad::DPAD_RIGHT; break;
-		case VK_SPACE: gamepad.buttons |= GamePad::A; break;
+		case VK_SPACE: gamepad.buttons &= ~GamePad::A; break;
 		}
 		break;
 	case WM_DESTROY:
@@ -563,21 +580,36 @@ bool WaitForGpu()
 /**
 * アプリケーションの状態を更新する.
 */
-void Update()
+void Update(double delta)
 {
+	const float speed = static_cast<float>(200.0 * delta);
 	if (gamepad.buttons & GamePad::DPAD_LEFT) {
-		spriteList[0].pos.x -= 5.0f;
+		spriteList[0].pos.x -= speed;
 	} else if (gamepad.buttons & GamePad::DPAD_RIGHT) {
-		spriteList[0].pos.x += 5.0f;
+		spriteList[0].pos.x += speed;
 	}
 	if (gamepad.buttons & GamePad::DPAD_UP) {
-		spriteList[0].pos.y -= 5.0f;
+		spriteList[0].pos.y -= speed;
 	} else if (gamepad.buttons & GamePad::DPAD_DOWN) {
-		spriteList[0].pos.y += 5.0f;
+		spriteList[0].pos.y += speed;
+	}
+#if 0
+	spriteList[0].rotation += 0.1f;
+	if (spriteList[0].rotation >= 3.1415f * 2.0f) {
+		spriteList[0].rotation -= 3.1415f * 2.0f;
+	}
+#endif
+	static int seqNo = 0;
+	if (gamepad.buttons & GamePad::A) {
+		++seqNo;
+		if (seqNo >= spriteList[0].animeController.GetSeqNum()) {
+			seqNo = 0;
+		}
+		spriteList[0].animeController.SetSeqNo(seqNo);
 	}
 
 	for (Sprite::Sprite& sprite : spriteList) {
-		sprite.Update();
+		sprite.Update(delta);
 	}
 }
 

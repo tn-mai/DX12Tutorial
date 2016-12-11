@@ -33,7 +33,7 @@ struct Sprite
 	Sprite(DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col);
 	void SetAnimationList(const AnimationList& al) { animeController.SetList(al); }
 	void SetAnimationSeqNo(uint32_t no) { animeController.SetSeqNo(no); }
-	void Update() { animeController.Update(); }
+	void Update(double delta) { animeController.Update(delta); }
 	uint32_t GetCellIndex() const { return animeController.GetCellIndex(); }
 
 	AnimationController animeController;

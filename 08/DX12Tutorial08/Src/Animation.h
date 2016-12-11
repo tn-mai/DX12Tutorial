@@ -9,6 +9,7 @@
 struct AnimationData
 {
 	uint32_t cell;
+	float time;
 };
 
 struct AnimationSequence
@@ -27,13 +28,15 @@ public:
 	AnimationController();
 	void SetList(const AnimationList& list);
 	void SetSeqNo(uint32_t no);
-	void Update();
+	void Update(double delta);
 	const uint32_t GetCellIndex() const;
+	const size_t GetSeqNum() const { return list ? list->list.size() : 0; }
 
 private:
 	const AnimationList* list;
 	uint32_t seqNo;
-	float time;
+	uint32_t index;
+	double time;
 };
 
 const AnimationList& GetAnimationList();
