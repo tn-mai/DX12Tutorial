@@ -22,6 +22,18 @@ struct Vertex {
 	XMFLOAT2 texcoord;
 };
 
+XMFLOAT3 RotateZ(XMVECTOR c, float x, float y, float r)
+{
+	float fs, fc;
+	XMScalarSinCos(&fs, &fc, r);
+	const float rx = fc * x + fs * y;
+	const float ry = -fs * x + fc * y;
+	const XMVECTORF32 tmp{ rx, ry, 0.0f, 0.0f };
+	XMFLOAT3 ret;
+	XMStoreFloat3(&ret, XMVectorAdd(c, tmp));
+	return ret;
+}
+
 /**
 * ひとつのスプライトデータを頂点バッファに設定.
 *
@@ -31,30 +43,25 @@ struct Vertex {
 */
 void AddVertex(const Sprite& sprite, const Cell* cell, Vertex* v, XMFLOAT2 offset)
 {
-	const XMFLOAT2 center(offset.x + sprite.pos.x, offset.y - sprite.pos.y);
-	XMFLOAT2 halfSize(cell->ssize.x * 0.5f * sprite.scale.x, cell->ssize.y * 0.5f * sprite.scale.y);
+	const XMVECTORF32 center{ offset.x + sprite.pos.x, offset.y - sprite.pos.y, sprite.pos.z, 0.0f };
+	const XMFLOAT2 halfSize{ cell->ssize.x * 0.5f * sprite.scale.x, cell->ssize.y * 0.5f * sprite.scale.y };
 
 	for (int i = 0; i < 4; ++i) {
 		v[i].color = sprite.color;
-		v[i].position.z = sprite.pos.z;
 	}
-	v[0].position.x = center.x - halfSize.x;
-	v[0].position.y = center.y + halfSize.y;
+	v[0].position = RotateZ(center, -halfSize.x, halfSize.y, sprite.rotation);
 	v[0].texcoord.x = cell->uv.x;
 	v[0].texcoord.y = cell->uv.y;
 
-	v[1].position.x = center.x + halfSize.x;
-	v[1].position.y = center.y + halfSize.y;
+	v[1].position = RotateZ(center, halfSize.x, halfSize.y, sprite.rotation);
 	v[1].texcoord.x = cell->uv.x + cell->tsize.x;
 	v[1].texcoord.y = cell->uv.y;
 
-	v[2].position.x = center.x + halfSize.x;
-	v[2].position.y = center.y - halfSize.y;
+	v[2].position = RotateZ(center, halfSize.x, -halfSize.y, sprite.rotation);
 	v[2].texcoord.x = cell->uv.x + cell->tsize.x;
 	v[2].texcoord.y = cell->uv.y + cell->tsize.y;
 
-	v[3].position.x = center.x - halfSize.x;
-	v[3].position.y = center.y - halfSize.y;
+	v[3].position = RotateZ(center, -halfSize.x, -halfSize.y, sprite.rotation);
 	v[3].texcoord.x = cell->uv.x;
 	v[3].texcoord.y = cell->uv.y + cell->tsize.y;
 }
