@@ -59,6 +59,7 @@ Resource::Texture texBackground;
 
 std::vector<Sprite::Sprite> spriteList;
 Sprite::Renderer spriteRenderer;
+Resource::Texture texSprite;
 
 /**
 * ゲームパッド入力を模した構造体.
@@ -140,8 +141,14 @@ static const uint32_t indices[] = {
 /// 三角形の描画で使用する頂点数.
 const UINT triangleVertexCount = 3;
 
+/**
+* スプライト用セルデータ.
+*/
 const Sprite::Cell cellList[] = {
-	{ XMFLOAT2(0, 0), XMFLOAT2(1, 1), XMFLOAT2(80, 60) },
+	{ XMFLOAT2(0, 0), XMFLOAT2(1.0f / 16.0f, 1.0f / 16.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(1.0f / 16.0f, 0), XMFLOAT2(1.0f / 16.0f, 1.0f / 16.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(2.0f / 16.0f, 0), XMFLOAT2(1.0f / 16.0f, 1.0f / 16.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(3.0f / 16.0f, 0), XMFLOAT2(1.0f / 16.0f, 1.0f / 16.0f), XMFLOAT2(64, 64) },
 };
 
 /**
@@ -428,7 +435,9 @@ bool InitializeD3D()
 	ID3D12CommandList* ppCommandLists[] = { loader.End() };
 	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	WaitForGpu();
-	spriteList.push_back({ &cellList[0], XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1) });
+	Sprite::Sprite sprite(XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1));
+	sprite.SetAnimationList(GetAnimationList());
+	spriteList.push_back(sprite);
 
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
@@ -506,7 +515,7 @@ bool Render()
 	spriteRenderingInfo.scissorRect = scissorRect;
 	spriteRenderingInfo.texDescHeap = csuDescriptorHeap.Get();
 	spriteRenderingInfo.matViewProjection = matViewProjection;
-	spriteRenderer.Draw(spriteList, GetPSO(PSOType_Sprite), texBackground, currentFrameIndex, spriteRenderingInfo);
+	spriteRenderer.Draw(spriteList, cellList, GetPSO(PSOType_Sprite), texSprite, currentFrameIndex, spriteRenderingInfo);
 
 	if (FAILED(commandList->Close())) {
 		return false;
@@ -565,6 +574,10 @@ void Update()
 		spriteList[0].pos.y -= 5.0f;
 	} else if (gamepad.buttons & GamePad::DPAD_DOWN) {
 		spriteList[0].pos.y += 5.0f;
+	}
+
+	for (Sprite::Sprite& sprite : spriteList) {
+		sprite.Update();
 	}
 }
 
@@ -752,6 +765,9 @@ bool LoadTexture()
 		return false;
 	}
 	if (!CreateNoiseTexture(loader)) {
+		return false;
+	}
+	if (!loader.LoadFromFile(texSprite, 2, L"Res/Objects.png")) {
 		return false;
 	}
 	ID3D12CommandList* ppCommandLists[] = { loader.End() };

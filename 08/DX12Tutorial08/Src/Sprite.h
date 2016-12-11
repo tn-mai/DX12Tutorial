@@ -2,6 +2,7 @@
 * @file Sprite.h
 */
 #pragma once
+#include "Animation.h"
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include <wrl/client.h>
@@ -29,9 +30,13 @@ struct Cell {
 */
 struct Sprite
 {
-	Sprite(const Cell* c, DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col);
+	Sprite(DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col);
+	void SetAnimationList(const AnimationList& al) { animeController.SetList(al); }
+	void SetAnimationSeqNo(uint32_t no) { animeController.SetSeqNo(no); }
+	void Update() { animeController.Update(); }
+	uint32_t GetCellIndex() const { return animeController.GetCellIndex(); }
 
-	const Cell* cell; ///< 表示するCellデータ.
+	AnimationController animeController;
 	DirectX::XMFLOAT3 pos; ///< スクリーン座標上のスプライトの位置.
 	float rotation; ///< 画像の回転角(ラジアン).
 	DirectX::XMFLOAT2 scale; ///< 画像の拡大率.
@@ -59,7 +64,7 @@ class Renderer
 public:
 	Renderer();
 	bool Init(Microsoft::WRL::ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSprite, Resource::ResourceLoader& resourceLoader);
-	bool Draw(std::vector<Sprite> spriteList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info);
+	bool Draw(std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info);
 	ID3D12GraphicsCommandList* GetCommandList();
 
 private:

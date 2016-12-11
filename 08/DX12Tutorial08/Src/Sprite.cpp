@@ -29,10 +29,10 @@ struct Vertex {
 * @param v      頂点データを描き込むアドレス.
 * @param offset スクリーン左上座標.
 */
-void AddVertex(const Sprite& sprite, Vertex* v, XMFLOAT2 offset)
+void AddVertex(const Sprite& sprite, const Cell* cell, Vertex* v, XMFLOAT2 offset)
 {
 	const XMFLOAT2 center(offset.x + sprite.pos.x, offset.y - sprite.pos.y);
-	XMFLOAT2 halfSize(sprite.cell->ssize.x * 0.5f * sprite.scale.x, sprite.cell->ssize.y * 0.5f * sprite.scale.y);
+	XMFLOAT2 halfSize(cell->ssize.x * 0.5f * sprite.scale.x, cell->ssize.y * 0.5f * sprite.scale.y);
 
 	for (int i = 0; i < 4; ++i) {
 		v[i].color = sprite.color;
@@ -40,29 +40,28 @@ void AddVertex(const Sprite& sprite, Vertex* v, XMFLOAT2 offset)
 	}
 	v[0].position.x = center.x - halfSize.x;
 	v[0].position.y = center.y + halfSize.y;
-	v[0].texcoord.x = sprite.cell->uv.x;
-	v[0].texcoord.y = sprite.cell->uv.y;
+	v[0].texcoord.x = cell->uv.x;
+	v[0].texcoord.y = cell->uv.y;
 
 	v[1].position.x = center.x + halfSize.x;
 	v[1].position.y = center.y + halfSize.y;
-	v[1].texcoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
-	v[1].texcoord.y = sprite.cell->uv.y;
+	v[1].texcoord.x = cell->uv.x + cell->tsize.x;
+	v[1].texcoord.y = cell->uv.y;
 
 	v[2].position.x = center.x + halfSize.x;
 	v[2].position.y = center.y - halfSize.y;
-	v[2].texcoord.x = sprite.cell->uv.x + sprite.cell->tsize.x;
-	v[2].texcoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
+	v[2].texcoord.x = cell->uv.x + cell->tsize.x;
+	v[2].texcoord.y = cell->uv.y + cell->tsize.y;
 
 	v[3].position.x = center.x - halfSize.x;
 	v[3].position.y = center.y - halfSize.y;
-	v[3].texcoord.x = sprite.cell->uv.x;
-	v[3].texcoord.y = sprite.cell->uv.y + sprite.cell->tsize.y;
+	v[3].texcoord.x = cell->uv.x;
+	v[3].texcoord.y = cell->uv.y + cell->tsize.y;
 }
 
 } // unnamed namedpace
 
-Sprite::Sprite(const Cell* c, DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col) :
-	cell(c),
+Sprite::Sprite(DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col) :
 	pos(p),
 	rotation(rot),
 	scale(s),
@@ -187,7 +186,7 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 * @retval true  コマンドリスト作成成功.
 * @retval false コマンドリスト作成失敗.
 */
-bool Renderer::Draw(std::vector<Sprite> spriteList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info)
+bool Renderer::Draw(std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info)
 {
 	FrameResource& fr = frameResourceList[frameIndex];
 
@@ -219,7 +218,8 @@ bool Renderer::Draw(std::vector<Sprite> spriteList, const PSO& pso, const Resour
 	int numSprite = 0;
 	Vertex* v = static_cast<Vertex*>(fr.vertexBufferGPUAddress);
 	for (const Sprite& sprite : spriteList) {
-		AddVertex(sprite, v, offset);
+		const Cell* cell = cellList + sprite.GetCellIndex();
+		AddVertex(sprite, cell, v, offset);
 		++numSprite;
 		if (numSprite >= maxSprite) {
 			break;
