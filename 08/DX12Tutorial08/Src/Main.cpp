@@ -599,7 +599,7 @@ void Update(double delta)
 		spriteList[0].rotation -= 3.1415f * 2.0f;
 	}
 #endif
-	static int seqNo = 0;
+	static uint32_t seqNo = 0;
 	if (gamepad.buttons & GamePad::A) {
 		++seqNo;
 		if (seqNo >= spriteList[0].animeController.GetSeqNum()) {
