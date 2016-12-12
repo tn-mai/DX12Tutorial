@@ -65,7 +65,7 @@ void AnimationController::SetList(const AnimationList& animeList)
 */
 void AnimationController::SetSeqNo(uint32_t no)
 {
-	if (!list || no >= list->list.size()) {
+	if (!list || no >= list->size()) {
 		return;
 	}
 	seqNo = no;
@@ -79,19 +79,19 @@ void AnimationController::SetSeqNo(uint32_t no)
 */
 void AnimationController::Update(double delta)
 {
-	if (!list || list->list.empty()) {
+	if (!list || seqNo >= list->size() || (*list)[seqNo].empty()) {
 		return;
 	}
 
 	time += delta;
 	for (;;) {
-		const float targetTime = list->list[seqNo].sequence[index].time;
+		const float targetTime = (*list)[seqNo][index].time;
 		if (time < targetTime) {
 			break;
 		}
 		time -= targetTime;
 		++index;
-		if (index >= list->list[seqNo].sequence.size()) {
+		if (index >= (*list)[seqNo].size()) {
 			index = 0;
 		}
 	}
@@ -104,10 +104,10 @@ void AnimationController::Update(double delta)
 */
 const uint32_t AnimationController::GetCellIndex() const
 {
-	if (!list || list->list.empty() || list->list[seqNo].sequence.empty()) {
+	if (!list || seqNo >= list->size() || (*list)[seqNo].empty()) {
 		return 0;
 	}
-	return list->list[seqNo].sequence[index].cell;
+	return (*list)[seqNo][index].cell;
 }
 
 /**
@@ -119,18 +119,18 @@ const AnimationList& GetAnimationList()
 {
 	static AnimationList list;
 
-	if (!list.list.empty()) {
+	if (!list.empty()) {
 		return list;
 	}
 
-	list.list.reserve(_countof(animeDataListArray));
+	list.reserve(_countof(animeDataListArray));
 	for (auto e : animeDataListArray) {
 		AnimationSequence seq;
-		seq.sequence.resize(e.size);
+		seq.resize(e.size);
 		for (size_t i = 0; i < e.size; ++i) {
-			seq.sequence[i] = e.list[i];
+			seq[i] = e.list[i];
 		}
-		list.list.push_back(seq);
+		list.push_back(seq);
 	}
 	return list;
 }

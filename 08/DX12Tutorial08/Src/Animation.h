@@ -12,15 +12,8 @@ struct AnimationData
 	float time;
 };
 
-struct AnimationSequence
-{
-	std::vector<AnimationData> sequence;
-};
-
-struct AnimationList
-{
-	std::vector<AnimationSequence> list;
-};
+typedef std::vector<AnimationData> AnimationSequence;
+typedef std::vector<AnimationSequence> AnimationList;
 
 class AnimationController
 {
@@ -30,7 +23,7 @@ public:
 	void SetSeqNo(uint32_t no);
 	void Update(double delta);
 	const uint32_t GetCellIndex() const;
-	const size_t GetSeqNum() const { return list ? list->list.size() : 0; }
+	const size_t GetSeqNum() const { return list ? list->size() : 0; }
 
 private:
 	const AnimationList* list;
