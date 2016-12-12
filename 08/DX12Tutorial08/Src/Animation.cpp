@@ -107,7 +107,7 @@ const uint32_t AnimationController::GetCellIndex() const
 	if (!list || seqNo >= list->size() || (*list)[seqNo].empty()) {
 		return 0;
 	}
-	return (*list)[seqNo][index].cell;
+	return (*list)[seqNo][index].cellIndex;
 }
 
 /**

@@ -8,7 +8,7 @@
 
 struct AnimationData
 {
-	uint32_t cell;
+	uint32_t cellIndex;
 	float time;
 };
 
