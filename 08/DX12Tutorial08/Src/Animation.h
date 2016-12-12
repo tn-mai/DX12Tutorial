@@ -6,29 +6,44 @@
 #include <vector>
 #include <stdint.h>
 
+/**
+* アニメーションデータ.
+*/
 struct AnimationData
 {
-	uint32_t cellIndex;
-	float time;
+	uint32_t cellIndex; ///< セルデータリスト内のインデックス.
+	float time; ///< 表示する時間(秒).
 };
 
+/**
+* 単一のアニメーションを構成するアニメーションデータのリスト.
+*/
 typedef std::vector<AnimationData> AnimationSequence;
+
+/**
+* アニメーションシーケンスのリスト.
+*
+* インデックス指定によって、再生するアニメーションを取得できるようにする.
+*/
 typedef std::vector<AnimationSequence> AnimationList;
 
+/**
+* アニメーション制御クラス.
+*/
 class AnimationController
 {
 public:
-	AnimationController();
-	void SetList(const AnimationList& list);
-	void SetSeqNo(uint32_t no);
+	AnimationController() = delete;
+	explicit AnimationController(const AnimationList& list);
+	void SetSeqIndex(uint32_t no);
 	void Update(double delta);
-	const uint32_t GetCellIndex() const;
-	const size_t GetSeqNum() const { return list ? list->size() : 0; }
+	uint32_t GetCellIndex() const;
+	size_t GetSeqCount() const;
 
 private:
-	const AnimationList* list;
-	uint32_t seqNo;
-	uint32_t index;
+	const AnimationList& list;
+	uint32_t seqIndex;
+	uint32_t cellIndex;
 	double time;
 };
 

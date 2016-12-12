@@ -30,11 +30,12 @@ struct Cell {
 */
 struct Sprite
 {
-	Sprite(DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col);
-	void SetAnimationList(const AnimationList& al) { animeController.SetList(al); }
-	void SetAnimationSeqNo(uint32_t no) { animeController.SetSeqNo(no); }
+	Sprite() = delete;
+	Sprite(const AnimationList& al, DirectX::XMFLOAT3 p, float rot = 0, DirectX::XMFLOAT2 s = DirectX::XMFLOAT2(1, 1), DirectX::XMFLOAT4 col = DirectX::XMFLOAT4(1, 1, 1, 1));
+	void SetSeqIndex(uint32_t no) { animeController.SetSeqIndex(no); }
 	void Update(double delta) { animeController.Update(delta); }
 	uint32_t GetCellIndex() const { return animeController.GetCellIndex(); }
+	size_t GetSeqCount() const { return animeController.GetSeqCount(); }
 
 	AnimationController animeController;
 	DirectX::XMFLOAT3 pos; ///< スクリーン座標上のスプライトの位置.

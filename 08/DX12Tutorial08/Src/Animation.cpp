@@ -20,7 +20,7 @@ const AnimationData animeDataList3[] = {
 };
 
 const AnimationData animeDataList4[] = {
-	{ 11, 0.125f },{ 12, 0.125f },{ 13, 0.125f },{ 14, 0.125f }
+	{ 11, 0.125f },{ 12, 0.125f },{ 13, 0.125f },{ 14, 0.125f }, { 15, 0.0f }
 };
 
 struct {
@@ -36,40 +36,30 @@ struct {
 
 /**
 * コンストラクタ.
+*
+* @param al 設定するアニメーションリスト.
 */
-AnimationController::AnimationController()
-	: list(nullptr)
-	, seqNo(0)
-	, index(0)
+AnimationController::AnimationController(const AnimationList& al)
+	: list(al)
+	, seqIndex(0)
+	, cellIndex(0)
 	, time(0.0f)
 {
 }
 
 /**
-* アニメーションリストを設定する.
+* アニメーションシーケンスのインデックスを設定する.
 *
-* @param list 設定するアニメーションリスト.
+* @param idx 設定するシーケンスインデックス.
 */
-void AnimationController::SetList(const AnimationList& animeList)
+void AnimationController::SetSeqIndex(uint32_t idx)
 {
-	list = &animeList;
-	seqNo = 0;
-	index = 0;
-	time = 0.0f;
-}
-
-/**
-* アニメーションシーケンス番号を設定する.
-*
-* @param no 設定するシーケンス番号.
-*/
-void AnimationController::SetSeqNo(uint32_t no)
-{
-	if (!list || no >= list->size()) {
+	if (idx >= list.size()) {
 		return;
 	}
-	seqNo = no;
-	index = 0;
+	seqIndex = idx;
+	cellIndex = 0;
+	time = 0.0f;
 }
 
 /**
@@ -79,35 +69,45 @@ void AnimationController::SetSeqNo(uint32_t no)
 */
 void AnimationController::Update(double delta)
 {
-	if (!list || seqNo >= list->size() || (*list)[seqNo].empty()) {
+	if (seqIndex >= list.size() || list[seqIndex].empty()) {
 		return;
 	}
 
 	time += delta;
 	for (;;) {
-		const float targetTime = (*list)[seqNo][index].time;
-		if (time < targetTime) {
+		const float targetTime = list[seqIndex][cellIndex].time;
+		if (targetTime <= 0.0f || time < targetTime) {
 			break;
 		}
 		time -= targetTime;
-		++index;
-		if (index >= (*list)[seqNo].size()) {
-			index = 0;
+		++cellIndex;
+		if (cellIndex >= list[seqIndex].size()) {
+			cellIndex = 0;
 		}
 	}
 }
 
 /**
-* セル番号を取得する.
+* セルインデックスを取得する.
 *
-* @return セル番号.
+* @return セルインデックス.
 */
-const uint32_t AnimationController::GetCellIndex() const
+uint32_t AnimationController::GetCellIndex() const
 {
-	if (!list || seqNo >= list->size() || (*list)[seqNo].empty()) {
+	if (seqIndex >= list.size() || list[seqIndex].empty()) {
 		return 0;
 	}
-	return (*list)[seqNo][index].cellIndex;
+	return list[seqIndex][cellIndex].cellIndex;
+}
+
+/**
+* リスト内のアニメーションシーケンスの数を取得する.
+*
+* @return アニメーションシーケンスの数.
+*/
+size_t AnimationController::GetSeqCount() const
+{
+	return list.size();
 }
 
 /**

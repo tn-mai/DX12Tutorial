@@ -165,6 +165,7 @@ const Sprite::Cell cellList[] = {
 	{ XMFLOAT2(2.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
 	{ XMFLOAT2(4.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
 	{ XMFLOAT2(6.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(6.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(0, 0) },
 };
 
 /**
@@ -452,9 +453,7 @@ bool InitializeD3D()
 	ID3D12CommandList* ppCommandLists[] = { loader.End() };
 	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	WaitForGpu();
-	Sprite::Sprite sprite(XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1));
-	sprite.SetAnimationList(GetAnimationList());
-	spriteList.push_back(sprite);
+	spriteList.push_back(Sprite::Sprite(GetAnimationList(), XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
 
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
@@ -602,14 +601,14 @@ void Update(double delta)
 	static uint32_t seqNo = 0;
 	if (gamepad.buttons & GamePad::A) {
 		++seqNo;
-		if (seqNo >= spriteList[0].animeController.GetSeqNum()) {
+		if (seqNo >= spriteList[0].animeController.GetSeqCount()) {
 			seqNo = 0;
 		}
-		spriteList[0].animeController.SetSeqNo(seqNo);
+		spriteList[0].animeController.SetSeqIndex(seqNo);
 	}
 
 	for (Sprite::Sprite& sprite : spriteList) {
-		sprite.Update(delta);
+		sprite.animeController.Update(delta);
 	}
 }
 
