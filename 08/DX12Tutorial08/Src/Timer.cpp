@@ -14,7 +14,7 @@ Timer::Timer() :
 {
 	LARGE_INTEGER i;
 	QueryPerformanceFrequency(&i);
-	frequency = static_cast<double>(i.QuadPart) / 1000.0;
+	frequency = static_cast<double>(i.QuadPart);
 	QueryPerformanceCounter(&i);
 	lastFrameTime = i.QuadPart;
 }
@@ -32,13 +32,13 @@ double Timer::GetFrameDelta()
 
 	++fpsFrames;
 	fpsDelta += delta;
-	if (fpsDelta > 1000.0) {
+	if (fpsDelta > 1.0) {
 		fps = fpsFrames * 0.5 + fps * 0.5;
 		fpsFrames = 0;
-		fpsDelta -= 1000.0;
+		fpsDelta -= 1.0;
 	}
 	lastFrameTime = i.QuadPart;
-	return delta / 1000.0;
+	return delta;
 }
 
 /**
