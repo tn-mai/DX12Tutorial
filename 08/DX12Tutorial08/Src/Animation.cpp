@@ -3,24 +3,42 @@
 */
 #include "Animation.h"
 
+#define ROT(r) (static_cast<float>(r) * 3.14159265359f / 180.0f)
+
 const AnimationData animeDataList0[] = {
-	{0, 0.125f}, {1, 0.125f }, {2, 0.125f }, {3, 0.125f }
+	{ 0, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 1, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 2, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 3, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
 };
 
 const AnimationData animeDataList1[] = {
-	{ 4, 0.125f },{ 5, 0.125f },{ 6, 0.125f }
+	{ 4, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 5, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 6, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
 };
 
 const AnimationData animeDataList2[] = {
-	{ 7, 0.125f },{ 8, 0.125f },{ 9, 0.125f }
+	{ 7, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 8, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 9, 0.125f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
 };
 
 const AnimationData animeDataList3[] = {
-	{ 10, 0.125f }
+	{ 10, 0.1f, ROT(0),{ 1.0f, 1.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 10, 0.1f, ROT(45.0f * 0.25f),{ 0.9f, 0.9f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 10, 0.1f, ROT(45.0f * 0.5f),{ 1.0f, 1.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 10, 0.1f, ROT(45.0f * 0.75f),{ 1.1f, 1.1f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
 };
 
 const AnimationData animeDataList4[] = {
-	{ 11, 0.125f },{ 12, 0.125f },{ 13, 0.125f },{ 14, 0.125f }, { 15, 0.0f }
+	{ 11, 0.1f, ROT(0), { 0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 11, 0.1f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 12, 0.1f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 13, 0.1f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 14, 0.05f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 14, 0.05f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 0.5f } },
+	{ 15, 1.0f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
 };
 
 struct {
@@ -88,16 +106,17 @@ void AnimationController::Update(double delta)
 }
 
 /**
-* セルインデックスを取得する.
+* アニメーションデータを取得する.
 *
-* @return セルインデックス.
+* @return アニメーションデータ.
 */
-uint32_t AnimationController::GetCellIndex() const
+const AnimationData& AnimationController::GetData() const
 {
 	if (seqIndex >= list.size() || list[seqIndex].empty()) {
-		return 0;
+		static const AnimationData dummy{};
+		return dummy;
 	}
-	return list[seqIndex][cellIndex].cellIndex;
+	return list[seqIndex][cellIndex];
 }
 
 /**

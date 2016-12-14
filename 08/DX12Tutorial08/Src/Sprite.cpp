@@ -41,27 +41,28 @@ XMFLOAT3 RotateZ(XMVECTOR c, float x, float y, float r)
 * @param v      頂点データを描き込むアドレス.
 * @param offset スクリーン左上座標.
 */
-void AddVertex(const Sprite& sprite, const Cell* cell, Vertex* v, XMFLOAT2 offset)
+void AddVertex(const Sprite& sprite, const Cell* cell, const AnimationData& animeData, Vertex* v, XMFLOAT2 offset)
 {
 	const XMVECTORF32 center{ offset.x + sprite.pos.x, offset.y - sprite.pos.y, sprite.pos.z, 0.0f };
-	const XMFLOAT2 halfSize{ cell->ssize.x * 0.5f * sprite.scale.x, cell->ssize.y * 0.5f * sprite.scale.y };
+	const XMFLOAT2 halfSize{ cell->ssize.x * 0.5f * sprite.scale.x * animeData.scale.x, cell->ssize.y * 0.5f * sprite.scale.y * animeData.scale.y };
 
 	for (int i = 0; i < 4; ++i) {
-		v[i].color = sprite.color;
+		XMStoreFloat4(&v[i].color, XMVectorMultiply(XMLoadFloat4(&sprite.color), XMLoadFloat4(&animeData.color)));
 	}
-	v[0].position = RotateZ(center, -halfSize.x, halfSize.y, sprite.rotation);
+	const float rotation = sprite.rotation + animeData.rotation;
+	v[0].position = RotateZ(center, -halfSize.x, halfSize.y, rotation);
 	v[0].texcoord.x = cell->uv.x;
 	v[0].texcoord.y = cell->uv.y;
 
-	v[1].position = RotateZ(center, halfSize.x, halfSize.y, sprite.rotation);
+	v[1].position = RotateZ(center, halfSize.x, halfSize.y, rotation);
 	v[1].texcoord.x = cell->uv.x + cell->tsize.x;
 	v[1].texcoord.y = cell->uv.y;
 
-	v[2].position = RotateZ(center, halfSize.x, -halfSize.y, sprite.rotation);
+	v[2].position = RotateZ(center, halfSize.x, -halfSize.y, rotation);
 	v[2].texcoord.x = cell->uv.x + cell->tsize.x;
 	v[2].texcoord.y = cell->uv.y + cell->tsize.y;
 
-	v[3].position = RotateZ(center, -halfSize.x, -halfSize.y, sprite.rotation);
+	v[3].position = RotateZ(center, -halfSize.x, -halfSize.y, rotation);
 	v[3].texcoord.x = cell->uv.x;
 	v[3].texcoord.y = cell->uv.y + cell->tsize.y;
 }
@@ -226,8 +227,9 @@ bool Renderer::Draw(std::vector<Sprite>& spriteList, const Cell* cellList, const
 	int numSprite = 0;
 	Vertex* v = static_cast<Vertex*>(fr.vertexBufferGPUAddress);
 	for (const Sprite& sprite : spriteList) {
-		const Cell* cell = cellList + sprite.GetCellIndex();
-		AddVertex(sprite, cell, v, offset);
+		const AnimationData& animeData = sprite.GetAnimationData();
+		const Cell* cell = cellList + animeData.cellIndex;
+		AddVertex(sprite, cell, animeData, v, offset);
 		++numSprite;
 		if (numSprite >= maxSprite) {
 			break;

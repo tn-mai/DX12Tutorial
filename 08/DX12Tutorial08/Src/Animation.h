@@ -3,6 +3,7 @@
 **/
 #ifndef DX12TUTORIAL_SRC_ANIMATION_H_
 #define DX12TUTORIAL_SRC_ANIMATION_H_
+#include <DirectXMath.h>
 #include <vector>
 #include <stdint.h>
 
@@ -13,6 +14,9 @@ struct AnimationData
 {
 	uint32_t cellIndex; ///< セルデータリスト内のインデックス.
 	float time; ///< 表示する時間(秒).
+	float rotation; ///< 画像の回転角(ラジアン).
+	DirectX::XMFLOAT2 scale; ///< 画像の拡大率.
+	DirectX::XMFLOAT4 color; ///< 画像の色.
 };
 
 /**
@@ -37,7 +41,7 @@ public:
 	explicit AnimationController(const AnimationList& list);
 	void SetSeqIndex(uint32_t no);
 	void Update(double delta);
-	uint32_t GetCellIndex() const;
+	const AnimationData& GetData() const;
 	size_t GetSeqCount() const;
 
 private:
