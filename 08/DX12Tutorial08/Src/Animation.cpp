@@ -41,6 +41,12 @@ const AnimationData animeDataList4[] = {
 	{ 15, 1.0f, ROT(0), { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
 };
 
+const AnimationData animeDataList5[] = {
+	{ 16, 0.125f, ROT(0),{ 1.0f, 1.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 17, 0.125f, ROT(0),{ 1.0f, 1.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
+	{ 18, 0.125f, ROT(0),{ 1.0f, 1.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
+};
+
 struct {
 	size_t size;
 	const AnimationData* list;
@@ -50,6 +56,7 @@ struct {
 	{ _countof(animeDataList2), animeDataList2 },
 	{ _countof(animeDataList3), animeDataList3 },
 	{ _countof(animeDataList4), animeDataList4 },
+	{ _countof(animeDataList5), animeDataList5 },
 };
 
 /**
