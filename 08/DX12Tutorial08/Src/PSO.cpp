@@ -74,9 +74,10 @@ bool CreatePSO(PSO& pso, ID3D12Device* device, bool warp, const wchar_t* vs, con
 	// ÇµÇ©ÇµÇªÇÃèÍçáÅAPSOçÏê¨éûÇ…ÉGÉâÅ[Ç™î≠ê∂Ç∑ÇÈ.
 	{
 		D3D12_DESCRIPTOR_RANGE descRange[] = { CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0) };
-		CD3DX12_ROOT_PARAMETER rootParameters[2];
+		CD3DX12_ROOT_PARAMETER rootParameters[3];
 		rootParameters[0].InitAsDescriptorTable(_countof(descRange), descRange);
-		rootParameters[1].InitAsConstants(16, 0);
+		rootParameters[1].InitAsConstants(16, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+		rootParameters[2].InitAsConstants(1, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 		D3D12_STATIC_SAMPLER_DESC staticSampler[] = { CD3DX12_STATIC_SAMPLER_DESC(0) };
 		D3D12_ROOT_SIGNATURE_DESC rsDesc = {
 			_countof(rootParameters),

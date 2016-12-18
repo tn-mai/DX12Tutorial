@@ -705,6 +705,11 @@ void DrawRectangle()
 	commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
 	commandList->SetGraphicsRootDescriptorTable(0, texBackground.handle);
 	commandList->SetGraphicsRoot32BitConstants(1, 16, &matViewProjection, 0);
+
+	static float scrollOffset = 0.0f;
+	commandList->SetGraphicsRoot32BitConstants(2, 1, &scrollOffset, 0);
+	scrollOffset -= 0.002f;
+
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissorRect);
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
