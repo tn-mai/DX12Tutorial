@@ -2,6 +2,10 @@
 * @file Animation.cpp
 */
 #include "Animation.h"
+#include <windows.h>
+#include <map>
+#include <vector>
+#include <string>
 
 #define ROT(r) (static_cast<float>(r) * 3.14159265359f / 180.0f)
 
@@ -79,7 +83,7 @@ AnimationController::AnimationController(const AnimationList& al)
 */
 void AnimationController::SetSeqIndex(uint32_t idx)
 {
-	if (idx >= list.size()) {
+	if (idx >= list.list.size()) {
 		return;
 	}
 	seqIndex = idx;
@@ -94,19 +98,19 @@ void AnimationController::SetSeqIndex(uint32_t idx)
 */
 void AnimationController::Update(double delta)
 {
-	if (seqIndex >= list.size() || list[seqIndex].empty()) {
+	if (seqIndex >= list.list.size() || list.list[seqIndex].empty()) {
 		return;
 	}
 
 	time += delta;
 	for (;;) {
-		const float targetTime = list[seqIndex][cellIndex].time;
+		const float targetTime = list.list[seqIndex][cellIndex].time;
 		if (targetTime <= 0.0f || time < targetTime) {
 			break;
 		}
 		time -= targetTime;
 		++cellIndex;
-		if (cellIndex >= list[seqIndex].size()) {
+		if (cellIndex >= list.list[seqIndex].size()) {
 			cellIndex = 0;
 		}
 	}
@@ -119,11 +123,11 @@ void AnimationController::Update(double delta)
 */
 const AnimationData& AnimationController::GetData() const
 {
-	if (seqIndex >= list.size() || list[seqIndex].empty()) {
+	if (seqIndex >= list.list.size() || list.list[seqIndex].empty()) {
 		static const AnimationData dummy{};
 		return dummy;
 	}
-	return list[seqIndex][cellIndex];
+	return list.list[seqIndex][cellIndex];
 }
 
 /**
@@ -133,8 +137,292 @@ const AnimationData& AnimationController::GetData() const
 */
 size_t AnimationController::GetSeqCount() const
 {
-	return list.size();
+	return list.list.size();
 }
+
+namespace Json {
+
+
+enum class Type
+{
+	String,
+	Number,
+	Object,
+	Array,
+};
+
+struct Value;
+typedef std::string String;
+typedef double Number;
+typedef std::map<std::string, Value> Object;
+typedef std::vector<Value> Array;
+
+struct Value
+{
+	Value() : type(Type::Number) {}
+	~Value() {
+		switch (type) {
+		case Type::String: string.~basic_string(); break;
+		case Type::Number: break;
+		case Type::Object: object.~map(); break;
+		case Type::Array: array.~vector(); break;
+		}
+	}
+
+	Value(const Value& v) {
+		type = v.type;
+		switch (type) {
+		case Type::String: new(&string) String(v.string); break;
+		case Type::Number: new(&number) Number(v.number); break;
+		case Type::Object: new(&object) Object(v.object); break;
+		case Type::Array: new(&array) Array(v.array); break;
+		}
+	}
+	Value(const std::string& s) : type(Type::String) { new(&string) String(s); }
+	Value(double d) : type(Type::Number) { new(&number) Number(d); }
+	Value(const Object& o) : type(Type::Object) { new(&object) Object(o); }
+	Value(const Array& a) : type(Type::Array) { new(&array) Array(a); }
+
+	template<typename T>
+	Value& operator=(const T& v) {
+		(*this).~Value();
+		new(this) Value(v);
+		return *this;
+	}
+
+	Type type;
+	union {
+		String string;
+		Number number;
+		Object object;
+		Array array;
+	};
+};
+
+Value ParseValue(const char*& data);
+
+void SkipSpace(const char*& data)
+{
+	for (;; ++data) {
+		switch (*data) {
+		case ' ':
+		case '\t':
+		case '\r':
+		case '\n':
+			break;
+		default:
+			goto end;
+		}
+	}
+end:
+	return;
+}
+
+Value ParseString(const char*& data)
+{
+	++data; // skip first double quotation.
+
+	std::string s;
+	for (; *data != '"'; ++data) {
+		s.push_back(static_cast<char>(*data));
+	}
+	++data; // skip last double quotation.
+	return Value(s);
+}
+
+Value ParseNumber(const char*& data)
+{
+	char* end;
+	const double d = strtod(data, &end);
+	data = end;
+	return Value(d);
+}
+
+Value ParseObject(const char*& data)
+{
+	++data; // skip first brace.
+	SkipSpace(data);
+	if (*data == '}') {
+		++data;
+		return Value(Object());
+	}
+
+	Object obj;
+	for (;;) {
+		const std::string key = ParseString(data).string;
+		SkipSpace(data);
+		++data; // skip colon.
+		SkipSpace(data);
+		Value value = ParseValue(data);
+		obj.insert(std::make_pair(key, value));
+
+		SkipSpace(data);
+		if (*data == '}') {
+			++data; // skip last brace.
+			break;
+		}
+		++data; // skip comma.
+		SkipSpace(data);
+	}
+	return Value(obj);
+}
+
+Value ParseArray(const char*& data)
+{
+	++data; // skip first bracket.
+	SkipSpace(data);
+	if (*data == ']') {
+		++data;
+		return Value(Array());
+	}
+
+	Array arr;
+	for (;;) {
+		Value value = ParseValue(data);
+		arr.push_back(value);
+		SkipSpace(data);
+		if (*data == ']') {
+			++data; // skip last bracket.
+			break;
+		}
+		++data; // skip comma.
+		SkipSpace(data);
+	}
+	return Value(arr);
+}
+
+Value ParseValue(const char*& data)
+{
+	switch (*data) {
+	case '"': return ParseString(data);
+	case '{': return ParseObject(data);
+	case '[': return ParseArray(data);
+	default: return ParseNumber(data);
+	}
+}
+
+Value Parse(const char* data)
+{
+	return ParseValue(data);
+}
+
+} // namespace Json
+
+/**
+* ファイルからアニメーションリストを読み込む.
+*
+* @param list     読み込み先オブジェクト.
+* @param filename ファイル名.
+*
+* @retval true  読み込み成功.
+* @retval false 読み込み失敗.
+*
+* [
+*   {
+*     "name" : animation list name string
+*     "list" :
+*     [
+*       [
+*         {
+*           "cell" : cell index,
+*           "time" : duration time,
+*           "rotation" : rotation radian,
+*           "scale" : [x, y],
+*           "color" : [r, g, b, a]
+*         },
+*         ...
+*       ],
+*       ...
+*     ]
+*   },
+*   ...
+* ]
+*/
+typedef std::vector<AnimationList> AnimationFile;
+AnimationFile LoadAnimationListFromJsonFile(const wchar_t* filename)
+{
+	struct HandleHolder {
+		explicit HandleHolder(HANDLE h) : handle(h) {}
+		~HandleHolder() { if (handle != INVALID_HANDLE_VALUE) { CloseHandle(handle); } }
+		HANDLE handle;
+		operator HANDLE() { return handle; }
+		operator HANDLE() const { return handle; }
+	};
+
+	HandleHolder h(CreateFileW(filename, GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr));
+	if (h == INVALID_HANDLE_VALUE) {
+		return {};
+	}
+	LARGE_INTEGER size;
+	if (!GetFileSizeEx(h, &size)) {
+		return {};
+	}
+	std::vector<char> buffer;
+	buffer.resize(size.QuadPart);
+	DWORD readBytes;
+	if (!ReadFile(h, &buffer[0], buffer.size(), &readBytes, nullptr)) {
+		return {};
+	}
+	const Json::Value json = Json::Parse(buffer.data());
+	if (json.type != Json::Type::Array) {
+		return {};
+	}
+	AnimationFile af;
+	for (const Json::Value& e : json.array) {
+		if (e.type != Json::Type::Object) {
+			break;
+		}
+		const Json::Object::const_iterator itrName = e.object.find("name");
+		if (itrName == e.object.end() || itrName->second.type != Json::Type::String) {
+			break;
+		}
+		AnimationList al;
+		al.name = itrName->second.string;
+		const Json::Object::const_iterator itrList = e.object.find("list");
+		if (itrList == e.object.end() || itrList->second.type != Json::Type::Array) {
+			break;
+		}
+		for (const Json::Value& seq : itrList->second.array) {
+			if (seq.type != Json::Type::Array) {
+				return af;
+			}
+			AnimationSequence as;
+			for (const Json::Value& data : seq.array) {
+				if (data.type != Json::Type::Object) {
+					return af;
+				}
+				AnimationData ad;
+				ad.cellIndex = data.object.find("cell")->second.number;
+				ad.time = data.object.find("time")->second.number;
+				ad.rotation = data.object.find("rotation")->second.number;
+				{
+					auto itr = data.object.find("scale");
+					if (itr == data.object.end() || itr->second.type != Json::Type::Array || itr->second.array.size() < 2) {
+						return af;
+					}
+					ad.scale.x = itr->second.array[0].number;
+					ad.scale.y = itr->second.array[1].number;
+				}
+				{
+					auto itr = data.object.find("color");
+					if (itr == data.object.end() || itr->second.type != Json::Type::Array || itr->second.array.size() < 4) {
+						return af;
+					}
+					ad.color.x = itr->second.array[0].number;
+					ad.color.y = itr->second.array[1].number;
+					ad.color.z = itr->second.array[2].number;
+					ad.color.w = itr->second.array[3].number;
+				}
+				as.push_back(ad);
+			}
+			al.list.push_back(as);
+		}
+		af.push_back(al);
+	}
+
+	return af;
+}
+
 
 /**
 * アニメーションリストを取得する.
@@ -143,20 +431,28 @@ size_t AnimationController::GetSeqCount() const
 */
 const AnimationList& GetAnimationList()
 {
+#if 0
 	static AnimationList list;
 
-	if (!list.empty()) {
+	if (!list.list.empty()) {
 		return list;
 	}
 
-	list.reserve(_countof(animeDataListArray));
+	list.list.reserve(_countof(animeDataListArray));
 	for (auto e : animeDataListArray) {
 		AnimationSequence seq;
 		seq.resize(e.size);
 		for (size_t i = 0; i < e.size; ++i) {
 			seq[i] = e.list[i];
 		}
-		list.push_back(seq);
+		list.list.push_back(seq);
 	}
 	return list;
+#else
+	static AnimationFile af;
+	if (af.empty()) {
+		af = LoadAnimationListFromJsonFile(L"Res/animation.json");
+	}
+	return af[0];
+#endif
 }

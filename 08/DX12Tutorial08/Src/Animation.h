@@ -29,7 +29,11 @@ typedef std::vector<AnimationData> AnimationSequence;
 *
 * インデックス指定によって、再生するアニメーションを取得できるようにする.
 */
-typedef std::vector<AnimationSequence> AnimationList;
+struct AnimationList
+{
+	std::string name;
+	std::vector<AnimationSequence> list;
+};
 
 /**
 * アニメーション制御クラス.
