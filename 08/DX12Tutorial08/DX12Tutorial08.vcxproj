@@ -164,6 +164,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Src\Animation.cpp" />
+    <ClCompile Include="Src\Json.cpp" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\PSO.cpp" />
     <ClCompile Include="Src\Sprite.cpp" />
@@ -173,6 +174,7 @@
   <ItemGroup>
     <ClInclude Include="Src\Animation.h" />
     <ClInclude Include="Src\d3dx12.h" />
+    <ClInclude Include="Src\Json.h" />
     <ClInclude Include="Src\PSO.h" />
     <ClInclude Include="Src\Sprite.h" />
     <ClInclude Include="Src\Texture.h" />
