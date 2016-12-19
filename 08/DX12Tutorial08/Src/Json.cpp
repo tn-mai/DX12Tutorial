@@ -1,5 +1,8 @@
 /**
 * @file Json.cpp
+*
+* JSONデータもどきを解析するパーザ.
+* 使う予定がないのでtrue, false, nullには未対応(なので「もどき」).
 */
 #include "Json.h"
 
