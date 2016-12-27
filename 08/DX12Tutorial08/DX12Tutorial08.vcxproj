@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Action.cpp" />
     <ClCompile Include="Src\Animation.cpp" />
     <ClCompile Include="Src\Json.cpp" />
     <ClCompile Include="Src\Main.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="Src\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Action.h" />
     <ClInclude Include="Src\Animation.h" />
     <ClInclude Include="Src\d3dx12.h" />
     <ClInclude Include="Src\Json.h" />

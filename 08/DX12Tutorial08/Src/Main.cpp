@@ -10,6 +10,8 @@
 #include "PSO.h"
 #include "Sprite.h"
 #include "Timer.h"
+#include "Action.h"
+#include <memory>
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -61,6 +63,8 @@ Resource::Texture texBackground;
 std::vector<Sprite::Sprite> spriteList;
 Sprite::Renderer spriteRenderer;
 Resource::Texture texSprite;
+
+std::shared_ptr<Action::ActionController> actCtrl;
 
 /**
 * ゲームパッド入力を模した構造体.
@@ -458,6 +462,8 @@ bool InitializeD3D()
 	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	WaitForGpu();
 	spriteList.push_back(Sprite::Sprite(GetAnimationList(), XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
+	spriteList.push_back(Sprite::Sprite(GetAnimationList(), XMFLOAT3(500, -100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
+	spriteList.push_back(Sprite::Sprite(GetAnimationList(), XMFLOAT3(110, 110, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
 
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
@@ -473,6 +479,8 @@ bool InitializeD3D()
 
 	const XMMATRIX ortho = XMMatrixOrthographicLH(static_cast<float>(clientWidth), static_cast<float>(clientHeight), 1.0f, 1000.0f);
 	XMStoreFloat4x4(&matViewProjection, ortho);
+
+	actCtrl.reset(new Action::ActionController(Action::GetList(), 2));
 
 	return true;
 }
@@ -610,6 +618,8 @@ void Update(double delta)
 		}
 		spriteList[0].animeController.SetSeqIndex(seqNo);
 	}
+
+	actCtrl->Update(static_cast<float>(delta), &spriteList[1]);
 
 	for (Sprite::Sprite& sprite : spriteList) {
 		sprite.animeController.Update(delta);
