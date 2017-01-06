@@ -263,22 +263,12 @@ bool Render()
 {
 	graphics.BeginRendering();
 
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = graphics.dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = graphics.rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	rtvHandle.ptr += graphics.currentFrameIndex * graphics.rtvDescriptorSize;
-	graphics.commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
-	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-	graphics.commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-	graphics.commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-	ID3D12DescriptorHeap* heapList[] = { graphics.csuDescriptorHeap.Get() };
-	graphics.commandList->SetDescriptorHeaps(_countof(heapList), heapList);
-
 	DrawTriangle();
 	DrawRectangle();
 
 	Sprite::RenderingInfo spriteRenderingInfo;
-	spriteRenderingInfo.rtvHandle = rtvHandle;
-	spriteRenderingInfo.dsvHandle = dsvHandle;
+	spriteRenderingInfo.rtvHandle = graphics.GetRTVHandle();
+	spriteRenderingInfo.dsvHandle = graphics.GetDSVHandle();
 	spriteRenderingInfo.viewport = graphics.viewport;
 	spriteRenderingInfo.scissorRect = graphics.scissorRect;
 	spriteRenderingInfo.texDescHeap = graphics.csuDescriptorHeap.Get();

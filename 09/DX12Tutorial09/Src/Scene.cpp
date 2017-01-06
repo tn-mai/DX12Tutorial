@@ -250,6 +250,16 @@ bool Graphics::BeginRendering()
 	if (FAILED(commandList->Reset(commandAllocator[currentFrameIndex].Get(), nullptr))) {
 		return false;
 	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = GetDSVHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVHandle();
+	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	ID3D12DescriptorHeap* heapList[] = { csuDescriptorHeap.Get() };
+	commandList->SetDescriptorHeaps(_countof(heapList), heapList);
+
 	return true;
 }
 
@@ -296,6 +306,18 @@ bool Graphics::WaitForGpu()
 	}
 	WaitForSingleObject(fenceEvent, INFINITE);
 	return true;
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Graphics::GetRTVHandle() const
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	rtvHandle.ptr += currentFrameIndex * rtvDescriptorSize;
+	return rtvHandle;
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Graphics::GetDSVHandle() const
+{
+	return dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 }
 
 /**

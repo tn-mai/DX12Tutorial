@@ -32,6 +32,9 @@ public:
 	bool WaitForPreviousFrame();
 	bool WaitForGpu();
 
+	D3D12_CPU_DESCRIPTOR_HANDLE GetRTVHandle() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE GetDSVHandle() const;
+
 public:
 	static const int frameBufferCount = 2;
 
