@@ -27,6 +27,8 @@ class Graphics
 public:
 	bool Initialize(HWND hwnd, int clientWidth, int clientHeight);
 	void Finalize();
+	bool BeginRendering();
+	bool EndRendering();
 	bool WaitForPreviousFrame();
 	bool WaitForGpu();
 

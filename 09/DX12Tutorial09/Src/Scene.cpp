@@ -219,6 +219,59 @@ void Graphics::Finalize()
 	CloseHandle(fenceEvent);
 }
 
+bool Graphics::BeginRendering()
+{
+	if (!WaitForPreviousFrame()) {
+		return false;
+	}
+
+	if (FAILED(commandAllocator[currentFrameIndex]->Reset())) {
+		return false;
+	}
+
+	// プロローグコマンドを作成.
+	if (FAILED(prologueCommandList->Reset(commandAllocator[currentFrameIndex].Get(), nullptr))) {
+		return false;
+	}
+	prologueCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargetList[currentFrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	if (FAILED(prologueCommandList->Close())) {
+		return false;
+	}
+
+	// エピローグコマンドを作成.
+	if (FAILED(epilogueCommandList->Reset(commandAllocator[currentFrameIndex].Get(), nullptr))) {
+		return false;
+	}
+	epilogueCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTargetList[currentFrameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+	if (FAILED(epilogueCommandList->Close())) {
+		return false;
+	}
+
+	if (FAILED(commandList->Reset(commandAllocator[currentFrameIndex].Get(), nullptr))) {
+		return false;
+	}
+	return true;
+}
+
+bool Graphics::EndRendering()
+{
+	if (FAILED(commandList->Close())) {
+		return false;
+	}
+
+	ID3D12CommandList* ppCommandLists[] = { prologueCommandList.Get(), commandList.Get(), spriteRenderer.GetCommandList(), epilogueCommandList.Get() };
+	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	if (FAILED(swapChain->Present(1, 0))) {
+		return false;
+	}
+	fenceValue[currentFrameIndex] = masterFenceValue;
+	if (FAILED(commandQueue->Signal(fence.Get(), masterFenceValue))) {
+		return false;
+	}
+	++masterFenceValue;
+	return true;
+}
+
 bool Graphics::WaitForPreviousFrame()
 {
 	if (fenceValue[currentFrameIndex] && fence->GetCompletedValue() < fenceValue[currentFrameIndex]) {
