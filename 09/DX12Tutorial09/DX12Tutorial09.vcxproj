@@ -166,6 +166,7 @@
     <ClCompile Include="Src\Animation.cpp" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\PSO.cpp" />
+    <ClCompile Include="Src\Scene.cpp" />
     <ClCompile Include="Src\Sprite.cpp" />
     <ClCompile Include="Src\Texture.cpp" />
     <ClCompile Include="Src\Timer.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Src\Animation.h" />
     <ClInclude Include="Src\d3dx12.h" />
     <ClInclude Include="Src\PSO.h" />
+    <ClInclude Include="Src\Scene.h" />
     <ClInclude Include="Src\Sprite.h" />
     <ClInclude Include="Src\Texture.h" />
     <ClInclude Include="Src\Timer.h" />
