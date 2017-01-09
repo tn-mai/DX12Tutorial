@@ -11,6 +11,7 @@
 #include "PSO.h"
 #include "Sprite.h"
 #include "Timer.h"
+#include "GamePad.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -36,28 +37,6 @@ D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 
 ComPtr<ID3D12Resource> indexBuffer;
 D3D12_INDEX_BUFFER_VIEW indexBufferView;
-
-/**
-* ゲームパッド入力を模した構造体.
-*/
-struct GamePad
-{
-	enum {
-		DPAD_UP = 0x0001,
-		DPAD_DOWN = 0x0002,
-		DPAD_LEFT = 0x0004,
-		DPAD_RIGHT = 0x0008,
-		START = 0x0010,
-		A = 0x0020,
-		B = 0x0040,
-		X = 0x0080,
-		Y = 0x0100,
-		L = 0x0200,
-		R = 0x0400,
-	};
-	uint32_t buttons;
-};
-GamePad gamepad;
 
 bool InitializeD3D();
 void FinalizeD3D();
@@ -206,6 +185,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
 HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
+	GamePad& gamepad = GetGamePad(GamePadId_1P);
 	switch (msg) {
 	case WM_KEYDOWN:
 		if (wparam == VK_ESCAPE) {
@@ -285,6 +265,7 @@ bool Render()
 */
 void Update(double delta)
 {
+	GamePad& gamepad = GetGamePad(GamePadId_1P);
 	const float speed = static_cast<float>(200.0 * delta);
 	if (gamepad.buttons & GamePad::DPAD_LEFT) {
 		spriteList[0].pos.x -= speed;
