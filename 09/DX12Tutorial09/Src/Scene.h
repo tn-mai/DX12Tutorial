@@ -25,6 +25,16 @@ class Stack;
 class Graphics
 {
 public:
+	static Graphics& Get()
+	{
+		static Graphics graphics;
+		return graphics;
+	}
+
+	Graphics() = default;
+	Graphics(const Graphics&) = delete;
+	Graphics& operator=(const Graphics&) = delete;
+
 	bool Initialize(HWND hwnd, int clientWidth, int clientHeight);
 	void Finalize();
 	bool BeginRendering();

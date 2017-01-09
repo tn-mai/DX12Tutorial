@@ -24,8 +24,6 @@ HWND hwnd = nullptr;
 
 HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-Scene::Graphics graphics;
-
 Resource::Texture texNoise;
 Resource::Texture texBackground;
 
@@ -218,7 +216,7 @@ HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 bool InitializeD3D()
 {
-	graphics.Initialize(hwnd, clientWidth, clientHeight);
+	Scene::Graphics::Get().Initialize(hwnd, clientWidth, clientHeight);
 	if (!CreateVertexBuffer()) {
 		return false;
 	}
@@ -236,11 +234,12 @@ bool InitializeD3D()
 
 void FinalizeD3D()
 {
-	graphics.Finalize();
+	Scene::Graphics::Get().Finalize();
 }
 
 bool Render()
 {
+	Scene::Graphics& graphics = Scene::Graphics::Get();
 	graphics.BeginRendering();
 
 	DrawTriangle();
@@ -302,6 +301,7 @@ void Update(double delta)
 */
 bool CreateVertexBuffer()
 {
+	Scene::Graphics& graphics = Scene::Graphics::Get();
 	if (FAILED(graphics.device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
@@ -333,6 +333,7 @@ bool CreateVertexBuffer()
 */
 bool CreateIndexBuffer()
 {
+	Scene::Graphics& graphics = Scene::Graphics::Get();
 	if (FAILED(graphics.device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
@@ -364,6 +365,7 @@ bool CreateIndexBuffer()
 */
 void DrawTriangle()
 {
+	Scene::Graphics& graphics = Scene::Graphics::Get();
 	const PSO& pso = GetPSO(PSOType_Simple);
 	graphics.commandList->SetPipelineState(pso.pso.Get());
 	graphics.commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
@@ -381,6 +383,7 @@ void DrawTriangle()
 */
 void DrawRectangle()
 {
+	Scene::Graphics& graphics = Scene::Graphics::Get();
 	const PSO& pso = GetPSO(PSOType_NoiseTexture);
 	graphics.commandList->SetPipelineState(pso.pso.Get());
 	graphics.commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
@@ -478,6 +481,7 @@ bool CreateNoiseTexture(Resource::ResourceLoader& loader)
 */
 bool LoadTexture()
 {
+	Scene::Graphics& graphics = Scene::Graphics::Get();
 	Resource::ResourceLoader loader;
 	if (!loader.Begin(graphics.csuDescriptorHeap)) {
 		return false;
