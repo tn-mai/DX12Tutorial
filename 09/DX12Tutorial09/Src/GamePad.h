@@ -30,11 +30,17 @@ enum GamePadId
 {
 	GamePadId_1P,
 	GamePadId_2P,
+	countof_GamePadId
 };
 
 GamePad& GetGamePad(uint32_t id) {
-	static GamePad gamepad[2] = {};
-	return gamepad[id < 2 ? id : 1];
+	static GamePad gamepad[countof_GamePadId] = {};
+	if (id >= countof_GamePadId) {
+		static GamePad dummy = {};
+		dummy.buttons = 0;
+		return dummy;
+	}
+	return gamepad[id];
 }
 
 #endif // DX12TUTORIAL_SRC_GAMEPAD_H_
