@@ -194,7 +194,7 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 * @retval true  コマンドリスト作成成功.
 * @retval false コマンドリスト作成失敗.
 */
-bool Renderer::Draw(std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info)
+bool Renderer::Draw(const std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info)
 {
 	FrameResource& fr = frameResourceList[frameIndex];
 
