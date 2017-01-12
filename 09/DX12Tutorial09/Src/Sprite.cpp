@@ -79,7 +79,8 @@ Sprite::Sprite(const AnimationList& al, DirectX::XMFLOAT3 p, float rot, DirectX:
 
 Renderer::Renderer() :
 	maxSpriteCount(0),
-	frameBufferCount(0)
+	frameBufferCount(0),
+	currentFrameIndex(-1)
 {
 }
 
@@ -183,20 +184,21 @@ bool Renderer::Init(ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSpri
 }
 
 /**
-* スプライトを描画.
+* スプライトの描画開始.
 *
-* @param spriteList 描画するスプライトのリスト.
-* @param pso        描画に使用するPSO.
-* @param texture    描画に使用するテクスチャ.
 * @param frameIndex 現在のフレームバッファのインデックス.
-* @param info       描画情報.
 *
-* @retval true  コマンドリスト作成成功.
-* @retval false コマンドリスト作成失敗.
+* @retval true 描画可能な状態になった.
+* @retval false 描画可能な状態への遷移に失敗.
 */
-bool Renderer::Draw(const std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info)
+bool Renderer::Begin(int frameIndex)
 {
-	FrameResource& fr = frameResourceList[frameIndex];
+	if (currentFrameIndex >= 0) {
+		return false;
+	}
+
+	currentFrameIndex = frameIndex;
+	FrameResource& fr = frameResourceList[currentFrameIndex];
 
 	if (FAILED(fr.commandAllocator->Reset())) {
 		return false;
@@ -204,9 +206,31 @@ bool Renderer::Draw(const std::vector<Sprite>& spriteList, const Cell* cellList,
 	if (FAILED(commandList->Reset(fr.commandAllocator.Get(), nullptr))) {
 		return false;
 	}
-	if (spriteList.empty()) {
-		return SUCCEEDED(commandList->Close());
+	spriteCount = 0;
+	return true;
+}
+
+/**
+* スプライトを描画.
+*
+* @param spriteList 描画するスプライトのリスト.
+* @param pso        描画に使用するPSO.
+* @param texture    描画に使用するテクスチャ.
+* @param info       描画情報.
+*
+* @retval true  コマンドリスト作成成功.
+* @retval false コマンドリスト作成失敗.
+*/
+bool Renderer::Draw(const std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, RenderingInfo& info)
+{
+	if (currentFrameIndex < 0) {
+		return false;
 	}
+	if (spriteList.empty()) {
+		return true;
+	}
+
+	FrameResource& fr = frameResourceList[currentFrameIndex];
 
 	commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
 	commandList->SetPipelineState(pso.pso.Get());
@@ -222,20 +246,33 @@ bool Renderer::Draw(const std::vector<Sprite>& spriteList, const Cell* cellList,
 	commandList->RSSetScissorRects(1, &info.scissorRect);
 
 	const XMFLOAT2 offset(-(info.viewport.Width * 0.5f), info.viewport.Height * 0.5f);
-	const int maxSprite = fr.vertexBufferView.SizeInBytes / fr.vertexBufferView.StrideInBytes / 4;
+	const int remainingSprite = (fr.vertexBufferView.SizeInBytes / fr.vertexBufferView.StrideInBytes / 4) - spriteCount;
 	int numSprite = 0;
-	Vertex* v = static_cast<Vertex*>(fr.vertexBufferGPUAddress);
+	Vertex* v = static_cast<Vertex*>(fr.vertexBufferGPUAddress) + (spriteCount * 4);
 	for (const Sprite& sprite : spriteList) {
 		const Cell* cell = cellList + sprite.GetCellIndex();
 		AddVertex(sprite, cell, v, offset);
 		++numSprite;
-		if (numSprite >= maxSprite) {
+		if (numSprite >= remainingSprite) {
 			break;
 		}
 		v += 4;
 	}
-	commandList->DrawIndexedInstanced(numSprite * 6, 1, 0, 0, 0);
+	commandList->DrawIndexedInstanced(numSprite * 6, 1, 0, spriteCount * 4, 0);
+	spriteCount += numSprite;
 
+	return true;
+}
+
+/**
+* スプライトの描画終了.
+*
+* @retval true  コマンドリスト作成成功.
+* @retval false コマンドリスト作成失敗.
+*/
+bool Renderer::End()
+{
+	currentFrameIndex = -1;
 	if (FAILED(commandList->Close())) {
 		return false;
 	}

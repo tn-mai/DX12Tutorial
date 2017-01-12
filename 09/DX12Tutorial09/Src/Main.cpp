@@ -241,6 +241,7 @@ bool Render()
 {
 	Scene::Graphics& graphics = Scene::Graphics::Get();
 	graphics.BeginRendering();
+	graphics.spriteRenderer.Begin(graphics.currentFrameIndex);
 
 	DrawTriangle();
 	DrawRectangle();
@@ -252,8 +253,9 @@ bool Render()
 	spriteRenderingInfo.scissorRect = graphics.scissorRect;
 	spriteRenderingInfo.texDescHeap = graphics.csuDescriptorHeap.Get();
 	spriteRenderingInfo.matViewProjection = graphics.matViewProjection;
-	graphics.spriteRenderer.Draw(spriteList, cellList, GetPSO(PSOType_Sprite), texSprite, graphics.currentFrameIndex, spriteRenderingInfo);
+	graphics.spriteRenderer.Draw(spriteList, cellList, GetPSO(PSOType_Sprite), texSprite, spriteRenderingInfo);
 
+	graphics.spriteRenderer.End();
 	graphics.EndRendering();
 
 	return true;

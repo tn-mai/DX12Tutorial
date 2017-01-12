@@ -65,7 +65,9 @@ class Renderer
 public:
 	Renderer();
 	bool Init(Microsoft::WRL::ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSprite, Resource::ResourceLoader& resourceLoader);
-	bool Draw(const std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, int frameIndex, RenderingInfo& info);
+	bool Begin(int frameIndex);
+	bool Draw(const std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, RenderingInfo& info);
+	bool End();
 	ID3D12GraphicsCommandList* GetCommandList();
 
 private:
@@ -80,6 +82,8 @@ private:
 		void* vertexBufferGPUAddress;
 	};
 	std::vector<FrameResource> frameResourceList;
+	int currentFrameIndex;
+	int spriteCount;
 
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;
 	Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
