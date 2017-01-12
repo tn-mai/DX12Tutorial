@@ -342,7 +342,7 @@ bool Context::Start(int startSceneId)
 {
 	const MapType::iterator creator = creatorMap.find(startSceneId);
 	if (creator != creatorMap.end()) {
-		LoadScene(creator->second);
+		LoadScene(creator->first, creator->second);
 		return true;
 	}
 	return false;
@@ -350,11 +350,11 @@ bool Context::Start(int startSceneId)
 
 /**
 */
-struct LessExitCode
+struct LessCurrentSceneId
 {
-	bool operator()(const Transition& lhs, int rhs) const { return lhs.trans.exitCode < rhs; }
-	bool operator()(int lhs, const Transition& rhs) const { return lhs < rhs.trans.exitCode; }
-	bool operator()(const Transition& lhs, const Transition& rhs) const { return lhs.trans.exitCode < rhs.trans.exitCode; }
+	bool operator()(const Transition& lhs, int rhs) const { return lhs.currentScene < rhs; }
+	bool operator()(int lhs, const Transition& rhs) const { return lhs < rhs.currentScene; }
+	bool operator()(const Transition& lhs, const Transition& rhs) const { return lhs.currentScene < rhs.currentScene; }
 };
 
 /**
@@ -364,11 +364,11 @@ void Context::Update(double delta)
 {
 	auto itrEndPausedScene = sceneStack.end() - 1;
 	for (auto itr = sceneStack.begin(); itr != itrEndPausedScene; ++itr) {
-		(*itr)->UpdateForPause(delta);
+		(*itr).p->UpdateForPause(delta);
 	}
-	const int exitCode = sceneStack.back()->Update(delta);
+	const int exitCode = sceneStack.back().p->Update(delta);
 	if (exitCode != Scene::ExitCode_Continue) {
-		const auto range = std::equal_range(transitionMap.begin(), transitionMap.end(), exitCode, LessExitCode());
+		const auto range = std::equal_range(transitionMap.begin(), transitionMap.end(), sceneStack.back().id, LessCurrentSceneId());
 		const auto itr = std::find_if(range.first, range.second,
 			[exitCode](const Transition& trans) { return trans.trans.exitCode == exitCode; });
 		if (itr != range.second) {
@@ -377,21 +377,21 @@ void Context::Update(double delta)
 				const MapType::iterator creator = creatorMap.find(itr->trans.nextScene);
 				if (creator != creatorMap.end()) {
 					UnloadScene();
-					LoadScene(creator->second);
+					LoadScene(creator->first, creator->second);
 				}
 				break;
 			}
 			case TransitionType::Push: {
 				const MapType::iterator creator = creatorMap.find(itr->trans.nextScene);
 				if (creator != creatorMap.end()) {
-					sceneStack.back()->Pause();
-					LoadScene(creator->second);
+					sceneStack.back().p->Pause();
+					LoadScene(creator->first, creator->second);
 				}
 				break;
 			}
 			case TransitionType::Pop:
 				UnloadScene();
-				sceneStack.back()->Resume();
+				sceneStack.back().p->Resume();
 				break;
 			}
 		}
@@ -404,8 +404,8 @@ void Context::Update(double delta)
 void Context::Draw(Graphics& graphics) const
 {
 	for (const auto& e : sceneStack) {
-		if (e->GetState() == Scene::StatusCode::Runnable) {
-			e->Draw(graphics);
+		if (e.p->GetState() == Scene::StatusCode::Runnable) {
+			e.p->Draw(graphics);
 		}
 	}
 }
@@ -413,11 +413,11 @@ void Context::Draw(Graphics& graphics) const
 /**
 *
 */
-void Context::LoadScene(Creator::Func func)
+void Context::LoadScene(int id, Creator::Func func)
 {
-	sceneStack.push_back(func());
-	sceneStack.back()->Load();
-	sceneStack.back()->status = Scene::StatusCode::Runnable;
+	sceneStack.push_back({ id, func() });
+	sceneStack.back().p->Load();
+	sceneStack.back().p->status = Scene::StatusCode::Runnable;
 }
 
 /**
@@ -425,9 +425,10 @@ void Context::LoadScene(Creator::Func func)
 */
 void Context::UnloadScene()
 {
-	sceneStack.back()->Unload();
-	sceneStack.back()->status = Scene::StatusCode::Stopped;
+	sceneStack.back().p->Unload();
+	sceneStack.back().p->status = Scene::StatusCode::Stopped;
 	sceneStack.pop_back();
+	Graphics::Get().WaitForGpu();
 }
 
 } // namespace Scene

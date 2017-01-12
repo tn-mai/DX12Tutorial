@@ -160,7 +160,7 @@ public:
 	void Draw(Graphics&) const;
 
 private:
-	void LoadScene(Creator::Func);
+	void LoadScene(int, Creator::Func);
 	void UnloadScene();
 
 private:
@@ -170,7 +170,11 @@ private:
 	MapType creatorMap;
 	TransitionMap transitionMap;
 
-	std::vector<ScenePtr> sceneStack;
+	struct SceneInfo {
+		int id;
+		ScenePtr p;
+	};
+	std::vector<SceneInfo> sceneStack;
 };
 
 } // namespace Scene
