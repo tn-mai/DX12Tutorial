@@ -25,7 +25,9 @@ public:
 	virtual void Draw(::Scene::Graphics& graphics) const;
 
 private:
-	TitleScene() : Scene(L"Title") {}
+	TitleScene();
+	TitleScene(const TitleScene&) = delete;
+	TitleScene& operator=(const TitleScene&) = delete;
 
 	Resource::Texture texBackground;
 	Resource::Texture texLogo;

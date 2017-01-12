@@ -94,6 +94,13 @@ const Sprite::Cell cellList[] = {
 }
 
 /**
+* コンストラクタ.
+*/
+TitleScene::TitleScene() : Scene(L"Title")
+{
+}
+
+/**
 *
 */
 bool TitleScene::Load()
