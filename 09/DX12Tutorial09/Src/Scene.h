@@ -17,8 +17,6 @@
 
 namespace Scene {
 
-class Stack;
-
 /**
 *
 */
@@ -79,65 +77,100 @@ public:
 private:
 };
 
+class Context;
+
 /**
 *
 */
-class Scene {
+class Scene
+{
+	friend class Context;
+
 public:
 	/** The scene has a status.
 	*/
 	enum class StatusCode {
 		Loading, ///< the scene is constructed. and it is in preparation.
 		Runnable, ///< the scene is prepared. it can run.
-		Pause, ///< ˆêŽž’âŽ~ó‘Ô.
 		Unloading, ///< the scene is finalizing.
 		Stopped, ///< the scene is finalized.it shuoud be removed as soon as possible.
 	};
 
-	explicit Scene(Graphics& e, const wchar_t* s) : env(e), status(StatusCode::Loading), name(s) {}
+	enum ExitCode {
+		ExitCode_Continue = -2,
+		ExitCode_Exit = -1,
+		ExitCode_User = 0,
+	};
+
+	explicit Scene(const wchar_t* s) : status(StatusCode::Loading), name(s) {}
 	virtual ~Scene() {}
 
-	virtual bool Load() {
-		status = StatusCode::Runnable;
-		return true;
-	}
-	virtual bool Unload() {
-		status = StatusCode::Stopped;
-		return true;
-	}
-	virtual void Update(Stack&, double) = 0;
-	virtual void Draw() = 0;
+	StatusCode GetState() const { return status; }
+
+private:
+	virtual bool Load() { return true; }
+	virtual bool Unload() { return true; }
+	virtual int Update(double) = 0;
+	virtual void UpdateForPause(double) {}
+	virtual void Draw(Graphics&) const = 0;
 	virtual void Pause() {}
 	virtual void Resume() {}
 
-	StatusCode GetState() const { return status; }
-	void SetState(StatusCode n) { status = n; }
-
 private:
-	Graphics& env;
 	StatusCode status;
 	std::wstring name;
 };
 
 typedef std::shared_ptr<Scene> ScenePtr;
 
+struct Creator
+{
+	typedef ScenePtr(*Func)();
+
+	int id;
+	Func func;
+};
+
+enum class TransitionType
+{
+	Jump,
+	Push,
+	Pop,
+};
+
+struct Transition
+{
+	int currentScene;
+	struct {
+		int exitCode;
+		TransitionType type;
+		int nextScene;
+	} trans;
+};
+
 /**
 *
 */
-class Stack
+class Context
 {
 public:
-	void Push(ScenePtr);
-	ScenePtr& Top();
-	const ScenePtr& Top() const { return const_cast<Stack*>(this)->Top(); }
-	void Pop();
-	void Repalce(ScenePtr);
-	void Update(double);
-	void Draw();
+	bool Initialize(const Transition* transitionList, size_t transitionCount, const Creator* creatorList, size_t creatorCount);
+	bool Start(int);
+	void Update(double delta);
+	void Draw(Graphics&) const;
 
 private:
+	void LoadScene(Creator::Func);
+	void UnloadScene();
+
+private:
+	typedef std::vector<Transition> TransitionMap;
+	typedef std::map<int, Creator::Func> MapType;
+
+	MapType creatorMap;
+	TransitionMap transitionMap;
+
 	std::vector<ScenePtr> sceneStack;
-	ScenePtr nextScene;
 };
 
 } // namespace Scene

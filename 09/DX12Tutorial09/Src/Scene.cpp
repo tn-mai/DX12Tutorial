@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include "PSO.h"
 #include "d3dx12.h"
+#include <algorithm>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -323,57 +324,76 @@ D3D12_CPU_DESCRIPTOR_HANDLE Graphics::GetDSVHandle() const
 /**
 *
 */
-void Stack::Push(ScenePtr sp)
+bool Context::Initialize(const Transition* transitionList, size_t transitionCount, const Creator* creatorList, size_t creatorCount)
 {
-	sceneStack.back()->SetState(Scene::StatusCode::Pause);
-	sceneStack.back()->Pause();
-	sceneStack.push_back(sp);
-	sceneStack.back()->Load();
+	transitionMap.assign(transitionList, transitionList + transitionCount);
+	std::stable_sort(transitionMap.begin(), transitionMap.end(), [](const Transition& lhs, const Transition& rhs) { return lhs.currentScene < rhs.currentScene; });
+	const Creator* const end = creatorList + creatorCount;
+	for (const Creator* itr = creatorList; itr != end; ++itr) {
+		creatorMap.insert(std::make_pair(itr->id, itr->func));
+	}
+	return true;
 }
 
 /**
 *
 */
-void Stack::Pop()
+bool Context::Start(int startSceneId)
 {
-	sceneStack.back()->Unload();
-	sceneStack.pop_back();
-	sceneStack.back()->Resume();
-	sceneStack.back()->SetState(Scene::StatusCode::Runnable);
+	const MapType::iterator creator = creatorMap.find(startSceneId);
+	if (creator != creatorMap.end()) {
+		LoadScene(creator->second);
+		return true;
+	}
+	return false;
 }
+
+/**
+*/
+struct LessExitCode
+{
+	bool operator()(const Transition& lhs, int rhs) const { return lhs.trans.exitCode < rhs; }
+	bool operator()(int lhs, const Transition& rhs) const { return lhs < rhs.trans.exitCode; }
+	bool operator()(const Transition& lhs, const Transition& rhs) const { return lhs.trans.exitCode < rhs.trans.exitCode; }
+};
 
 /**
 *
 */
-ScenePtr& Stack::Top()
+void Context::Update(double delta)
 {
-	return sceneStack.back();
-}
-
-/**
-*
-*/
-void Stack::Repalce(ScenePtr sp)
-{
-	sceneStack.back()->Unload();
-	sceneStack.pop_back();
-	sceneStack.push_back(sp);
-	sceneStack.back()->Load();
-}
-
-/**
-*
-*/
-void Stack::Update(double delta)
-{
-	for (ScenePtr& p : sceneStack) {
-		switch (p->GetState()) {
-		case Scene::StatusCode::Pause:
-		case Scene::StatusCode::Runnable:
-			p->Update(*this, delta);
-			break;
-		default:
-			break;
+	auto itrEndPausedScene = sceneStack.end() - 1;
+	for (auto itr = sceneStack.begin(); itr != itrEndPausedScene; ++itr) {
+		(*itr)->UpdateForPause(delta);
+	}
+	const int exitCode = sceneStack.back()->Update(delta);
+	if (exitCode != Scene::ExitCode_Continue) {
+		const auto range = std::equal_range(transitionMap.begin(), transitionMap.end(), exitCode, LessExitCode());
+		const auto itr = std::find_if(range.first, range.second,
+			[exitCode](const Transition& trans) { return trans.trans.exitCode == exitCode; });
+		if (itr != range.second) {
+			switch (itr->trans.type) {
+			case TransitionType::Jump: {
+				const MapType::iterator creator = creatorMap.find(itr->trans.nextScene);
+				if (creator != creatorMap.end()) {
+					UnloadScene();
+					LoadScene(creator->second);
+				}
+				break;
+			}
+			case TransitionType::Push: {
+				const MapType::iterator creator = creatorMap.find(itr->trans.nextScene);
+				if (creator != creatorMap.end()) {
+					sceneStack.back()->Pause();
+					LoadScene(creator->second);
+				}
+				break;
+			}
+			case TransitionType::Pop:
+				UnloadScene();
+				sceneStack.back()->Resume();
+				break;
+			}
 		}
 	}
 }
@@ -381,18 +401,33 @@ void Stack::Update(double delta)
 /**
 *
 */
-void Stack::Draw()
+void Context::Draw(Graphics& graphics) const
 {
-	for (ScenePtr& p : sceneStack) {
-		switch (p->GetState()) {
-		case Scene::StatusCode::Pause:
-		case Scene::StatusCode::Runnable:
-			p->Draw();
-			break;
-		default:
-			break;
+	for (const auto& e : sceneStack) {
+		if (e->GetState() == Scene::StatusCode::Runnable) {
+			e->Draw(graphics);
 		}
 	}
+}
+
+/**
+*
+*/
+void Context::LoadScene(Creator::Func func)
+{
+	sceneStack.push_back(func());
+	sceneStack.back()->Load();
+	sceneStack.back()->status = Scene::StatusCode::Runnable;
+}
+
+/**
+*
+*/
+void Context::UnloadScene()
+{
+	sceneStack.back()->Unload();
+	sceneStack.back()->status = Scene::StatusCode::Stopped;
+	sceneStack.pop_back();
 }
 
 } // namespace Scene
