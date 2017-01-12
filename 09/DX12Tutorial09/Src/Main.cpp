@@ -13,6 +13,8 @@
 #include "Timer.h"
 #include "GamePad.h"
 
+#include "Scene/TitleScene.h"
+
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
@@ -23,6 +25,53 @@ const int clientHeight = 600;
 HWND hwnd = nullptr;
 
 HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+
+enum Id
+{
+	Id_None = -1,
+	Id_Title,
+	Id_MainGame,
+	Id_Ending,
+	Id_Option,
+	Id_Pause,
+	Id_GameOver,
+};
+
+enum MainGameExitCode
+{
+	MainGameExitCode_Ending,
+	MainGameExitCode_Pause,
+	MainGameExitCode_GameOver,
+};
+
+enum PauseExitCode
+{
+	PauseExitCode_Option,
+};
+
+Scene::ScenePtr MakeScene() { return Scene::ScenePtr(); }
+
+static const Scene::Creator creatorList[] = {
+	{ Id_Title, TitleScene::Creat },
+	{ Id_MainGame, MakeScene },
+	{ Id_Ending, MakeScene },
+	{ Id_Option, MakeScene },
+	{ Id_Pause, MakeScene },
+	{ Id_GameOver, MakeScene },
+};
+
+const Scene::Transition transitionList[] = {
+	{ Id_Title, { TitleScene::ExitCode_MainGame, Scene::TransitionType::Jump, Id_MainGame } },
+	{ Id_Title, { TitleScene::ExitCode_Option, Scene::TransitionType::Push, Id_Option } },
+	{ Id_MainGame, { MainGameExitCode_Ending, Scene::TransitionType::Jump, Id_Ending } },
+	{ Id_MainGame, { MainGameExitCode_Pause, Scene::TransitionType::Push, Id_Pause } },
+	{ Id_MainGame, { MainGameExitCode_GameOver, Scene::TransitionType::Jump, Id_GameOver } },
+	{ Id_Ending, { Scene::Scene::ExitCode_Exit, Scene::TransitionType::Jump, Id_Title } },
+	{ Id_Option, { Scene::Scene::ExitCode_Exit, Scene::TransitionType::Pop, Id_None } },
+	{ Id_Pause,{ Scene::Scene::ExitCode_Exit, Scene::TransitionType::Pop, Id_None } },
+	{ Id_Pause, { PauseExitCode_Option, Scene::TransitionType::Push, Id_Option } },
+	{ Id_GameOver, { Scene::Scene::ExitCode_Exit, Scene::TransitionType::Jump, Id_Title } },
+};
 
 Resource::Texture texNoise;
 Resource::Texture texBackground;
@@ -35,6 +84,8 @@ D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 
 ComPtr<ID3D12Resource> indexBuffer;
 D3D12_INDEX_BUFFER_VIEW indexBufferView;
+
+Scene::Context sceneContext;
 
 bool InitializeD3D();
 void FinalizeD3D();
@@ -229,6 +280,9 @@ bool InitializeD3D()
 
 	spriteList.push_back(Sprite::Sprite(GetAnimationList(), XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
 
+	sceneContext.Initialize(transitionList, _countof(transitionList), creatorList, _countof(creatorList));
+	sceneContext.Start(Id_Title);
+
 	return true;
 }
 
@@ -243,6 +297,9 @@ bool Render()
 	graphics.BeginRendering();
 	graphics.spriteRenderer.Begin(graphics.currentFrameIndex);
 
+	sceneContext.Draw(graphics);
+
+#if 0
 	DrawTriangle();
 	DrawRectangle();
 
@@ -254,6 +311,7 @@ bool Render()
 	spriteRenderingInfo.texDescHeap = graphics.csuDescriptorHeap.Get();
 	spriteRenderingInfo.matViewProjection = graphics.matViewProjection;
 	graphics.spriteRenderer.Draw(spriteList, cellList, GetPSO(PSOType_Sprite), texSprite, spriteRenderingInfo);
+#endif
 
 	graphics.spriteRenderer.End();
 	graphics.EndRendering();
@@ -278,6 +336,9 @@ void Update(double delta)
 	} else if (gamepad.buttons & GamePad::DPAD_DOWN) {
 		spriteList[0].pos.y += speed;
 	}
+
+	sceneContext.Update(delta);
+
 #if 0
 	spriteList[0].rotation += 0.1f;
 	if (spriteList[0].rotation >= 3.1415f * 2.0f) {
