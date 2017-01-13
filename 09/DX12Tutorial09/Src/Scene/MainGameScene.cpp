@@ -1,7 +1,7 @@
 /**
-* @file TitleScene.cpp
+* @file MainGameScene.cpp
 */
-#include "TitleScene.h"
+#include "MainGameScene.h"
 #include "../PSO.h"
 #include "../GamePad.h"
 #include <DirectXMath.h>
@@ -86,24 +86,50 @@ const Sprite::Cell cellList[] = {
 };
 
 /**
+* スプライト用セルデータ.
+*/
+const Sprite::Cell cellListObjects[] = {
+	{ XMFLOAT2(0.0f / 32.0f, 0.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(2.0f / 32.0f, 0.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(4.0f / 32.0f, 0.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(6.0f / 32.0f, 0.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+
+	{ XMFLOAT2(0.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 1.0f / 32.0f), XMFLOAT2(32, 32) },
+	{ XMFLOAT2(1.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 1.0f / 32.0f), XMFLOAT2(32, 32) },
+	{ XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 1.0f / 32.0f), XMFLOAT2(32, 32) },
+
+	{ XMFLOAT2(3.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(32, 64) },
+	{ XMFLOAT2(4.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(32, 64) },
+	{ XMFLOAT2(5.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(32, 64) },
+
+	{ XMFLOAT2(0.0f / 32.0f, 3.0f / 32.0f), XMFLOAT2(1.0f / 32.0f, 1.0f / 32.0f), XMFLOAT2(32, 32) },
+
+	{ XMFLOAT2(0.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(2.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(4.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(6.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(64, 64) },
+	{ XMFLOAT2(6.0f / 32.0f, 4.0f / 32.0f), XMFLOAT2(2.0f / 32.0f, 2.0f / 32.0f), XMFLOAT2(0, 0) },
+};
+
+/**
 *
 */
-::Scene::ScenePtr TitleScene::Create()
+::Scene::ScenePtr MainGameScene::Create()
 {
-	return ::Scene::ScenePtr(new TitleScene);
+	return ::Scene::ScenePtr(new MainGameScene);
 }
 
 /**
 * コンストラクタ.
 */
-TitleScene::TitleScene() : Scene(L"Title")
+MainGameScene::MainGameScene() : Scene(L"MainGame")
 {
 }
 
 /**
 *
 */
-bool TitleScene::Load()
+bool MainGameScene::Load()
 {
 	::Scene::Graphics& graphics = ::Scene::Graphics::Get();
 	Resource::ResourceLoader loader;
@@ -113,7 +139,7 @@ bool TitleScene::Load()
 	if (!loader.LoadFromFile(texBackground, 0, L"Res/UnknownPlanet.png")) {
 		return false;
 	}
-	if (!loader.LoadFromFile(texLogo, 1, L"Res/Title.png")) {
+	if (!loader.LoadFromFile(texObjects, 1, L"Res/Objects.png")) {
 		return false;
 	}
 	if (!loader.LoadFromFile(texFont, 2, L"Res/TextFont.png")) {
@@ -122,21 +148,22 @@ bool TitleScene::Load()
 	ID3D12CommandList* ppCommandLists[] = { loader.End() };
 	graphics.commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
-	animationFile = LoadAnimationFromJsonFile(L"Res/Anm/AnmTitle.json");
+	animationFile[0] = LoadAnimationFromJsonFile(L"Res/Anm/AnmTitle.json");
+	animationFile[1] = LoadAnimationFromJsonFile(L"Res/Anm/Animation.json");
 
 	graphics.WaitForGpu();
 
-	sprBackground.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 300, 1.0f)));
+	sprBackground.push_back(Sprite::Sprite(animationFile[0][0], XMFLOAT3(400, 300, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
 
-	sprLogo.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 200, 0.9f)));
-	sprLogo[0].SetSeqIndex(1);
+	sprObjects.push_back(Sprite::Sprite(animationFile[1][0], XMFLOAT3(400, 200, 0.9f)));
+	sprObjects[0].SetSeqIndex(0);
 
-	static const char text[] = "START";
-	XMFLOAT3 textPos(320, 400, 0.8f);
+	static const char text[] = "00000000";
+	XMFLOAT3 textPos(400 - 16 * (sizeof(text) - 1), 32, 0.8f);
 	for (char c : text) {
 		if (c >= ' ' && c < '`') {
-			sprFont.push_back(Sprite::Sprite(animationFile[0], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
+			sprFont.push_back(Sprite::Sprite(animationFile[0][0], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
 			sprFont.back().SetSeqIndex(c - ' ' + 2);
 			textPos.x += 32.0f;
 		}
@@ -150,7 +177,7 @@ bool TitleScene::Load()
 /**
 *
 */
-bool TitleScene::Unload()
+bool MainGameScene::Unload()
 {
 	return true;
 }
@@ -158,7 +185,7 @@ bool TitleScene::Unload()
 /**
 *
 */
-int TitleScene::Update(double delta)
+int MainGameScene::Update(double delta)
 {
 	time += delta;
 	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));
@@ -169,16 +196,11 @@ int TitleScene::Update(double delta)
 	for (Sprite::Sprite& sprite : sprBackground) {
 		sprite.animeController.Update(delta);
 	}
-	for (Sprite::Sprite& sprite : sprLogo) {
+	for (Sprite::Sprite& sprite : sprObjects) {
 		sprite.animeController.Update(delta);
 	}
 	for (Sprite::Sprite& sprite : sprFont) {
 		sprite.animeController.Update(delta);
-	}
-
-	const GamePad gamepad = GetGamePad(GamePadId_1P);
-	if (gamepad.buttons & (GamePad::A | GamePad::B | GamePad::START)) {
-		return ExitCode_MainGame;
 	}
 
 	return ExitCode_Continue;
@@ -187,7 +209,7 @@ int TitleScene::Update(double delta)
 /**
 *
 */
-void TitleScene::Draw(::Scene::Graphics& graphics) const
+void MainGameScene::Draw(::Scene::Graphics& graphics) const
 {
 	Sprite::RenderingInfo spriteRenderingInfo;
 	spriteRenderingInfo.rtvHandle = graphics.GetRTVHandle();
@@ -198,6 +220,6 @@ void TitleScene::Draw(::Scene::Graphics& graphics) const
 	spriteRenderingInfo.matViewProjection = graphics.matViewProjection;
 
 	graphics.spriteRenderer.Draw(sprBackground, cellList, GetPSO(PSOType_Sprite), texBackground, spriteRenderingInfo);
-	graphics.spriteRenderer.Draw(sprLogo, cellList, GetPSO(PSOType_Sprite), texLogo, spriteRenderingInfo);
+	graphics.spriteRenderer.Draw(sprObjects, cellListObjects, GetPSO(PSOType_Sprite), texObjects, spriteRenderingInfo);
 	graphics.spriteRenderer.Draw(sprFont, cellList, GetPSO(PSOType_Sprite), texFont, spriteRenderingInfo);
 }
