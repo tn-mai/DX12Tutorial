@@ -52,7 +52,7 @@ enum PauseExitCode
 Scene::ScenePtr MakeScene() { return Scene::ScenePtr(); }
 
 static const Scene::Creator creatorList[] = {
-	{ Id_Title, TitleScene::Creat },
+	{ Id_Title, TitleScene::Create },
 	{ Id_MainGame, MakeScene },
 	{ Id_Ending, MakeScene },
 	{ Id_Option, MakeScene },

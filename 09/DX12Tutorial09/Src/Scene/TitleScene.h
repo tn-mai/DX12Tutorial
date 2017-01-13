@@ -17,7 +17,7 @@ public:
 		ExitCode_Option,
 	};
 
-	static ::Scene::ScenePtr Creat();
+	static ::Scene::ScenePtr Create();
 
 	virtual bool Load();
 	virtual bool Unload();

@@ -88,7 +88,7 @@ const Sprite::Cell cellList[] = {
 /**
 *
 */
-::Scene::ScenePtr TitleScene::Creat()
+::Scene::ScenePtr TitleScene::Create()
 {
 	return ::Scene::ScenePtr(new TitleScene);
 }
