@@ -39,9 +39,15 @@
     "name" : "player",
     "list" : [
       [
-        { "cell" : 16, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
-        { "cell" : 17, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
-        { "cell" : 18, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+        { "cell" : 0, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 1, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 2, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 1.0, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 0.9, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 0.8, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 0.9, 1 ], "color" : [ 1, 1, 1, 1 ] }
       ]
     ]
   }
