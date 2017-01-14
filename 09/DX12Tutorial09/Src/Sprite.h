@@ -18,7 +18,7 @@ struct PSO;
 namespace Sprite {
 
 /**
-* スプライトデータ型.
+* セルデータ型.
 */
 struct Cell {
 	DirectX::XMFLOAT2 uv; ///< テクスチャ上の左上座標.
@@ -96,5 +96,35 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
 	D3D12_INDEX_BUFFER_VIEW indexBufferView;
 };
+
+/**
+* セルデータの配列.
+*/
+struct CellList
+{
+	std::string name; ///< リスト名.
+	std::vector<Cell> list; ///< セルデータの配列.
+};
+
+/**
+* 複数のCellListをまとめたオブジェクトを操作するためのインターフェイスクラス.
+*
+* LoadFromJsonFile()関数を使ってインターフェイスに対応したオブジェクトを取得し、Get()で
+* 個々のCellListアクセスする.
+*/
+class File
+{
+public:
+	File() = default;
+	File(const File&) = delete;
+	File& operator=(const File&) = delete;
+	virtual ~File() {}
+
+	virtual const CellList* Get(uint32_t no) const = 0;
+	virtual size_t Size() const = 0;
+};
+typedef std::shared_ptr<File> FilePtr;
+
+FilePtr LoadFromJsonFile(const wchar_t*);
 
 } // namespace Sprite

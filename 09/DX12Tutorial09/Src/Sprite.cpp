@@ -4,6 +4,7 @@
 #include "Sprite.h"
 #include "Texture.h"
 #include "PSO.h"
+#include "Json.h"
 #include "d3dx12.h"
 
 using Microsoft::WRL::ComPtr;
@@ -287,6 +288,129 @@ bool Renderer::End()
 ID3D12GraphicsCommandList* Renderer::GetCommandList()
 {
 	return commandList.Get();
+}
+
+/**
+* Fileインターフェイスの実装クラス.
+*/
+class FileImpl : public File
+{
+public:
+	FileImpl() {}
+	virtual ~FileImpl() {}
+	virtual const CellList* Get(uint32_t no) const {
+		if (no >= clList.size()) {
+			return nullptr;
+		}
+		return &clList[no];
+	}
+	virtual size_t Size() const { return clList.size(); }
+
+	std::vector<CellList> clList;
+};
+
+/**
+* ファイルからセルリストを読み込む.
+*
+* @param filename ファイル名.
+*
+* @return 読み込んだセルリスト.
+*         読み込み失敗の場合はnullptrを返す.
+*
+* JSONフォーマットは次のとおり:
+* <pre>
+* [
+*   {
+*     "name" : "セルリスト名",
+*     "texsize" : [w, h],
+*     "list" : [
+*       {
+*         "uv" : [u, v],
+*         "tsize" : [tw, th],
+*         "ssize" : [sw, sh]
+*       },
+*       ...
+*     ]
+*   },
+*   ...
+* ]
+* </pre>
+*/
+FilePtr LoadFromJsonFile(const wchar_t* filename)
+{
+	struct HandleHolder {
+		explicit HandleHolder(HANDLE h) : handle(h) {}
+		~HandleHolder() { if (handle != INVALID_HANDLE_VALUE) { CloseHandle(handle); } }
+		HANDLE handle;
+		operator HANDLE() { return handle; }
+		operator HANDLE() const { return handle; }
+	};
+
+	std::shared_ptr<FileImpl> af(new FileImpl);
+
+	HandleHolder h(CreateFileW(filename, GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr));
+	if (h == INVALID_HANDLE_VALUE) {
+		return af;
+	}
+	LARGE_INTEGER size;
+	if (!GetFileSizeEx(h, &size)) {
+		return af;
+	}
+	if (size.QuadPart > std::numeric_limits<size_t>::max()) {
+		return af;
+	}
+	std::vector<char> buffer;
+	buffer.resize(static_cast<size_t>(size.QuadPart));
+	DWORD readBytes;
+	if (!ReadFile(h, &buffer[0], buffer.size(), &readBytes, nullptr)) {
+		return af;
+	}
+	const Json::Value json = Json::Parse(buffer.data());
+	if (json.type != Json::Type::Array) {
+		return af;
+	}
+
+	for (const Json::Value& e : json.array) {
+		if (e.type != Json::Type::Object) {
+			break;
+		}
+		const Json::Object::const_iterator itrName = e.object.find("name");
+		if (itrName == e.object.end() || itrName->second.type != Json::Type::String) {
+			break;
+		}
+		const Json::Object::const_iterator itrTexSize = e.object.find("texsize");
+		if (itrTexSize == e.object.end() || itrTexSize->second.type != Json::Type::Array || itrTexSize->second.array.size() < 2) {
+			break;
+		}
+		const XMVECTOR texsize = XMVectorReciprocal({ static_cast<float>(itrTexSize->second.array[0].number), static_cast<float>(itrTexSize->second.array[1].number) });
+		CellList al;
+		al.name = itrName->second.string;
+		const Json::Object::const_iterator itrList = e.object.find("list");
+		if (itrList == e.object.end() || itrList->second.type != Json::Type::Array) {
+			break;
+		}
+		for (const Json::Value& data : itrList->second.array) {
+			if (data.type != Json::Type::Object) {
+				return af;
+			}
+			Cell cell;
+			const Json::Array& uv = data.object.find("uv")->second.array;
+			cell.uv.x = uv.size() > 0 ? static_cast<float>(uv[0].number) : 0.0f;
+			cell.uv.y = uv.size() > 1 ? static_cast<float>(uv[1].number) : 0.0f;
+			XMStoreFloat2(&cell.uv, XMVectorMultiply(XMLoadFloat2(&cell.uv), texsize));
+			const Json::Array& tsize = data.object.find("tsize")->second.array;
+			cell.tsize.x = tsize.size() > 0 ? static_cast<float>(tsize[0].number) : 0.0f;
+			cell.tsize.y = tsize.size() > 1 ? static_cast<float>(tsize[1].number) : 0.0f;
+			XMStoreFloat2(&cell.tsize, XMVectorMultiply(XMLoadFloat2(&cell.tsize), texsize));
+			const Json::Array& ssize = data.object.find("ssize")->second.array;
+			cell.ssize.x = ssize.size() > 0 ? static_cast<float>(ssize[0].number) : 0.0f;
+			cell.ssize.y = ssize.size() > 1 ? static_cast<float>(ssize[1].number) : 0.0f;
+			al.list.push_back(cell);
+		}
+		af->clList.push_back(al);
+	}
+
+	return af;
 }
 
 } // namespace Sprite
