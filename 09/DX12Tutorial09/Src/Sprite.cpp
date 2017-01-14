@@ -251,6 +251,9 @@ bool Renderer::Draw(const std::vector<Sprite>& spriteList, const Cell* cellList,
 	int numSprite = 0;
 	Vertex* v = static_cast<Vertex*>(fr.vertexBufferGPUAddress) + (spriteCount * 4);
 	for (const Sprite& sprite : spriteList) {
+		if (sprite.scale.x == 0 || sprite.scale.y == 0) {
+			continue;
+		}
 		const Cell* cell = cellList + sprite.GetCellIndex();
 		AddVertex(sprite, cell, v, offset);
 		++numSprite;
