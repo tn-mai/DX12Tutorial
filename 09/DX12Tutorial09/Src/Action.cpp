@@ -557,8 +557,11 @@ FilePtr LoadFromJsonFile(const wchar_t* filename)
 	if (!GetFileSizeEx(h, &size)) {
 		return af;
 	}
+	if (size.QuadPart > std::numeric_limits<size_t>::max()) {
+		return af;
+	}
 	std::vector<char> buffer;
-	buffer.resize(size.QuadPart);
+	buffer.resize(static_cast<size_t>(size.QuadPart));
 	DWORD readBytes;
 	if (!ReadFile(h, &buffer[0], buffer.size(), &readBytes, nullptr)) {
 		return af;
@@ -603,6 +606,9 @@ FilePtr LoadFromJsonFile(const wchar_t* filename)
 					{ "Delete", Type::Vanishing },
 				};
 				const auto itrTypePair = std::find(typeMap, typeMap + _countof(typeMap), data.object.find("type")->second.string);
+				if (itrTypePair == typeMap + _countof(typeMap)) {
+					return af;
+				}
 				ad.type = itrTypePair->type;
 				const Json::Array& array = data.object.find("args")->second.array;
 				for (size_t i = 0; i < 3 && i < array.size(); ++i) {
