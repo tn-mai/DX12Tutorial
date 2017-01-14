@@ -7,6 +7,7 @@
 #include "../Texture.h"
 #include "../Sprite.h"
 #include "../Animation.h"
+#include "../Action.h"
 
 class MainGameScene : public Scene::Scene
 {
@@ -37,6 +38,7 @@ private:
 	std::vector<Sprite::Sprite> sprObjects;
 	std::vector<Sprite::Sprite> sprFont;
 	AnimationFile animationFile[2];
+	Action::FilePtr actionFile;
 	double time;
 };
 

@@ -151,13 +151,16 @@ bool MainGameScene::Load()
 	animationFile[0] = LoadAnimationFromJsonFile(L"Res/Anm/AnmTitle.json");
 	animationFile[1] = LoadAnimationFromJsonFile(L"Res/Anm/Animation.json");
 
+	actionFile = Action::LoadFromJsonFile(L"Res/Act/ActEnemy.json");
+
 	graphics.WaitForGpu();
 
 	sprBackground.push_back(Sprite::Sprite(animationFile[0][0], XMFLOAT3(400, 300, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
 
-	sprObjects.push_back(Sprite::Sprite(animationFile[1][0], XMFLOAT3(400, 200, 0.9f)));
+	sprObjects.push_back(Sprite::Sprite(animationFile[1][0], XMFLOAT3(400, -16, 0.9f)));
 	sprObjects[0].SetSeqIndex(0);
+	sprObjects[0].SetActionList(actionFile->Get(0));
 
 	static const char text[] = "00000000";
 	XMFLOAT3 textPos(400 - 16 * (sizeof(text) - 1), 32, 0.8f);
@@ -194,13 +197,13 @@ int MainGameScene::Update(double delta)
 	}
 
 	for (Sprite::Sprite& sprite : sprBackground) {
-		sprite.animeController.Update(delta);
+		sprite.Update(delta);
 	}
 	for (Sprite::Sprite& sprite : sprObjects) {
-		sprite.animeController.Update(delta);
+		sprite.Update(delta);
 	}
 	for (Sprite::Sprite& sprite : sprFont) {
-		sprite.animeController.Update(delta);
+		sprite.Update(delta);
 	}
 
 	return ExitCode_Continue;
