@@ -37,6 +37,7 @@ private:
 	std::vector<Sprite::Sprite> sprBackground;
 	std::vector<Sprite::Sprite> sprObjects;
 	std::vector<Sprite::Sprite> sprFont;
+	Sprite::FilePtr cellFile[2];
 	AnimationFile animationFile[2];
 	Action::FilePtr actionFile;
 	double time;

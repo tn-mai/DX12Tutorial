@@ -15,74 +15,6 @@ const Sprite::Cell cellList[] = {
 	{ XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT2(800, 600) },
 
 	{ XMFLOAT2(16.0f / 1024.0f, 48.0f / 512.0f), XMFLOAT2(480.0f / 1024.0f, 256.0f / 512.0f), XMFLOAT2(480, 256) },
-
-	{ XMFLOAT2( 0.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 1.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 2.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 3.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 4.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 5.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 6.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 7.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 8.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 9.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(10.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(11.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(12.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(13.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(14.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(15.0f / 16.0f, 0.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-
-	{ XMFLOAT2( 0.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 2.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 3.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 4.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 5.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 6.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 7.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 8.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 9.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(10.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(11.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(12.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(13.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(14.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(15.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-
-	{ XMFLOAT2( 0.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 1.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 2.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 3.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 4.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 5.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 6.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 7.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 8.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 9.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(10.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(11.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(12.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(13.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(14.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(15.0f / 16.0f, 4.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-
-	{ XMFLOAT2( 1.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 0.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 2.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 3.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 4.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 5.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 6.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 7.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 8.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2( 9.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(10.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(11.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(12.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(13.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(14.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
-	{ XMFLOAT2(15.0f / 16.0f, 6.0f / 16.0f), XMFLOAT2(1.0f / 16.0f, 2.0f / 16.0f), XMFLOAT2(32, 64) },
 };
 
 /**
@@ -122,6 +54,7 @@ bool TitleScene::Load()
 	ID3D12CommandList* ppCommandLists[] = { loader.End() };
 	graphics.commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
+	cellFile = Sprite::LoadFromJsonFile(L"Res/Cell/CellFont.json");
 	animationFile = LoadAnimationFromJsonFile(L"Res/Anm/AnmTitle.json");
 
 	graphics.WaitForGpu();
@@ -136,8 +69,8 @@ bool TitleScene::Load()
 	XMFLOAT3 textPos(320, 400, 0.8f);
 	for (char c : text) {
 		if (c >= ' ' && c < '`') {
-			sprFont.push_back(Sprite::Sprite(animationFile[0], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
-			sprFont.back().SetSeqIndex(c - ' ' + 2);
+			sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
+			sprFont.back().SetSeqIndex(c - ' ');
 			textPos.x += 32.0f;
 		}
 	}
@@ -199,5 +132,5 @@ void TitleScene::Draw(::Scene::Graphics& graphics) const
 
 	graphics.spriteRenderer.Draw(sprBackground, cellList, GetPSO(PSOType_Sprite), texBackground, spriteRenderingInfo);
 	graphics.spriteRenderer.Draw(sprLogo, cellList, GetPSO(PSOType_Sprite), texLogo, spriteRenderingInfo);
-	graphics.spriteRenderer.Draw(sprFont, cellList, GetPSO(PSOType_Sprite), texFont, spriteRenderingInfo);
+	graphics.spriteRenderer.Draw(sprFont, cellFile->Get(0)->list.data(), GetPSO(PSOType_Sprite), texFont, spriteRenderingInfo);
 }
