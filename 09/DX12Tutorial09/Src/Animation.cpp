@@ -133,8 +133,11 @@ AnimationFile LoadAnimationFromJsonFile(const wchar_t* filename)
 	if (!GetFileSizeEx(h, &size)) {
 		return {};
 	}
+	if (size.QuadPart > std::numeric_limits<size_t>::max()) {
+		return {};
+	}
 	std::vector<char> buffer;
-	buffer.resize(size.QuadPart);
+	buffer.resize(static_cast<size_t>(size.QuadPart));
 	DWORD readBytes;
 	if (!ReadFile(h, &buffer[0], buffer.size(), &readBytes, nullptr)) {
 		return {};
@@ -168,26 +171,26 @@ AnimationFile LoadAnimationFromJsonFile(const wchar_t* filename)
 					return af;
 				}
 				AnimationData ad;
-				ad.cellIndex = data.object.find("cell")->second.number;
-				ad.time = data.object.find("time")->second.number;
-				ad.rotation = data.object.find("rotation")->second.number;
+				ad.cellIndex = static_cast<uint32_t>(data.object.find("cell")->second.number);
+				ad.time = static_cast<float>(data.object.find("time")->second.number);
+				ad.rotation = static_cast<float>(data.object.find("rotation")->second.number);
 				{
 					auto itr = data.object.find("scale");
 					if (itr == data.object.end() || itr->second.type != Json::Type::Array || itr->second.array.size() < 2) {
 						return af;
 					}
-					ad.scale.x = itr->second.array[0].number;
-					ad.scale.y = itr->second.array[1].number;
+					ad.scale.x = static_cast<float>(itr->second.array[0].number);
+					ad.scale.y = static_cast<float>(itr->second.array[1].number);
 				}
 				{
 					auto itr = data.object.find("color");
 					if (itr == data.object.end() || itr->second.type != Json::Type::Array || itr->second.array.size() < 4) {
 						return af;
 					}
-					ad.color.x = itr->second.array[0].number;
-					ad.color.y = itr->second.array[1].number;
-					ad.color.z = itr->second.array[2].number;
-					ad.color.w = itr->second.array[3].number;
+					ad.color.x = static_cast<float>(itr->second.array[0].number);
+					ad.color.y = static_cast<float>(itr->second.array[1].number);
+					ad.color.z = static_cast<float>(itr->second.array[2].number);
+					ad.color.w = static_cast<float>(itr->second.array[3].number);
 				}
 				as.push_back(ad);
 			}
