@@ -26,6 +26,9 @@ public:
 	virtual int Update(double delta);
 	virtual void Draw(::Scene::Graphics& graphics) const;
 
+	struct Occurrence;
+	struct FormationData;
+
 private:
 	MainGameScene();
 	MainGameScene(const MainGameScene&) = delete;
@@ -35,12 +38,31 @@ private:
 	Resource::Texture texObjects;
 	Resource::Texture texFont;
 	std::vector<Sprite::Sprite> sprBackground;
-	std::vector<Sprite::Sprite> sprObjects;
+	std::vector<Sprite::Sprite> sprPlayer;
+	std::vector<Sprite::Sprite> sprEnemy;
 	std::vector<Sprite::Sprite> sprFont;
 	Sprite::FilePtr cellFile[2];
-	AnimationFile animationFile[2];
+	Sprite::FilePtr cellPlayer;
+	AnimationFile anmObjects;
+	AnimationFile anmOthers;
 	Action::FilePtr actionFile;
+	const Occurrence* pCurOccurrence;
+	const Occurrence* pEndOccurrence;
+
+	struct Formation {
+		float time;
+		DirectX::XMFLOAT3 pos;
+		const FormationData* cur;
+		const FormationData* end;
+	};
+	std::vector<Formation> formationList;
+	std::vector<Sprite::Sprite*> freePlayerShotList;
+	std::vector<Sprite::Sprite*> freeEnemyList;
+	std::vector<Sprite::Sprite*> freeEnemyShotList;
 	double time;
+
+	int playerShotCycle = 0;
+	float playerShotInterval = 0;
 };
 
 #endif // DX12TUTORIAL_SRC_SCENE_MAINGAMESCENE_H_
