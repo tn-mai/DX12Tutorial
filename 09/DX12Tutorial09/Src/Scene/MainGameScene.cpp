@@ -293,8 +293,15 @@ int MainGameScene::Update(double delta)
 		sprite.Update(delta);
 	}
 
+	const uint32_t endingKey = GamePad::A | GamePad::START;
+	if ((gamepad.trigger & endingKey) == endingKey) {
+		return ExitCode_Ending;
+	}
 	if (gamepad.trigger & GamePad::START) {
 		return ExitCode_Pause;
+	}
+	if (time >= 45) {
+		return ExitCode_GameOver;
 	}
 	return ExitCode_Continue;
 }
