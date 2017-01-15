@@ -171,6 +171,7 @@
     <ClCompile Include="Src\PSO.cpp" />
     <ClCompile Include="Src\Scene.cpp" />
     <ClCompile Include="Src\Scene\MainGameScene.cpp" />
+    <ClCompile Include="Src\Scene\PauseScene.cpp" />
     <ClCompile Include="Src\Scene\TitleScene.cpp" />
     <ClCompile Include="Src\Sprite.cpp" />
     <ClCompile Include="Src\Texture.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="Src\PSO.h" />
     <ClInclude Include="Src\Scene.h" />
     <ClInclude Include="Src\Scene\MainGameScene.h" />
+    <ClInclude Include="Src\Scene\PauseScene.h" />
     <ClInclude Include="Src\Scene\TitleScene.h" />
     <ClInclude Include="Src\Sprite.h" />
     <ClInclude Include="Src\Texture.h" />

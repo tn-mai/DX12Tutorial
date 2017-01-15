@@ -15,6 +15,7 @@
 
 #include "Scene/TitleScene.h"
 #include "Scene/MainGameScene.h"
+#include "Scene/PauseScene.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -38,11 +39,6 @@ enum Id
 	Id_GameOver,
 };
 
-enum PauseExitCode
-{
-	PauseExitCode_Option,
-};
-
 Scene::ScenePtr MakeScene() { return Scene::ScenePtr(); }
 
 static const Scene::Creator creatorList[] = {
@@ -50,7 +46,7 @@ static const Scene::Creator creatorList[] = {
 	{ Id_MainGame, MainGameScene::Create },
 	{ Id_Ending, MakeScene },
 	{ Id_Option, MakeScene },
-	{ Id_Pause, MakeScene },
+	{ Id_Pause, PauseScene::Create },
 	{ Id_GameOver, MakeScene },
 };
 
@@ -63,7 +59,6 @@ const Scene::Transition transitionList[] = {
 	{ Id_Ending, { Scene::Scene::ExitCode_Exit, Scene::TransitionType::Jump, Id_Title } },
 	{ Id_Option, { Scene::Scene::ExitCode_Exit, Scene::TransitionType::Pop, Id_None } },
 	{ Id_Pause,{ Scene::Scene::ExitCode_Exit, Scene::TransitionType::Pop, Id_None } },
-	{ Id_Pause, { PauseExitCode_Option, Scene::TransitionType::Push, Id_Option } },
 	{ Id_GameOver, { Scene::Scene::ExitCode_Exit, Scene::TransitionType::Jump, Id_Title } },
 };
 

@@ -293,6 +293,9 @@ int MainGameScene::Update(double delta)
 		sprite.Update(delta);
 	}
 
+	if (gamepad.trigger & GamePad::START) {
+		return ExitCode_Pause;
+	}
 	return ExitCode_Continue;
 }
 
