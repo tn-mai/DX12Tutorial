@@ -109,7 +109,7 @@ int TitleScene::Update(double delta)
 	}
 
 	const GamePad gamepad = GetGamePad(GamePadId_1P);
-	if (gamepad.buttons & (GamePad::A | GamePad::B | GamePad::START)) {
+	if (gamepad.trigger & (GamePad::A | GamePad::B | GamePad::START)) {
 		return ExitCode_MainGame;
 	}
 
