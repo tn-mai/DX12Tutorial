@@ -38,26 +38,25 @@ TitleScene::TitleScene() : Scene(L"Title")
 bool TitleScene::Load()
 {
 	::Scene::Graphics& graphics = ::Scene::Graphics::Get();
-	Resource::ResourceLoader loader;
-	if (!loader.Begin(graphics.csuDescriptorHeap)) {
+
+	graphics.texMap.Begin();
+	if (!graphics.texMap.LoadFromFile(texBackground, L"Res/UnknownPlanet.png")) {
 		return false;
 	}
-	if (!loader.LoadFromFile(texBackground, 0, L"Res/UnknownPlanet.png")) {
+	if (!graphics.texMap.LoadFromFile(texLogo, L"Res/Title.png")) {
 		return false;
 	}
-	if (!loader.LoadFromFile(texLogo, 1, L"Res/Title.png")) {
+	if (!graphics.texMap.LoadFromFile(texFont, L"Res/TextFont.png")) {
 		return false;
 	}
-	if (!loader.LoadFromFile(texFont, 2, L"Res/TextFont.png")) {
-		return false;
-	}
-	ID3D12CommandList* ppCommandLists[] = { loader.End() };
+	ID3D12CommandList* ppCommandLists[] = { graphics.texMap.End() };
 	graphics.commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	cellFile = Sprite::LoadFromJsonFile(L"Res/Cell/CellFont.json");
 	animationFile = LoadAnimationFromJsonFile(L"Res/Anm/AnmTitle.json");
 
 	graphics.WaitForGpu();
+	graphics.texMap.ResetLoader();
 
 	sprBackground.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 300, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
