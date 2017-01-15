@@ -8,6 +8,9 @@
 #include <wrl/client.h>
 #include <wincodec.h>
 #include <vector>
+#include <string>
+#include <map>
+#include <memory>
 
 /**
 * リソース管理用名前空間.
@@ -55,6 +58,39 @@ private:
 	Microsoft::WRL::ComPtr<IWICImagingFactory> imagingFactory;
 	UINT descriptorSize;
 	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> uploadHeapList;
+};
+
+/**
+* テクスチャを保持するクラス.
+*
+* - 指定されたテクスチャを読み込み、空きデスクリプタに割り当てる.
+* - 指定されたテクスチャが既に存在する場合、そのテクスチャを返す.
+*
+* どこからも参照されなくなったテクスチャを破棄するため、定期的にGC()を呼び出すこと.
+*/
+class TextureMap
+{
+public:
+	TextureMap() = default;
+	TextureMap(const TextureMap&) = delete;
+	TextureMap& operator=(const TextureMap&) = delete;
+
+	void Init(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap);
+	bool Begin();
+	ID3D12GraphicsCommandList* End();
+	bool Create(Texture& texture, const wchar_t* name, const D3D12_RESOURCE_DESC& desc, const void* data);
+	bool LoadFromFile(Texture& texture, const wchar_t* filename);
+	void ResetLoader() { loader.reset(); }
+	bool Find(Texture& texture, const wchar_t* filename);
+	void GC();
+
+private:
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
+	UINT descriptorSize;
+	std::unique_ptr<ResourceLoader> loader;
+	std::vector<uint16_t> freeIDList;
+
+	std::map<std::wstring, Texture> map;
 };
 
 } // namespace Resource

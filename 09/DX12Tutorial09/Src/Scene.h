@@ -12,7 +12,6 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include <map>
 #include <windows.h>
 
 namespace Scene {
@@ -72,7 +71,7 @@ public:
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> csuDescriptorHeap;
 	int csuDescriptorSize;
 
-	std::map<std::string, Resource::Texture> texMap;
+	Resource::TextureMap texMap;
 	Sprite::Renderer spriteRenderer;
 private:
 };

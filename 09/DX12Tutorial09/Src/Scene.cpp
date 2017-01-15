@@ -196,6 +196,8 @@ bool Graphics::Initialize(HWND hwnd, int clientWidth, int clientHeight)
 	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 	WaitForGpu();
 
+	texMap.Init(csuDescriptorHeap);
+
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
 	viewport.Width = static_cast<float>(clientWidth);
@@ -396,6 +398,7 @@ void Context::Update(double delta)
 			}
 		}
 	}
+	Graphics::Get().texMap.GC();
 }
 
 /**

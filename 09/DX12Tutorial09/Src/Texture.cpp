@@ -321,4 +321,144 @@ bool ResourceLoader::LoadFromFile(Texture& texture, int index, const wchar_t* fi
 	return true;
 }
 
+/**
+* 初期化する.
+*
+* @param heap テクスチャ用のCSUデスクリプタ取得先のデスクリプタヒープ.
+*/
+void TextureMap::Init(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap)
+{
+	descriptorHeap = heap;
+	size_t numDescriptors = descriptorHeap->GetDesc().NumDescriptors;
+	const uint16_t avairableCount = numDescriptors > 4096 ? 4096 : static_cast<uint16_t>(numDescriptors);
+	freeIDList.resize(avairableCount);
+	uint16_t id = avairableCount - 1;
+	for (size_t i = 0; i < avairableCount; ++i) {
+		freeIDList[i] = id;
+		--id;
+	}
+}
+
+/**
+* リソース読み込みを開始する.
+*
+* @retval true  初期化成功.
+* @retval false 初期化失敗.
+*/
+bool TextureMap::Begin()
+{
+	Microsoft::WRL::ComPtr<ID3D12Device> device;
+	if (FAILED(descriptorHeap->GetDevice(IID_PPV_ARGS(&device)))) {
+		return false;
+	}
+	descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	loader.reset(new ResourceLoader);
+	loader->Begin(descriptorHeap);
+	return true;
+}
+
+/**
+* リソース読み込みを終了する.
+*
+* @return コマンドリストへのポインタ.
+*/
+ID3D12GraphicsCommandList* TextureMap::End()
+{
+	return loader->End();
+}
+
+/**
+* 名前が一致するテクスチャを検索する.
+*
+* @param texture  戻り値がtrueの場合に、発見したテクスチャを格納するオブジェクト.
+* @param name     検索するテクスチャ名.
+*
+* @retval true  nameに一致するテクスチャを発見.
+* @retval false nameに一致するテクスチャを保持していない.
+*/
+bool TextureMap::Find(Texture& texture, const wchar_t* name)
+{
+	auto itr = map.find(name);
+	if (itr == map.end()) {
+		return false;
+	}
+	texture = itr->second;
+	return true;
+}
+
+/**
+* バイト列からテクスチャを作成する.
+*
+* @param texture  作成したテクスチャを管理するオブジェクト.
+* @param name     テクスチャリソースに付ける名前.
+* @param desc     テクスチャの詳細情報.
+* @param data     テクスチャ作成に使用するバイト列へのポインタ.
+*
+* @retval true  作成成功.
+* @retval false 作成失敗.
+*/
+bool TextureMap::Create(Texture& texture, const wchar_t* name, const D3D12_RESOURCE_DESC& desc, const void* data)
+{
+	if (Find(texture, name)) {
+		return true;
+	}
+
+	if (freeIDList.empty()) {
+		return false;
+	}
+	const int index = freeIDList.back();
+	if (loader->Create(texture, index, desc, data, name)) {
+		freeIDList.pop_back();
+		map.insert(std::make_pair(name, texture));
+		return true;
+	}
+	return false;
+}
+
+/**
+* ファイルからテクスチャを読み込む.
+*
+* @param texture   読み込んだテクスチャを管理するオブジェクト.
+* @param filename  テクスチャファイル名.
+*
+* @retval true  読み込み成功.
+* @retval false 読み込み失敗.
+*/
+bool TextureMap::LoadFromFile(Texture& texture, const wchar_t* filename)
+{
+	if (Find(texture, filename)) {
+		return true;
+	}
+
+	if (freeIDList.empty()) {
+		return false;
+	}
+	const int index = freeIDList.back();
+	if (loader->LoadFromFile(texture, index, filename)) {
+		freeIDList.pop_back();
+		map.insert(std::make_pair(filename, texture));
+		return true;
+	}
+	return false;
+}
+
+/**
+* 参照されなくなったテクスチャを破棄する.
+*/
+void TextureMap::GC()
+{
+	auto itr = map.begin();
+	while (itr != map.end()) {
+		itr->second.resource.Get()->AddRef();
+		const ULONG refCount = itr->second.resource.Get()->Release();
+		if (refCount == 1) {
+			const int index = static_cast<int>((itr->second.handle.ptr - descriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr) / descriptorSize);
+			itr = map.erase(itr);
+			freeIDList.push_back(index);
+		} else {
+			++itr;
+		}
+	}
+}
+
 } // namespace Resource
