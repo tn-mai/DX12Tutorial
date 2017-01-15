@@ -24,6 +24,8 @@ struct GamePad
 		R = 0x0400,
 	};
 	uint32_t buttons;
+	uint32_t prevButtons;
+	uint32_t trigger;
 };
 
 enum GamePadId

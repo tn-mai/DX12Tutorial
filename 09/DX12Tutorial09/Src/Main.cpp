@@ -241,6 +241,7 @@ HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case 'S': gamepad.buttons |= GamePad::DPAD_DOWN; break;
 		case 'D': gamepad.buttons |= GamePad::DPAD_RIGHT; break;
 		case VK_SPACE: gamepad.buttons |= GamePad::A; break;
+		case VK_RETURN: gamepad.buttons |= GamePad::START; break;
 		}
 		break;
 	case WM_KEYUP:
@@ -250,6 +251,7 @@ HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case 'S': gamepad.buttons &= ~GamePad::DPAD_DOWN; break;
 		case 'D': gamepad.buttons &= ~GamePad::DPAD_RIGHT; break;
 		case VK_SPACE: gamepad.buttons &= ~GamePad::A; break;
+		case VK_RETURN: gamepad.buttons &= ~GamePad::START; break;
 		}
 		break;
 	case WM_DESTROY:
@@ -319,6 +321,9 @@ bool Render()
 void Update(double delta)
 {
 	GamePad& gamepad = GetGamePad(GamePadId_1P);
+	gamepad.trigger = ~gamepad.prevButtons & (gamepad.prevButtons ^ gamepad.buttons);
+	gamepad.prevButtons = gamepad.buttons;
+
 	const float speed = static_cast<float>(200.0 * delta);
 	if (gamepad.buttons & GamePad::DPAD_LEFT) {
 		spriteList[0].pos.x -= speed;
