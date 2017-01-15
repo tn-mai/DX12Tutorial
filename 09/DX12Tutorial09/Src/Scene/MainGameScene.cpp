@@ -157,8 +157,8 @@ bool MainGameScene::Load()
 
 	sprFont.reserve(256);
 	static const char text[] = "00000000";
-	XMFLOAT3 textPos(400 - 16 * (sizeof(text) - 1), 32, 0.1f);
-	for (char c : text) {
+	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 32, 0.1f);
+	for (const char c : text) {
 		if (c >= ' ' && c < '`') {
 			sprFont.push_back(Sprite::Sprite(anmOthers[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
 			sprFont.back().SetSeqIndex(c - ' ');

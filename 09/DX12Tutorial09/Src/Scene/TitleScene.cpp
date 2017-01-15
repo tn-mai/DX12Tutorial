@@ -65,8 +65,8 @@ bool TitleScene::Load()
 	sprLogo[0].SetSeqIndex(1);
 
 	static const char text[] = "START";
-	XMFLOAT3 textPos(320, 400, 0.8f);
-	for (char c : text) {
+	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 400, 0.8f);
+	for (const char c : text) {
 		if (c >= ' ' && c < '`') {
 			sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
 			sprFont.back().SetSeqIndex(c - ' ');
