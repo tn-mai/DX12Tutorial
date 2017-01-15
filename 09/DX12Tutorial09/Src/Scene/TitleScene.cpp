@@ -2,6 +2,7 @@
 * @file TitleScene.cpp
 */
 #include "TitleScene.h"
+#include "../Graphics.h"
 #include "../PSO.h"
 #include "../GamePad.h"
 #include <DirectXMath.h>
@@ -37,7 +38,7 @@ TitleScene::TitleScene() : Scene(L"Title")
 */
 bool TitleScene::Load()
 {
-	::Scene::Graphics& graphics = ::Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 
 	graphics.texMap.Begin();
 	if (!graphics.texMap.LoadFromFile(texBackground, L"Res/UnknownPlanet.png")) {
@@ -119,7 +120,7 @@ int TitleScene::Update(double delta)
 /**
 *
 */
-void TitleScene::Draw(::Scene::Graphics& graphics) const
+void TitleScene::Draw(Graphics::Graphics& graphics) const
 {
 	Sprite::RenderingInfo spriteRenderingInfo;
 	spriteRenderingInfo.rtvHandle = graphics.GetRTVHandle();

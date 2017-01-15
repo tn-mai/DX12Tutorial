@@ -166,6 +166,7 @@
     <ClCompile Include="Src\Action.cpp" />
     <ClCompile Include="Src\Animation.cpp" />
     <ClCompile Include="Src\GamePad.cpp" />
+    <ClCompile Include="Src\Graphics.cpp" />
     <ClCompile Include="Src\Json.cpp" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\PSO.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="Src\Animation.h" />
     <ClInclude Include="Src\d3dx12.h" />
     <ClInclude Include="Src\GamePad.h" />
+    <ClInclude Include="Src\Graphics.h" />
     <ClInclude Include="Src\Json.h" />
     <ClInclude Include="Src\PSO.h" />
     <ClInclude Include="Src\Scene.h" />

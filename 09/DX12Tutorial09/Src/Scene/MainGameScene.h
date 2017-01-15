@@ -24,7 +24,7 @@ public:
 	virtual bool Load();
 	virtual bool Unload();
 	virtual int Update(double delta);
-	virtual void Draw(::Scene::Graphics& graphics) const;
+	virtual void Draw(Graphics::Graphics& graphics) const;
 
 	struct Occurrence;
 	struct FormationData;

@@ -7,6 +7,7 @@
 #include <DirectXMath.h>
 #include <wrl/client.h>
 #include "Scene.h"
+#include "Graphics.h"
 #include "Texture.h"
 #include "PSO.h"
 #include "Sprite.h"
@@ -256,7 +257,7 @@ HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 bool InitializeD3D()
 {
-	Scene::Graphics::Get().Initialize(hwnd, clientWidth, clientHeight);
+	Graphics::Graphics::Get().Initialize(hwnd, clientWidth, clientHeight);
 	if (!CreateVertexBuffer()) {
 		return false;
 	}
@@ -277,12 +278,12 @@ bool InitializeD3D()
 
 void FinalizeD3D()
 {
-	Scene::Graphics::Get().Finalize();
+	Graphics::Graphics::Get().Finalize();
 }
 
 bool Render()
 {
-	Scene::Graphics& graphics = Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 	graphics.BeginRendering();
 	graphics.spriteRenderer.Begin(graphics.currentFrameIndex);
 
@@ -356,7 +357,7 @@ void Update(double delta)
 */
 bool CreateVertexBuffer()
 {
-	Scene::Graphics& graphics = Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 	if (FAILED(graphics.device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
@@ -388,7 +389,7 @@ bool CreateVertexBuffer()
 */
 bool CreateIndexBuffer()
 {
-	Scene::Graphics& graphics = Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 	if (FAILED(graphics.device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
@@ -420,7 +421,7 @@ bool CreateIndexBuffer()
 */
 void DrawTriangle()
 {
-	Scene::Graphics& graphics = Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 	const PSO& pso = GetPSO(PSOType_Simple);
 	graphics.commandList->SetPipelineState(pso.pso.Get());
 	graphics.commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
@@ -438,7 +439,7 @@ void DrawTriangle()
 */
 void DrawRectangle()
 {
-	Scene::Graphics& graphics = Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 	const PSO& pso = GetPSO(PSOType_NoiseTexture);
 	graphics.commandList->SetPipelineState(pso.pso.Get());
 	graphics.commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
@@ -536,7 +537,7 @@ bool CreateNoiseTexture(Resource::ResourceLoader& loader)
 */
 bool LoadTexture()
 {
-	Scene::Graphics& graphics = Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 	Resource::ResourceLoader loader;
 	if (!loader.Begin(graphics.csuDescriptorHeap)) {
 		return false;

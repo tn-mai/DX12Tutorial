@@ -2,6 +2,7 @@
 * @file EndingScene.cpp
 */
 #include "EndingScene.h"
+#include "../Graphics.h"
 #include "../PSO.h"
 #include "../GamePad.h"
 #include <DirectXMath.h>
@@ -37,7 +38,7 @@ EndingScene::EndingScene() : Scene(L"Ending")
 */
 bool EndingScene::Load()
 {
-	::Scene::Graphics& graphics = ::Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 
 	graphics.texMap.Begin();
 	if (!graphics.texMap.LoadFromFile(texBackground, L"Res/UnknownPlanet.png")) {
@@ -118,7 +119,7 @@ int EndingScene::Update(double delta)
 /**
 *
 */
-void EndingScene::Draw(::Scene::Graphics& graphics) const
+void EndingScene::Draw(Graphics::Graphics& graphics) const
 {
 	Sprite::RenderingInfo spriteRenderingInfo;
 	spriteRenderingInfo.rtvHandle = graphics.GetRTVHandle();

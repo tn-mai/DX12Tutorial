@@ -66,6 +66,9 @@
     <ClCompile Include="Src\Scene\GameOverScene.cpp">
       <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Graphics.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\d3dx12.h">
@@ -112,6 +115,9 @@
     </ClInclude>
     <ClInclude Include="Src\Scene\GameOverScene.h">
       <Filter>ヘッダー ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

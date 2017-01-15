@@ -2,6 +2,7 @@
 * @file PauseScene.cpp
 */
 #include "PauseScene.h"
+#include "../Graphics.h"
 #include "../PSO.h"
 #include "../GamePad.h"
 #include <DirectXMath.h>
@@ -37,7 +38,7 @@ PauseScene::PauseScene() : Scene(L"Pause")
 */
 bool PauseScene::Load()
 {
-	::Scene::Graphics& graphics = ::Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 
 	graphics.texMap.Begin();
 	if (!graphics.texMap.LoadFromFile(texFont, L"Res/TextFont.png")) {
@@ -100,7 +101,7 @@ int PauseScene::Update(double delta)
 /**
 *
 */
-void PauseScene::Draw(::Scene::Graphics& graphics) const
+void PauseScene::Draw(Graphics::Graphics& graphics) const
 {
 	Sprite::RenderingInfo spriteRenderingInfo;
 	spriteRenderingInfo.rtvHandle = graphics.GetRTVHandle();

@@ -2,6 +2,7 @@
 * @file MainGameScene.cpp
 */
 #include "MainGameScene.h"
+#include "../Graphics.h"
 #include "../PSO.h"
 #include "../GamePad.h"
 #include <DirectXMath.h>
@@ -106,7 +107,7 @@ MainGameScene::MainGameScene() : Scene(L"MainGame")
 */
 bool MainGameScene::Load()
 {
-	::Scene::Graphics& graphics = ::Scene::Graphics::Get();
+	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 
 	graphics.texMap.Begin();
 	if (!graphics.texMap.LoadFromFile(texBackground, L"Res/UnknownPlanet.png")) {
@@ -309,7 +310,7 @@ int MainGameScene::Update(double delta)
 /**
 *
 */
-void MainGameScene::Draw(::Scene::Graphics& graphics) const
+void MainGameScene::Draw(Graphics::Graphics& graphics) const
 {
 	Sprite::RenderingInfo spriteRenderingInfo;
 	spriteRenderingInfo.rtvHandle = graphics.GetRTVHandle();
