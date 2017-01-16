@@ -14,31 +14,34 @@ namespace Scene {
 class TransitionController;
 
 /**
-*
+* ある画面または状態を表すクラス.
 */
 class Scene
 {
 	friend class TransitionController;
 
 public:
-	/** The scene has a status.
-	*/
+	/// シーンの状態.
 	enum class StatusCode {
-		Loading, ///< the scene is constructed. and it is in preparation.
-		Runnable, ///< the scene is prepared. it can run.
-		Unloading, ///< the scene is finalizing.
-		Stopped, ///< the scene is finalized.it shuoud be removed as soon as possible.
+		Loading, ///< シーンの準備処理中.
+		Runnable, ///< 準備が完了して実行可能な状態.
+		Unloading, ///< シーンの終了処理中.
+		Stopped, ///< シーンは終了している.
 	};
 
+	/**
+	* 終了コード.
+	*
+	* 派生クラスで独自の終了コードを定義する場合、ExitCode_User以上の値を割り当てること.
+	*/
 	enum ExitCode {
-		ExitCode_Continue = -2,
-		ExitCode_Exit = -1,
-		ExitCode_User = 0,
+		ExitCode_Continue = -2, ///< 現在のシーンを継続.
+		ExitCode_Exit = -1, ///< 現在のシーンを終了.
+		ExitCode_User = 0, ///< ここから派生クラス用の終了コード.
 	};
 
 	explicit Scene(const wchar_t* s) : status(StatusCode::Loading), name(s) {}
 	virtual ~Scene() {}
-
 	StatusCode GetState() const { return status; }
 
 private:
