@@ -41,8 +41,6 @@ enum Id
 	Id_GameOver,
 };
 
-Scene::ScenePtr MakeScene() { return Scene::ScenePtr(); }
-
 static const Scene::Creator creatorList[] = {
 	{ Id_Title, TitleScene::Create },
 	{ Id_MainGame, MainGameScene::Create },
@@ -73,7 +71,7 @@ D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 ComPtr<ID3D12Resource> indexBuffer;
 D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
-Scene::Context sceneContext;
+Scene::TransitionController sceneController;
 
 bool InitializeD3D();
 void FinalizeD3D();
@@ -270,8 +268,8 @@ bool InitializeD3D()
 
 	spriteList.push_back(Sprite::Sprite(GetAnimationList(), XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
 
-	sceneContext.Initialize(transitionList, _countof(transitionList), creatorList, _countof(creatorList));
-	sceneContext.Start(Id_Title);
+	sceneController.Initialize(transitionList, _countof(transitionList), creatorList, _countof(creatorList));
+	sceneController.Start(Id_Title);
 
 	return true;
 }
@@ -287,7 +285,7 @@ bool Render()
 	graphics.BeginRendering();
 	graphics.spriteRenderer.Begin(graphics.currentFrameIndex);
 
-	sceneContext.Draw(graphics);
+	sceneController.Draw(graphics);
 
 #if 0
 	DrawTriangle();
@@ -330,7 +328,7 @@ void Update(double delta)
 		spriteList[0].pos.y += speed;
 	}
 
-	sceneContext.Update(delta);
+	sceneController.Update(delta);
 
 #if 0
 	spriteList[0].rotation += 0.1f;

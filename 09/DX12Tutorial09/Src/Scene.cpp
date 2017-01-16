@@ -13,7 +13,7 @@ namespace Scene {
 /**
 *
 */
-bool Context::Initialize(const Transition* transitionList, size_t transitionCount, const Creator* creatorList, size_t creatorCount)
+bool TransitionController::Initialize(const Transition* transitionList, size_t transitionCount, const Creator* creatorList, size_t creatorCount)
 {
 	transitionMap.assign(transitionList, transitionList + transitionCount);
 	std::stable_sort(transitionMap.begin(), transitionMap.end(), [](const Transition& lhs, const Transition& rhs) { return lhs.currentScene < rhs.currentScene; });
@@ -27,7 +27,7 @@ bool Context::Initialize(const Transition* transitionList, size_t transitionCoun
 /**
 *
 */
-bool Context::Start(int startSceneId)
+bool TransitionController::Start(int startSceneId)
 {
 	const MapType::iterator creator = creatorMap.find(startSceneId);
 	if (creator != creatorMap.end()) {
@@ -49,7 +49,7 @@ struct LessCurrentSceneId
 /**
 *
 */
-void Context::Update(double delta)
+void TransitionController::Update(double delta)
 {
 	auto itrEndPausedScene = sceneStack.end() - 1;
 	for (auto itr = sceneStack.begin(); itr != itrEndPausedScene; ++itr) {
@@ -91,7 +91,7 @@ void Context::Update(double delta)
 /**
 *
 */
-void Context::Draw(Graphics::Graphics& graphics) const
+void TransitionController::Draw(Graphics::Graphics& graphics) const
 {
 	for (const auto& e : sceneStack) {
 		if (e.p->GetState() == Scene::StatusCode::Runnable) {
@@ -103,7 +103,7 @@ void Context::Draw(Graphics::Graphics& graphics) const
 /**
 *
 */
-void Context::LoadScene(int id, Creator::Func func)
+void TransitionController::LoadScene(int id, Creator::Func func)
 {
 	sceneStack.push_back({ id, func() });
 	sceneStack.back().p->Load();
@@ -113,7 +113,7 @@ void Context::LoadScene(int id, Creator::Func func)
 /**
 *
 */
-void Context::UnloadScene()
+void TransitionController::UnloadScene()
 {
 	sceneStack.back().p->Unload();
 	sceneStack.back().p->status = Scene::StatusCode::Stopped;

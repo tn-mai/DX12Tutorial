@@ -12,14 +12,14 @@ namespace Graphics { class Graphics; }
 
 namespace Scene {
 
-class Context;
+class TransitionController;
 
 /**
 *
 */
 class Scene
 {
-	friend class Context;
+	friend class TransitionController;
 
 public:
 	/** The scene has a status.
@@ -56,6 +56,7 @@ private:
 	std::wstring name;
 };
 
+class Scene;
 typedef std::shared_ptr<Scene> ScenePtr;
 
 struct Creator
@@ -66,27 +67,33 @@ struct Creator
 	Func func;
 };
 
+/**
+* シーンの遷移方法.
+*/
 enum class TransitionType
 {
-	Jump,
-	Push,
-	Pop,
-};
-
-struct Transition
-{
-	int currentScene;
-	struct {
-		int exitCode;
-		TransitionType type;
-		int nextScene;
-	} trans;
+	Jump, ///< 現在のシーンを終了して次のシーンに遷移.
+	Push, ///< 現在のシーンをスタックに積んでから次のシーンに遷移.
+	Pop, ///< 現在のシーンをスタックから降ろして前のシーンに遷移.
 };
 
 /**
-*
+* シーンの遷移情報.
 */
-class Context
+struct Transition
+{
+	int currentScene; ///< 現在のシーンID.
+	struct {
+		int exitCode; ///< シーンの終了コード.
+		TransitionType type; ///< 遷移方法.
+		int nextScene; ///< 遷移先のシーンID.
+	} trans; ///< 遷移先情報.
+};
+
+/**
+* シーン遷移を制御するクラス.
+*/
+class TransitionController
 {
 public:
 	bool Initialize(const Transition* transitionList, size_t transitionCount, const Creator* creatorList, size_t creatorCount);
