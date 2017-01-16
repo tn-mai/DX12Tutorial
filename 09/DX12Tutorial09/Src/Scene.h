@@ -5,7 +5,6 @@
 #define DX12TUTORIAL_SRC_SCENE_H_
 #include <memory>
 #include <vector>
-#include <map>
 #include <string>
 
 namespace Graphics { class Graphics; }
@@ -59,12 +58,15 @@ private:
 class Scene;
 typedef std::shared_ptr<Scene> ScenePtr;
 
+/**
+* シーン作成情報.
+*/
 struct Creator
 {
 	typedef ScenePtr(*Func)();
 
-	int id;
-	Func func;
+	int id; ///< シーンID.
+	Func func; ///< 作成関数へのポインタ.
 };
 
 /**
@@ -102,20 +104,19 @@ public:
 	void Draw(Graphics::Graphics&) const;
 
 private:
-	void LoadScene(int, Creator::Func);
+	const Creator* FindCreator(int) const;
+	void LoadScene(const Creator*);
 	void UnloadScene();
 
-private:
 	typedef std::vector<Transition> TransitionMap;
-	typedef std::map<int, Creator::Func> MapType;
-
-	MapType creatorMap;
-	TransitionMap transitionMap;
-
+	typedef std::vector<Creator> CreatorMap;
 	struct SceneInfo {
 		int id;
 		ScenePtr p;
 	};
+
+	CreatorMap creatorMap;
+	TransitionMap transitionMap;
 	std::vector<SceneInfo> sceneStack;
 };
 
