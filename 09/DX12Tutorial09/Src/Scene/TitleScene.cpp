@@ -19,7 +19,9 @@ const Sprite::Cell cellList[] = {
 };
 
 /**
+* タイトルシーンオブジェクトを作成する.
 *
+* @return 作成したタイトルシーンオブジェクトへのポインタ.
 */
 ::Scene::ScenePtr TitleScene::Create()
 {
@@ -89,7 +91,11 @@ bool TitleScene::Unload()
 }
 
 /**
+* 更新関数.
 *
+* @param delta 前回の呼び出しからの経過時間.
+*
+* @return 終了コード.
 */
 int TitleScene::Update(double delta)
 {
@@ -113,12 +119,11 @@ int TitleScene::Update(double delta)
 	if (gamepad.trigger & (GamePad::A | GamePad::B | GamePad::START)) {
 		return ExitCode_MainGame;
 	}
-
 	return ExitCode_Continue;
 }
 
 /**
-*
+* シーンの描画.
 */
 void TitleScene::Draw(Graphics::Graphics& graphics) const
 {
