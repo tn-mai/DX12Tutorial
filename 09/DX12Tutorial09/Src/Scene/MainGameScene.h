@@ -14,17 +14,17 @@ class MainGameScene : public Scene::Scene
 public:
 	enum ExitCode
 	{
-		ExitCode_Ending,
+		ExitCode_Ending = ExitCode_User,
 		ExitCode_Pause,
 		ExitCode_GameOver,
 	};
 
 	static ::Scene::ScenePtr Create();
 
-	virtual bool Load();
-	virtual bool Unload();
-	virtual int Update(double delta);
-	virtual void Draw(Graphics::Graphics& graphics) const;
+	virtual bool Load() override;
+	virtual bool Unload() override;
+	virtual int Update(double delta) override;
+	virtual void Draw(Graphics::Graphics& graphics) const override;
 
 	struct Occurrence;
 	struct FormationData;

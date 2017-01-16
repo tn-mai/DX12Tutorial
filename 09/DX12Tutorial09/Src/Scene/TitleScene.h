@@ -19,10 +19,10 @@ public:
 
 	static ::Scene::ScenePtr Create();
 
-	virtual bool Load();
-	virtual bool Unload();
-	virtual int Update(double delta);
-	virtual void Draw(Graphics::Graphics& graphics) const;
+	virtual bool Load() override;
+	virtual bool Unload() override;
+	virtual int Update(double delta) override;
+	virtual void Draw(Graphics::Graphics& graphics) const override;
 
 private:
 	TitleScene();
