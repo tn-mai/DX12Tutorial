@@ -14,7 +14,7 @@ namespace Scene {
 class TransitionController;
 
 /**
-* ある画面または状態を表すクラス.
+* 画面あるいは状態を表すクラス.
 */
 class Scene
 {
@@ -45,11 +45,11 @@ public:
 	StatusCode GetState() const { return status; }
 
 private:
+	virtual int Update(double) = 0;
+	virtual void Draw(Graphics::Graphics&) const = 0;
 	virtual bool Load() { return true; }
 	virtual bool Unload() { return true; }
-	virtual int Update(double) = 0;
 	virtual void UpdateForPause(double) {}
-	virtual void Draw(Graphics::Graphics&) const = 0;
 	virtual void Pause() {}
 	virtual void Resume() {}
 
