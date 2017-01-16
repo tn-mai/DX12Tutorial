@@ -8,6 +8,50 @@
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 
+/// 頂点データ型.
+struct Vertex
+{
+	XMFLOAT3 position;
+	XMFLOAT4 color;
+	XMFLOAT2 texcoord;
+};
+
+/**
+* 頂点データ配列.
+*/
+static const Vertex vertices[] = {
+	{ XMFLOAT3(0, 150, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.5f, 0.0f) },
+	{ XMFLOAT3(200,-150, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	{ XMFLOAT3(-200,-150, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+
+	{ XMFLOAT3(-120, 120, 0.4f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3(80, 120, 0.4f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+	{ XMFLOAT3(80, -30, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	{ XMFLOAT3(-120, -30, 0.4f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+
+	{ XMFLOAT3(-80,  30, 0.6f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3(120,  30, 0.6f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+	{ XMFLOAT3(120,-120, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	{ XMFLOAT3(-80,-120, 0.6f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+
+	{ XMFLOAT3(-400, 300, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+	{ XMFLOAT3(400, 300, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+	{ XMFLOAT3(400,-300, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+	{ XMFLOAT3(-400,-300, 0.9f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+};
+
+/**
+* インデックスデータ配列.
+*/
+static const uint32_t indices[] = {
+	0, 1, 2, 2, 3, 0,
+	4, 5, 6, 6, 7, 4,
+	8, 9,10,10,11, 8,
+};
+
+/// 三角形の描画で使用する頂点数.
+const UINT triangleVertexCount = 3;
+
 namespace Graphics {
 
 /**
@@ -26,6 +70,13 @@ bool CreateCommandList(ComPtr<ID3D12Device>& device, ComPtr<ID3D12CommandAllocat
 
 /**
 * 描画環境の初期化.
+*
+* @param hwnd         ウィンドウハンドル.
+* @param clientWidth  ウィンドウの幅.
+* @param clientHeight ウィンドウの高さ.
+*
+* @retval true  初期化成功.
+* @retval false 初期化失敗.
 */
 bool Graphics::Initialize(HWND hwnd, int clientWidth, int clientHeight)
 {
@@ -212,15 +263,35 @@ bool Graphics::Initialize(HWND hwnd, int clientWidth, int clientHeight)
 	const XMMATRIX ortho = XMMatrixOrthographicLH(static_cast<float>(clientWidth), static_cast<float>(clientHeight), 1.0f, 1000.0f);
 	XMStoreFloat4x4(&matViewProjection, ortho);
 
+	if (!CreateVertexBuffer()) {
+		return false;
+	}
+	if (!CreateIndexBuffer()) {
+		return false;
+	}
+	if (!LoadTexture()) {
+		return false;
+	}
+	spriteList.push_back(Sprite::Sprite(GetAnimationList(), XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
+
 	return true;
 }
 
+/**
+* 描画環境の終了処理.
+*/
 void Graphics::Finalize()
 {
 	WaitForGpu();
 	CloseHandle(fenceEvent);
 }
 
+/**
+* 描画開始.
+*
+* @retval true  描画開始処理が正常に行われた.
+* @retval false 描画開始処理中にエラーが発生した.
+*/
 bool Graphics::BeginRendering()
 {
 	if (!WaitForPreviousFrame()) {
@@ -265,6 +336,12 @@ bool Graphics::BeginRendering()
 	return true;
 }
 
+/**
+* 描画終了.
+*
+* @retval true  描画終了処理が正常に行われた.
+* @retval false 描画終了処理中にエラーが発生した.
+*/
 bool Graphics::EndRendering()
 {
 	if (FAILED(commandList->Close())) {
@@ -310,6 +387,11 @@ bool Graphics::WaitForGpu()
 	return true;
 }
 
+/**
+* RTVハンドルを取得する.
+*
+* @return RTVデスクリプタの位置を示すD3D12_CPU_DESCRIPTOR_HANDLE型の値.
+*/
 D3D12_CPU_DESCRIPTOR_HANDLE Graphics::GetRTVHandle() const
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -317,9 +399,214 @@ D3D12_CPU_DESCRIPTOR_HANDLE Graphics::GetRTVHandle() const
 	return rtvHandle;
 }
 
+/**
+* DSVハンドルを取得する.
+*
+* @return DSVデスクリプタの位置を示すD3D12_CPU_DESCRIPTOR_HANDLE型の値.
+*/
 D3D12_CPU_DESCRIPTOR_HANDLE Graphics::GetDSVHandle() const
 {
 	return dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+}
+
+/**
+* 頂点バッファを作成する.
+*/
+bool Graphics::CreateVertexBuffer()
+{
+	if (FAILED(device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices)),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&vertexBuffer)))) {
+		return false;
+	}
+	vertexBuffer->SetName(L"Vertex buffer");
+
+	void* pVertexDataBegin;
+	const D3D12_RANGE readRange = { 0, 0 };
+	if (FAILED(vertexBuffer->Map(0, &readRange, &pVertexDataBegin))) {
+		return false;
+	}
+	memcpy(pVertexDataBegin, vertices, sizeof(vertices));
+	vertexBuffer->Unmap(0, nullptr);
+
+	vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+	vertexBufferView.StrideInBytes = sizeof(Vertex);
+	vertexBufferView.SizeInBytes = sizeof(vertices);
+
+	return true;
+}
+
+/**
+* インデックスバッファを作成する.
+*/
+bool Graphics::CreateIndexBuffer()
+{
+	if (FAILED(device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(sizeof(indices)),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&indexBuffer)))) {
+		return false;
+	}
+	indexBuffer->SetName(L"Index buffer");
+
+	void* pIndexDataBegin;
+	const D3D12_RANGE readRange = { 0, 0 };
+	if (FAILED(indexBuffer->Map(0, &readRange, &pIndexDataBegin))) {
+		return false;
+	}
+	memcpy(pIndexDataBegin, indices, sizeof(indices));
+	indexBuffer->Unmap(0, nullptr);
+
+	indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	indexBufferView.SizeInBytes = sizeof(indices);
+
+	return true;
+}
+
+/**
+* 三角形を描画する.
+*/
+void Graphics::DrawTriangle()
+{
+	const PSO& pso = GetPSO(PSOType_Simple);
+	commandList->SetPipelineState(pso.pso.Get());
+	commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
+	commandList->SetGraphicsRootDescriptorTable(0, texNoise.handle);
+	commandList->SetGraphicsRoot32BitConstants(1, 16, &matViewProjection, 0);
+	commandList->RSSetViewports(1, &viewport);
+	commandList->RSSetScissorRects(1, &scissorRect);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+	commandList->DrawInstanced(triangleVertexCount, 1, 0, 0);
+}
+
+/**
+* 四角形を描画する.
+*/
+void Graphics::DrawRectangle()
+{
+	const PSO& pso = GetPSO(PSOType_NoiseTexture);
+	commandList->SetPipelineState(pso.pso.Get());
+	commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
+	commandList->SetGraphicsRootDescriptorTable(0, texBackground.handle);
+	commandList->SetGraphicsRoot32BitConstants(1, 16, &matViewProjection, 0);
+
+	static float scrollOffset = 0.0f;
+	commandList->SetGraphicsRoot32BitConstants(2, 1, &scrollOffset, 0);
+	scrollOffset -= 0.002f;
+
+	commandList->RSSetViewports(1, &viewport);
+	commandList->RSSetScissorRects(1, &scissorRect);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+	commandList->IASetIndexBuffer(&indexBufferView);
+	commandList->DrawIndexedInstanced(_countof(indices), 1, 0, triangleVertexCount, 0);
+}
+
+float NoiseSeed(float x, float y)
+{
+	float i;
+	return std::modf(std::sin(x * 12.9898f + y * 78.233f) * 43758.5453123f, &i);
+}
+
+float Noise(float x, float y)
+{
+	float iy;
+	const float fy = std::modf(y, &iy);
+	const float uy = fy * fy * (3.0f - 2.0f * fy);
+	float ix;
+	const float fx = std::modf(x, &ix);
+	const float ux = fx * fx * (3.0f - 2.0f * fx);
+	const float a = NoiseSeed(ix, iy);
+	const float b = NoiseSeed(ix + 1.0f, iy);
+	const float c = NoiseSeed(ix, iy + 1.0f);
+	const float d = NoiseSeed(ix + 1.0f, iy + 1.0f);
+	const float value = (a * (1.0f - ux) + b * ux) + (c - a) * uy * (1.0f - ux) + (d - b) * uy * ux;
+	if (value < 0.0f) {
+		return 0.0f;
+	}
+	return value;
+}
+
+/**
+* テクスチャを作成する.
+*/
+bool Graphics::CreateNoiseTexture(Resource::ResourceLoader& loader)
+{
+	const D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 256, 256, 1, 1);
+	std::vector<uint8_t> noise;
+	noise.resize(static_cast<size_t>(desc.Width * desc.Height) * 4);
+	uint8_t* p = noise.data();
+#if 1
+	for (float y = 0; y < desc.Height; ++y) {
+		const float fy = (y / (desc.Height - 1) * 2.0f) - 1.35f;
+		for (float x = 0; x < desc.Width; ++x) {
+			const float fx = (x / (desc.Width - 1) * 2.0f) - 1.0f;
+			const float distance = std::sqrt(fx * fx + fy * fy);
+			const float t = 0.02f / std::abs(0.1f - std::fmod(distance, 0.2f));
+			const uint8_t col = t < 1.0f ? static_cast<uint8_t>(t * 255.0f) : 255;
+			p[0] = col;
+			p[1] = col;
+			p[2] = col;
+			p[3] = 255;
+			p += 4;
+		}
+	}
+#else
+	for (float y = 0; y < desc.Height; ++y) {
+		const float fy = y / (desc.Height - 1);
+		for (float x = 0; x < desc.Width; ++x) {
+			const float fx = x / (desc.Width - 1);
+			float val = 0.0f;
+			float scale = 0.5f;
+			float freq = 4.0f;
+			for (int i = 0; i < 4; ++i) {
+				val += Noise(fx * freq, fy * freq) * scale;
+				scale *= 0.5f;
+				freq *= 2.0f;
+			}
+			const uint8_t col = static_cast<uint8_t>(val * 255.0f);
+			p[0] = col;
+			p[1] = col;
+			p[2] = col;
+			p[3] = 255;
+			p += 4;
+		}
+	}
+#endif
+	return loader.Create(texNoise, 1, desc, noise.data(), L"texNoise");
+}
+
+/**
+* テクスチャを読み込む.
+*/
+bool Graphics::LoadTexture()
+{
+	Resource::ResourceLoader loader;
+	if (!loader.Begin(csuDescriptorHeap)) {
+		return false;
+	}
+	if (!loader.LoadFromFile(texBackground, 0, L"Res/UnknownPlanet.png")) {
+		return false;
+	}
+	if (!CreateNoiseTexture(loader)) {
+		return false;
+	}
+	if (!loader.LoadFromFile(texSprite, 2, L"Res/Objects.png")) {
+		return false;
+	}
+	ID3D12CommandList* ppCommandLists[] = { loader.End() };
+	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	WaitForGpu();
+	return true;
 }
 
 } // namespace Graphics

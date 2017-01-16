@@ -13,7 +13,7 @@
 namespace Graphics {
 
 /**
-*
+* ï`âÊèàóùÉNÉâÉX.
 */
 class Graphics
 {
@@ -24,16 +24,19 @@ public:
 		return graphics;
 	}
 
-	Graphics() = default;
-	Graphics(const Graphics&) = delete;
-	Graphics& operator=(const Graphics&) = delete;
-
 	bool Initialize(HWND hwnd, int clientWidth, int clientHeight);
 	void Finalize();
 	bool BeginRendering();
 	bool EndRendering();
 	bool WaitForPreviousFrame();
 	bool WaitForGpu();
+
+	bool CreateVertexBuffer();
+	bool CreateIndexBuffer();
+	bool LoadTexture();
+	bool CreateNoiseTexture(Resource::ResourceLoader&);
+	void DrawTriangle();
+	void DrawRectangle();
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetRTVHandle() const;
 	D3D12_CPU_DESCRIPTOR_HANDLE GetDSVHandle() const;
@@ -67,9 +70,25 @@ public:
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> csuDescriptorHeap;
 	int csuDescriptorSize;
 
+	Resource::Texture texNoise;
+	Resource::Texture texBackground;
+
+	std::vector<Sprite::Sprite> spriteList;
+	Resource::Texture texSprite;
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer;
+	D3D12_INDEX_BUFFER_VIEW indexBufferView;
+
 	Resource::TextureMap texMap;
 	Sprite::Renderer spriteRenderer;
+
 private:
+	Graphics() = default;
+	Graphics(const Graphics&) = delete;
+	Graphics& operator=(const Graphics&) = delete;
 };
 
 } // namespace Graphics
