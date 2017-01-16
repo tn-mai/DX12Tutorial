@@ -108,15 +108,13 @@ private:
 	void LoadScene(const Creator*);
 	void UnloadScene();
 
-	typedef std::vector<Transition> TransitionMap;
-	typedef std::vector<Creator> CreatorMap;
 	struct SceneInfo {
 		int id;
 		ScenePtr p;
 	};
 
-	CreatorMap creatorMap;
-	TransitionMap transitionMap;
+	std::vector<Creator> creatorMap;
+	std::vector<Transition> transitionMap;
 	std::vector<SceneInfo> sceneStack;
 };
 

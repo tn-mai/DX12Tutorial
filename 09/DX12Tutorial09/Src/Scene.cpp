@@ -112,7 +112,7 @@ void TransitionController::Draw(Graphics::Graphics& graphics) const
 */
 const Creator* TransitionController::FindCreator(int sceneId) const
 {
-	const CreatorMap::const_iterator itr = std::lower_bound(creatorMap.begin(), creatorMap.end(), sceneId, LessSceneId());
+	const auto itr = std::lower_bound(creatorMap.begin(), creatorMap.end(), sceneId, LessSceneId());
 	if (itr == creatorMap.end() || itr->id != sceneId) {
 		return nullptr;
 	}
