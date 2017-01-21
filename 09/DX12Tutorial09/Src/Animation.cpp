@@ -86,6 +86,20 @@ size_t AnimationController::GetSeqCount() const
 }
 
 /**
+* アニメーションが終了しているか調べる.
+*
+* @retval true  終了している.
+* @retval false 再生中.
+*/
+bool AnimationController::IsFinished() const
+{
+	if (seqIndex >= list.list.size() || list.list[seqIndex].empty()) {
+		return true;
+	}
+	return list.list[seqIndex][cellIndex].time < 0;
+}
+
+/**
 * ファイルからアニメーションリストを読み込む.
 *
 * @param list     読み込み先オブジェクト.

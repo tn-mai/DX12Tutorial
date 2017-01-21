@@ -53,6 +53,7 @@ public:
 	const AnimationData& GetData() const;
 	size_t GetSeqCount() const;
 	uint32_t GetSeqIndex() const { return seqIndex; }
+	bool IsFinished() const;
 
 private:
 	const AnimationList& list;
