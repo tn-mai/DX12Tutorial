@@ -31,7 +31,7 @@
         { "cell" : 13, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
         { "cell" : 14, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
         { "cell" : 14, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 0.75, 0.75, 0.75, 0.5 ] },
-        { "cell" : 15, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+        { "cell" : 15, "time" : -1, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
       ]
     ]
   },
@@ -56,7 +56,8 @@
         { "cell" : 6, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
         { "cell" : 7, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
         { "cell" : 7, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 0.75, 0.75, 0.75, 0.5 ] },
-        { "cell" : 8, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+        { "cell" : 8, "time" : 2, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 8, "time" : -1, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
       ]
     ]
   }
