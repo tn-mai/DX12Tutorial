@@ -1,0 +1,6 @@
+3.3 TYPO コマンドリストしたら -> コマンドリストを作成したら
+4.2 ヘッダファイルの追加について説明不足
+5.2 拡大率を反映してしまっている
+5.3 頂点バッファのサイズを*4する(2箇所)
+8.1 WM_KEYUPのVK_SPACE処理
+  gamepad.buttons |= GamePad::A; -> gamepad.buttons &= ~GamePad::A;
