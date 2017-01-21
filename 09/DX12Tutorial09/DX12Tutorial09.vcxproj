@@ -165,6 +165,7 @@
   <ItemGroup>
     <ClCompile Include="Src\Action.cpp" />
     <ClCompile Include="Src\Animation.cpp" />
+    <ClCompile Include="Src\Collision.cpp" />
     <ClCompile Include="Src\GamePad.cpp" />
     <ClCompile Include="Src\Graphics.cpp" />
     <ClCompile Include="Src\Json.cpp" />
@@ -183,6 +184,7 @@
   <ItemGroup>
     <ClInclude Include="Src\Action.h" />
     <ClInclude Include="Src\Animation.h" />
+    <ClInclude Include="Src\Collision.h" />
     <ClInclude Include="Src\d3dx12.h" />
     <ClInclude Include="Src\GamePad.h" />
     <ClInclude Include="Src\Graphics.h" />

@@ -5,6 +5,7 @@
 #include "../Graphics.h"
 #include "../PSO.h"
 #include "../GamePad.h"
+#include "../Collision.h"
 #include <DirectXMath.h>
 #include <algorithm>
 
@@ -70,6 +71,58 @@ const MainGameScene::Occurrence occurrenceList[] = {
 	OCC(30, 200, 0, 0.5f, B),
 };
 
+// 衝突判定データ
+
+enum CollisionShapeId
+{
+	CSID_None = -1,
+	CSID_Player = 0,
+	CSID_PlayerShot_Normal,
+	CSID_Enemy00,
+	CSID_EnemyShot_Normal,
+	countof_CSID
+};
+
+const Collision::Shape colShapes[countof_CSID] = {
+	Collision::Shape::MakeRectangle(XMFLOAT2(-16, -16), XMFLOAT2(16, 16)),
+	Collision::Shape::MakeRectangle(XMFLOAT2(-16,-64), XMFLOAT2(16, 64)),
+	Collision::Shape::MakeRectangle(XMFLOAT2(-32, -32), XMFLOAT2(32, 32)),
+	Collision::Shape::MakeCircle(8),
+};
+
+enum class CollisionResult
+{
+	Nothing,
+	FilterOut,
+};
+
+typedef std::function<CollisionResult(Sprite::Sprite& lhs, Sprite::Sprite& rhs)> CollisionSolver;
+
+template<typename Iterator>
+void DetectCollision(Iterator first0, Iterator last0, Iterator first1, Iterator last1, CollisionSolver solver)
+{
+	for (; first0 != last0; ++first0) {
+		if (first0->GetCollisionId() < 0) {
+			continue;
+		}
+		const Collision::Shape& shapeL = colShapes[first0->GetCollisionId()];
+		const XMFLOAT2 posL(first0->pos.x, first0->pos.y);
+		for (; first1 != last1; ++first1) {
+			if (first1->GetCollisionId() < 0) {
+				continue;
+			}
+			const Collision::Shape& shapeR = colShapes[first1->GetCollisionId()];
+			const XMFLOAT2 posR(first1->pos.x, first1->pos.y);
+			if (Collision::IsCollision(shapeL, posL, shapeR, posR)) {
+				if (solver(*first0, *first1) == CollisionResult::FilterOut) {
+					break;
+				}
+			}
+		}
+	}
+}
+
+
 // 用途別スプライト数.
 const size_t playerCount = 1;
 const size_t playerShotCount = 3 * 2 * 3;
@@ -84,6 +137,33 @@ const size_t PID_Player = 0;
 const size_t PID_PlayerShot = PID_Player + playerCount;
 const size_t EID_Enemy = 0;
 const size_t EID_EnemyShot = EID_Enemy + enemyCount;
+
+// アニメーションID
+enum EnemyAnmId
+{
+	EnemyAnmId_SmallFighter,
+	EnemyAnmId_Shot00,
+	EnemyAnmId_Shot01,
+	EnemyAnmId_Shot02,
+	EnemyAnmId_Destroyed,
+};
+
+enum PlayerAnmId
+{
+	PlayerAnmId_Ship,
+	PlayerAnmId_NormalShot,
+	PlayerAnmId_Destroyed,
+};
+
+// アクションID.
+enum Enemy00ActId
+{
+	Enemy00ActId_SinCurve,
+	Enemy00ActId_StraightDown,
+	Enemy00ActId_VLeft,
+	Enemy00ActId_VRight,
+	Enemy00ActId_Destroyed,
+};
 
 } // unnamed namespace
 
@@ -143,6 +223,7 @@ bool MainGameScene::Load()
 	sprPlayer.reserve(playerSpriteCount);
 	sprPlayer.push_back(Sprite::Sprite(anmObjects[1], XMFLOAT3(400, 550, 0.4f)));
 	sprPlayer[0].SetSeqIndex(0);
+	sprPlayer[0].SetCollisionId(CSID_Player);
 	sprPlayer.resize(playerSpriteCount, Sprite::Sprite(anmObjects[1], XMFLOAT3(0, -100, 0.4f)));
 	for (int i = 0; i < playerShotCount; ++i) {
 		freePlayerShotList.push_back(&sprPlayer[PID_PlayerShot + i]);
@@ -188,53 +269,100 @@ int MainGameScene::Update(double delta)
 	time += delta;
 
 	const GamePad gamepad = GetGamePad(GamePadId_1P);
-	if (gamepad.buttons & GamePad::DPAD_LEFT) {
-		sprPlayer[0].pos.x -= 400.0f * static_cast<float>(delta);
-	} else if (gamepad.buttons & GamePad::DPAD_RIGHT) {
-		sprPlayer[0].pos.x += 400.0f * static_cast<float>(delta);
-	}
-	if (gamepad.buttons & GamePad::DPAD_UP) {
-		sprPlayer[0].pos.y -= 400.0f * static_cast<float>(delta);
-	} else if (gamepad.buttons & GamePad::DPAD_DOWN) {
-		sprPlayer[0].pos.y += 400.0f * static_cast<float>(delta);
-	}
-	sprPlayer[0].pos.x = std::max(32.0f, std::min(800.0f - 32.0f, sprPlayer[0].pos.x));
-	sprPlayer[0].pos.y = std::max(32.0f, std::min(600.0f - 32.0f, sprPlayer[0].pos.y));
 
-	if (gamepad.buttons & GamePad::A) {
-		if (playerShotInterval > 0.0f) {
-			playerShotInterval = std::max(playerShotInterval - static_cast<float>(delta), 0.0f);
-		} else {
-			static const XMVECTORF32 offset[] = {
-				{ 20, -8}, {-16, -8},
-				{ 24, -8}, {-20, -8},
-				{ 28, -8}, {-24, -8}
-			};
-			for (int i = 0; i < 2 && !freePlayerShotList.empty(); ++i) {
-				Sprite::Sprite* pSprite = freePlayerShotList.back();
-				freePlayerShotList.pop_back();
-				XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&sprPlayer[0].pos), offset[playerShotCycle]));
-				pSprite->actController.SetManualMove(90, 32);
-				pSprite->SetSeqIndex(1);
-				playerShotCycle = (playerShotCycle + 1) % _countof(offset);
-			}
-			playerShotInterval = 0.125f;
+	if (sprPlayer[0].animeController.GetSeqIndex() != PlayerAnmId_Destroyed) {
+		if (gamepad.buttons & GamePad::DPAD_LEFT) {
+			sprPlayer[0].pos.x -= 400.0f * static_cast<float>(delta);
+		} else if (gamepad.buttons & GamePad::DPAD_RIGHT) {
+			sprPlayer[0].pos.x += 400.0f * static_cast<float>(delta);
 		}
-	} else {
-		playerShotInterval = 0.0f;
+		if (gamepad.buttons & GamePad::DPAD_UP) {
+			sprPlayer[0].pos.y -= 400.0f * static_cast<float>(delta);
+		} else if (gamepad.buttons & GamePad::DPAD_DOWN) {
+			sprPlayer[0].pos.y += 400.0f * static_cast<float>(delta);
+		}
+		sprPlayer[0].pos.x = std::max(32.0f, std::min(800.0f - 32.0f, sprPlayer[0].pos.x));
+		sprPlayer[0].pos.y = std::max(32.0f, std::min(600.0f - 32.0f, sprPlayer[0].pos.y));
+
+		if (gamepad.buttons & GamePad::A) {
+			if (playerShotInterval > 0.0f) {
+				playerShotInterval = std::max(playerShotInterval - static_cast<float>(delta), 0.0f);
+			} else {
+				static const XMVECTORF32 offset[] = {
+					{ 20, -8}, {-16, -8},
+					{ 24, -8}, {-20, -8},
+					{ 28, -8}, {-24, -8}
+				};
+				for (int i = 0; i < 2 && !freePlayerShotList.empty(); ++i) {
+					Sprite::Sprite* pSprite = freePlayerShotList.back();
+					freePlayerShotList.pop_back();
+					XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&sprPlayer[0].pos), offset[playerShotCycle]));
+					pSprite->actController.SetManualMove(90, 32);
+					pSprite->SetSeqIndex(PlayerAnmId_NormalShot);
+					pSprite->SetCollisionId(CSID_PlayerShot_Normal);
+					playerShotCycle = (playerShotCycle + 1) % _countof(offset);
+				}
+				playerShotInterval = 0.125f;
+			}
+		} else {
+			playerShotInterval = 0.0f;
+		}
+	}
+
+	{
+		DetectCollision(
+			sprPlayer.begin() + PID_PlayerShot, sprPlayer.end(),
+			sprEnemy.begin() + EID_Enemy, sprEnemy.begin() + enemyCount,
+			[this](Sprite::Sprite& a, Sprite::Sprite& b) {
+				if (a.pos.y <= -32) {
+					a.SetCollisionId(CSID_None);
+					return CollisionResult::FilterOut;
+				}
+				a.pos.y = -32;
+				a.actController.SetManualMove(0, 0);
+				a.SetCollisionId(CSID_None);
+				a.SetActionList(nullptr);
+				freePlayerShotList.push_back(&a);
+				if (b.animeController.GetSeqIndex() == EnemyAnmId_SmallFighter) {
+					b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+					b.SetAction(Enemy00ActId_Destroyed);
+					b.SetCollisionId(CSID_None);
+					score += 100;
+				}
+				return CollisionResult::FilterOut;
+			}
+		);
+		DetectCollision(
+			sprPlayer.begin() + PID_Player, sprPlayer.begin() + playerCount,
+			sprEnemy.begin(), sprEnemy.end(),
+			[this](Sprite::Sprite& a, Sprite::Sprite& b) {
+			a.animeController.SetSeqIndex(PlayerAnmId_Destroyed);
+			a.SetCollisionId(CSID_None);
+			if (b.animeController.GetSeqIndex() == EnemyAnmId_SmallFighter) {
+				b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+				b.SetAction(Enemy00ActId_Destroyed);
+				b.SetCollisionId(CSID_None);
+				score += 100;
+			} else {
+				b.pos.y = -32;
+				b.actController.SetManualMove(0, 0);
+			}
+			return CollisionResult::Nothing;
+		}
+		);
 	}
 
 	for (Sprite::Sprite& sprite : sprPlayer) {
 		sprite.Update(delta);
 	}
 	for (size_t i = PID_PlayerShot; i < PID_PlayerShot + playerShotCount; ++i) {
-		if (sprPlayer[i].actController.IsDeletable()) {
-			sprPlayer[i].SetActionList(nullptr);
-			sprPlayer[i].pos.y = -100;
-			freePlayerShotList.push_back(&sprPlayer[i]);
+		if (sprPlayer[i].GetCollisionId() < 0) {
+			continue;
 		}
-		if (sprPlayer[i].pos.y <= -32) {
-			sprPlayer[i].actController.SetManualMove(0, 0);
+		if (sprPlayer[i].actController.IsDeletable() || (sprPlayer[i].pos.y <= -32)) {
+			sprPlayer[i].pos.y = -32;
+			sprPlayer[i].SetActionList(nullptr);
+			sprPlayer[i].SetCollisionId(CSID_None);
 			freePlayerShotList.push_back(&sprPlayer[i]);
 		}
 	}
@@ -257,9 +385,10 @@ int MainGameScene::Update(double delta)
 			}
 			Sprite::Sprite* pSprite = freeEnemyList.back();
 			freeEnemyList.pop_back();
-			pSprite->SetSeqIndex(0);
+			pSprite->SetSeqIndex(EnemyAnmId_SmallFighter);
 			pSprite->SetActionList(actionFile->Get(0));
 			pSprite->SetAction(itr->cur->actionId);
+			pSprite->SetCollisionId(CSID_Enemy00);
 			XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&itr->pos), XMLoadFloat2(&itr->cur->offset)));
 			++itr->cur;
 		}
@@ -284,10 +413,22 @@ int MainGameScene::Update(double delta)
 		}
 	}
 
-	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));
-	for (Sprite::Sprite& sprite : sprFont) {
-		sprite.color.w = brightness;
-		sprite.Update(delta);
+	{
+		char text[] = "00000000";
+		snprintf(text, _countof(text), "%08d", score);
+		int i = 0;
+		for (const char c : text) {
+			if (c >= ' ' && c < '`') {
+				sprFont[i++].SetSeqIndex(c - ' ');
+			}
+		}
+#if 0
+		const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));
+		for (Sprite::Sprite& sprite : sprFont) {
+			sprite.color.w = brightness;
+			sprite.Update(delta);
+		}
+#endif
 	}
 
 	for (Sprite::Sprite& sprite : sprBackground) {

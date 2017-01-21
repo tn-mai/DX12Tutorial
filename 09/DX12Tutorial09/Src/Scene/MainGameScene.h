@@ -60,6 +60,7 @@ private:
 	std::vector<Sprite::Sprite*> freeEnemyList;
 	std::vector<Sprite::Sprite*> freeEnemyShotList;
 	double time;
+	uint32_t score;
 
 	int playerShotCycle = 0;
 	float playerShotInterval = 0;
