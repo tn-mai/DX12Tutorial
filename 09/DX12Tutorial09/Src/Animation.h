@@ -52,6 +52,7 @@ public:
 	void Update(double delta);
 	const AnimationData& GetData() const;
 	size_t GetSeqCount() const;
+	uint32_t GetSeqIndex() const { return seqIndex; }
 
 private:
 	const AnimationList& list;
