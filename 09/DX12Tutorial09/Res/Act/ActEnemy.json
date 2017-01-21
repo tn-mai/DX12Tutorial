@@ -36,6 +36,11 @@
         { "type" : "Accel", "args" : [ 90, 400 ] },
         { "type" : "Wait", "args" : [ 3.0 ] },
         { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 0.5 ] },
+        { "type" : "Delete", "args" : [] }
       ]
     ]
   },
@@ -73,6 +78,11 @@
         { "type" : "Move", "args" : [ 0, 0 ] },
         { "type" : "Accel", "args" : [ 0, -400 ] },
         { "type" : "Wait", "args" : [ 3.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 0.5 ] },
         { "type" : "Delete", "args" : [] }
       ]
     ]
