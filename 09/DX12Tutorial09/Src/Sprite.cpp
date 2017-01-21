@@ -71,6 +71,8 @@ void AddVertex(const Sprite& sprite, const Cell* cell, Vertex* v, XMFLOAT2 offse
 
 Sprite::Sprite(const AnimationList& al, DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col) :
 	animeController(al),
+	actController(),
+	collisionId(-1),
 	pos(p),
 	rotation(rot),
 	scale(s),
@@ -224,10 +226,18 @@ bool Renderer::Begin(int frameIndex)
 */
 bool Renderer::Draw(const std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, RenderingInfo& info)
 {
+	if (spriteList.empty()) {
+		return true;
+	}
+	return Draw(&*spriteList.begin(), (&*spriteList.begin()) + spriteList.size(), cellList, pso, texture, info);
+}
+
+bool Renderer::Draw(const Sprite* first, const Sprite* last, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, RenderingInfo& info)
+{
 	if (currentFrameIndex < 0) {
 		return false;
 	}
-	if (spriteList.empty()) {
+	if (first == last) {
 		return true;
 	}
 
@@ -250,12 +260,12 @@ bool Renderer::Draw(const std::vector<Sprite>& spriteList, const Cell* cellList,
 	const int remainingSprite = (fr.vertexBufferView.SizeInBytes / fr.vertexBufferView.StrideInBytes / 4) - spriteCount;
 	int numSprite = 0;
 	Vertex* v = static_cast<Vertex*>(fr.vertexBufferGPUAddress) + (spriteCount * 4);
-	for (const Sprite& sprite : spriteList) {
-		if (sprite.scale.x == 0 || sprite.scale.y == 0) {
+	for (const Sprite* sprite = first; sprite != last; ++sprite) {
+		if (sprite->scale.x == 0 || sprite->scale.y == 0) {
 			continue;
 		}
-		const Cell* cell = cellList + sprite.GetCellIndex();
-		AddVertex(sprite, cell, v, offset);
+		const Cell* cell = cellList + sprite->GetCellIndex();
+		AddVertex(*sprite, cell, v, offset);
 		++numSprite;
 		if (numSprite >= remainingSprite) {
 			break;

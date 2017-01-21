@@ -36,6 +36,8 @@ struct Sprite
 	void SetSeqIndex(uint32_t no) { animeController.SetSeqIndex(no); }
 	void SetActionList(const Action::List* al) { actController.SetList(al); }
 	void SetAction(uint32_t no) { actController.SetSeqIndex(no); }
+	void SetCollisionId(int32_t id) { collisionId = id; }
+	int32_t GetCollisionId() const { return collisionId; }
 	void Update(double delta) {
 		animeController.Update(delta);
 		actController.Update(static_cast<float>(delta), this);
@@ -45,6 +47,7 @@ struct Sprite
 
 	AnimationController animeController;
 	Action::Controller actController;
+	int32_t collisionId;
 	DirectX::XMFLOAT3 pos; ///< スクリーン座標上のスプライトの位置.
 	float rotation; ///< 画像の回転角(ラジアン).
 	DirectX::XMFLOAT2 scale; ///< 画像の拡大率.
@@ -74,6 +77,7 @@ public:
 	bool Init(Microsoft::WRL::ComPtr<ID3D12Device> device, int numFrameBuffer, int maxSprite, Resource::ResourceLoader& resourceLoader);
 	bool Begin(int frameIndex);
 	bool Draw(const std::vector<Sprite>& spriteList, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, RenderingInfo& info);
+	bool Draw(const Sprite* first, const Sprite* last, const Cell* cellList, const PSO& pso, const Resource::Texture& texture, RenderingInfo& info);
 	bool End();
 	ID3D12GraphicsCommandList* GetCommandList();
 
