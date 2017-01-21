@@ -242,7 +242,7 @@ bool MainGameScene::Load()
 	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 32, 0.1f);
 	for (const char c : text) {
 		if (c >= ' ' && c < '`') {
-			sprFont.push_back(Sprite::Sprite(anmOthers[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
+			sprFont.push_back(Sprite::Sprite(anmOthers[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 0.5f)));
 			sprFont.back().SetSeqIndex(c - ' ');
 			textPos.x += 32.0f;
 		}
@@ -262,12 +262,10 @@ bool MainGameScene::Unload()
 }
 
 /**
-* ゲーム状態の更新.
+* プレイヤー状態の更新.
 */
-int MainGameScene::Update(double delta)
+void MainGameScene::UpdatePlayer(double delta)
 {
-	time += delta;
-
 	const GamePad gamepad = GetGamePad(GamePadId_1P);
 
 	if (sprPlayer[0].animeController.GetSeqIndex() != PlayerAnmId_Destroyed) {
@@ -289,9 +287,9 @@ int MainGameScene::Update(double delta)
 				playerShotInterval = std::max(playerShotInterval - static_cast<float>(delta), 0.0f);
 			} else {
 				static const XMVECTORF32 offset[] = {
-					{ 20, -8}, {-16, -8},
-					{ 24, -8}, {-20, -8},
-					{ 28, -8}, {-24, -8}
+					{ 20, -8 },{ -16, -8 },
+					{ 24, -8 },{ -20, -8 },
+					{ 28, -8 },{ -24, -8 }
 				};
 				for (int i = 0; i < 2 && !freePlayerShotList.empty(); ++i) {
 					Sprite::Sprite* pSprite = freePlayerShotList.back();
@@ -309,49 +307,6 @@ int MainGameScene::Update(double delta)
 		}
 	}
 
-	{
-		DetectCollision(
-			sprPlayer.begin() + PID_PlayerShot, sprPlayer.end(),
-			sprEnemy.begin() + EID_Enemy, sprEnemy.begin() + enemyCount,
-			[this](Sprite::Sprite& a, Sprite::Sprite& b) {
-				if (a.pos.y <= -32) {
-					a.SetCollisionId(CSID_None);
-					return CollisionResult::FilterOut;
-				}
-				a.pos.y = -32;
-				a.actController.SetManualMove(0, 0);
-				a.SetCollisionId(CSID_None);
-				a.SetActionList(nullptr);
-				freePlayerShotList.push_back(&a);
-				if (b.animeController.GetSeqIndex() == EnemyAnmId_SmallFighter) {
-					b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
-					b.SetAction(Enemy00ActId_Destroyed);
-					b.SetCollisionId(CSID_None);
-					score += 100;
-				}
-				return CollisionResult::FilterOut;
-			}
-		);
-		DetectCollision(
-			sprPlayer.begin() + PID_Player, sprPlayer.begin() + playerCount,
-			sprEnemy.begin(), sprEnemy.end(),
-			[this](Sprite::Sprite& a, Sprite::Sprite& b) {
-			a.animeController.SetSeqIndex(PlayerAnmId_Destroyed);
-			a.SetCollisionId(CSID_None);
-			if (b.animeController.GetSeqIndex() == EnemyAnmId_SmallFighter) {
-				b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
-				b.SetAction(Enemy00ActId_Destroyed);
-				b.SetCollisionId(CSID_None);
-				score += 100;
-			} else {
-				b.pos.y = -32;
-				b.actController.SetManualMove(0, 0);
-			}
-			return CollisionResult::Nothing;
-		}
-		);
-	}
-
 	for (Sprite::Sprite& sprite : sprPlayer) {
 		sprite.Update(delta);
 	}
@@ -366,7 +321,13 @@ int MainGameScene::Update(double delta)
 			freePlayerShotList.push_back(&sprPlayer[i]);
 		}
 	}
+}
 
+/**
+* 敵の生成.
+*/
+void MainGameScene::GenerateEnemy(double delta)
+{
 	while (pCurOccurrence != pEndOccurrence) {
 		if (pCurOccurrence->time > time) {
 			break;
@@ -394,7 +355,13 @@ int MainGameScene::Update(double delta)
 		}
 		itr->time += static_cast<float>(delta);
 	}
+}
 
+/**
+* 敵の更新.
+*/
+void MainGameScene::UpdateEnemy(double delta)
+{
 	for (Sprite::Sprite& sprite : sprEnemy) {
 		sprite.Update(delta);
 	}
@@ -412,38 +379,111 @@ int MainGameScene::Update(double delta)
 			freeEnemyShotList.push_back(&sprEnemy[i]);
 		}
 	}
+}
 
-	{
-		char text[] = "00000000";
-		snprintf(text, _countof(text), "%08d", score);
-		int i = 0;
-		for (const char c : text) {
-			if (c >= ' ' && c < '`') {
-				sprFont[i++].SetSeqIndex(c - ' ');
+/**
+* スコア表示の更新.
+*/
+void MainGameScene::UpdateScore()
+{
+	char text[] = "00000000";
+	snprintf(text, _countof(text), "%08d", score);
+	int i = 0;
+	bool active = false;
+	for (const char c : text) {
+		if (c >= ' ' && c < '`') {
+			if (c > '0') {
+				active = true;
 			}
+			sprFont[i].color.w = active ? 1.0f : 0.5f;
+			sprFont[i++].SetSeqIndex(c - ' ');
 		}
-#if 0
-		const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));
-		for (Sprite::Sprite& sprite : sprFont) {
-			sprite.color.w = brightness;
-			sprite.Update(delta);
-		}
-#endif
 	}
+#if 0
+	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));
+	for (Sprite::Sprite& sprite : sprFont) {
+		sprite.color.w = brightness;
+		sprite.Update(delta);
+	}
+#endif
+}
+
+/**
+* 衝突の解決.
+*/
+void MainGameScene::SolveCollision()
+{
+	DetectCollision(
+		sprPlayer.begin() + PID_PlayerShot, sprPlayer.end(),
+		sprEnemy.begin() + EID_Enemy, sprEnemy.begin() + enemyCount,
+		[this](Sprite::Sprite& a, Sprite::Sprite& b) {
+		if (a.pos.y <= -32) {
+			a.SetCollisionId(CSID_None);
+			return CollisionResult::FilterOut;
+		}
+		a.pos.y = -32;
+		a.actController.SetManualMove(0, 0);
+		a.SetCollisionId(CSID_None);
+		a.SetActionList(nullptr);
+		freePlayerShotList.push_back(&a);
+		if (b.animeController.GetSeqIndex() == EnemyAnmId_SmallFighter) {
+			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+			b.SetAction(Enemy00ActId_Destroyed);
+			b.SetCollisionId(CSID_None);
+			score += 100;
+		}
+		return CollisionResult::FilterOut;
+	}
+	);
+	DetectCollision(
+		sprPlayer.begin() + PID_Player, sprPlayer.begin() + playerCount,
+		sprEnemy.begin(), sprEnemy.end(),
+		[this](Sprite::Sprite& a, Sprite::Sprite& b) {
+		a.animeController.SetSeqIndex(PlayerAnmId_Destroyed);
+		a.SetCollisionId(CSID_None);
+		if (b.animeController.GetSeqIndex() == EnemyAnmId_SmallFighter) {
+			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+			b.SetAction(Enemy00ActId_Destroyed);
+			b.SetCollisionId(CSID_None);
+			score += 100;
+		} else {
+			b.pos.y = -32;
+			b.actController.SetManualMove(0, 0);
+		}
+		return CollisionResult::Nothing;
+	}
+	);
+}
+
+/**
+* ゲーム状態の更新.
+*/
+int MainGameScene::Update(double delta)
+{
+	time += delta;
+
+	UpdatePlayer(delta);
+	UpdateEnemy(delta);
+	GenerateEnemy(delta);
+
+	SolveCollision();
+
+	UpdateScore();
 
 	for (Sprite::Sprite& sprite : sprBackground) {
 		sprite.Update(delta);
 	}
 
-	const uint32_t endingKey = GamePad::A | GamePad::START;
-	if ((gamepad.trigger & endingKey) == endingKey) {
+	const GamePad gamepad = GetGamePad(GamePadId_1P);
+	static const uint32_t endingKey = GamePad::A | GamePad::START;
+	if (time > 45) {
 		return ExitCode_Ending;
+	}
+	if (sprPlayer[0].animeController.GetSeqIndex() == PlayerAnmId_Destroyed && sprPlayer[0].animeController.IsFinished()) {
+		return ExitCode_GameOver;
 	}
 	if (gamepad.trigger & GamePad::START) {
 		return ExitCode_Pause;
-	}
-	if (time >= 45) {
-		return ExitCode_GameOver;
 	}
 	return ExitCode_Continue;
 }

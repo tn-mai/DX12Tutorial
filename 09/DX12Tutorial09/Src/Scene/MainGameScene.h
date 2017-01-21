@@ -34,6 +34,12 @@ private:
 	MainGameScene(const MainGameScene&) = delete;
 	MainGameScene& operator=(const MainGameScene&) = delete;
 
+	void UpdatePlayer(double);
+	void GenerateEnemy(double);
+	void UpdateEnemy(double);
+	void UpdateScore();
+	void SolveCollision();
+
 	Resource::Texture texBackground;
 	Resource::Texture texObjects;
 	Resource::Texture texFont;
