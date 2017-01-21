@@ -48,6 +48,15 @@
         { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 0.9, 1 ], "color" : [ 1, 1, 1, 1 ] },
         { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 0.8, 1 ], "color" : [ 1, 1, 1, 1 ] },
         { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 0.9, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 4, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 4, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 5, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 6, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 7, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 7, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 0.75, 0.75, 0.75, 0.5 ] },
+        { "cell" : 8, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
       ]
     ]
   }
