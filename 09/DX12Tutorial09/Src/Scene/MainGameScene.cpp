@@ -168,7 +168,7 @@ enum Enemy00ActId
 } // unnamed namespace
 
 /**
-*
+* メインゲームシーンオブジェクトを作成する.
 */
 ::Scene::ScenePtr MainGameScene::Create()
 {
@@ -183,7 +183,7 @@ MainGameScene::MainGameScene() : Scene(L"MainGame")
 }
 
 /**
-*
+* メインゲームシーンの初期化.
 */
 bool MainGameScene::Load()
 {
@@ -254,7 +254,7 @@ bool MainGameScene::Load()
 }
 
 /**
-*
+* メインゲームシーンの終了処理.
 */
 bool MainGameScene::Unload()
 {
@@ -262,7 +262,7 @@ bool MainGameScene::Unload()
 }
 
 /**
-*
+* ゲーム状態の更新.
 */
 int MainGameScene::Update(double delta)
 {
@@ -449,7 +449,7 @@ int MainGameScene::Update(double delta)
 }
 
 /**
-*
+* メインゲームシーンの描画.
 */
 void MainGameScene::Draw(Graphics::Graphics& graphics) const
 {
