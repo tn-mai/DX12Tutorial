@@ -59,6 +59,18 @@ bool TransitionController::Start(int startSceneId)
 	return false;
 }
 
+
+/**
+* 遷移を終了する.
+*/
+void TransitionController::Stop()
+{
+	const auto rend = sceneStack.rend();
+	for (auto ri = sceneStack.rbegin(); ri != rend; ++ri) {
+		ri->p->Unload();
+	}
+}
+
 /**
 * シーンを更新する.
 *

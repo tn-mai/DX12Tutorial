@@ -248,6 +248,10 @@ bool MainGameScene::Load()
 		}
 	}
 
+	Audio::Engine& audio = Audio::Engine::Get();
+	seBomb = audio.Prepare(L"Res/SE/Bomb.wav");
+	sePlayerShot = audio.Prepare(L"Res/SE/PlayerShot.wav");
+
 	time = 0.0f;
 
 	return true;
@@ -258,6 +262,8 @@ bool MainGameScene::Load()
 */
 bool MainGameScene::Unload()
 {
+	seBomb.reset();
+	sePlayerShot.reset();
 	return true;
 }
 
@@ -300,6 +306,7 @@ void MainGameScene::UpdatePlayer(double delta)
 					pSprite->SetCollisionId(CSID_PlayerShot_Normal);
 					playerShotCycle = (playerShotCycle + 1) % _countof(offset);
 				}
+				sePlayerShot->Play();
 				playerShotInterval = 0.125f;
 			}
 		} else {
@@ -431,6 +438,7 @@ void MainGameScene::SolveCollision()
 			b.SetAction(Enemy00ActId_Destroyed);
 			b.SetCollisionId(CSID_None);
 			score += 100;
+			seBomb->Play();
 		}
 		return CollisionResult::FilterOut;
 	}

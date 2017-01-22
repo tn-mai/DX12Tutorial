@@ -77,7 +77,10 @@ bool TitleScene::Load()
 		}
 	}
 
+	seStart = Audio::Engine::Get().Prepare(L"Res/SE/Start.wav");
+
 	time = 0.0f;
+	started = 0.0f;
 
 	return true;
 }
@@ -87,6 +90,7 @@ bool TitleScene::Load()
 */
 bool TitleScene::Unload()
 {
+	seStart.reset();
 	return true;
 }
 
@@ -115,9 +119,16 @@ int TitleScene::Update(double delta)
 		sprite.animeController.Update(delta);
 	}
 
-	const GamePad gamepad = GetGamePad(GamePadId_1P);
-	if (gamepad.trigger & (GamePad::A | GamePad::B | GamePad::START)) {
-		return ExitCode_MainGame;
+	if (started) {
+		if (seStart->GetState() == Audio::State_Stopped) {
+			return ExitCode_MainGame;
+		}
+	} else {
+		const GamePad gamepad = GetGamePad(GamePadId_1P);
+		if (gamepad.trigger & (GamePad::A | GamePad::B | GamePad::START)) {
+			seStart->Play();
+			started = true;
+		}
 	}
 	return ExitCode_Continue;
 }

@@ -7,6 +7,7 @@
 #include "../Texture.h"
 #include "../Sprite.h"
 #include "../Animation.h"
+#include "../Audio.h"
 
 class TitleScene : public Scene::Scene
 {
@@ -38,6 +39,8 @@ private:
 	Sprite::FilePtr cellFile;
 	AnimationFile animationFile;
 	double time;
+	bool started;
+	Audio::SoundPtr seStart;
 };
 
 #endif // DX12TUTORIAL_SRC_SCENE_TITLESCENE_H_

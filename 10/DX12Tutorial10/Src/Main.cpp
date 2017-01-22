@@ -13,6 +13,7 @@
 #include "Sprite.h"
 #include "Timer.h"
 #include "GamePad.h"
+#include "Audio.h"
 
 #include "Scene/TitleScene.h"
 #include "Scene/MainGameScene.h"
@@ -153,6 +154,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			break;
 		}
 		Update(timer.GetFrameDelta());
+		if (!Audio::Engine::Get().Update()) {
+			break;
+		}
 		if (!Render()) {
 			break;
 		}
@@ -204,6 +208,11 @@ bool InitializeD3D()
 	if (!Graphics::Graphics::Get().Initialize(hwnd, clientWidth, clientHeight)) {
 		return false;
 	}
+
+	if (!Audio::Engine::Get().Initialize()) {
+		return false;
+	}
+
 	sceneController.Initialize(transitionList, _countof(transitionList), creatorList, _countof(creatorList));
 	sceneController.Start(SceneId_Title);
 
@@ -212,6 +221,8 @@ bool InitializeD3D()
 
 void FinalizeD3D()
 {
+	sceneController.Stop();
+	Audio::Engine::Get().Destroy();
 	Graphics::Graphics::Get().Finalize();
 }
 

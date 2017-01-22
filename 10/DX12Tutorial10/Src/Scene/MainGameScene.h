@@ -8,6 +8,7 @@
 #include "../Sprite.h"
 #include "../Animation.h"
 #include "../Action.h"
+#include "../Audio.h"
 
 class MainGameScene : public Scene::Scene
 {
@@ -67,6 +68,9 @@ private:
 	std::vector<Sprite::Sprite*> freeEnemyShotList;
 	double time;
 	uint32_t score;
+
+	Audio::SoundPtr seBomb;
+	Audio::SoundPtr sePlayerShot;
 
 	int playerShotCycle = 0;
 	float playerShotInterval = 0;
