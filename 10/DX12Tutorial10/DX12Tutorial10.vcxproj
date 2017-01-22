@@ -165,6 +165,7 @@
   <ItemGroup>
     <ClCompile Include="Src\Action.cpp" />
     <ClCompile Include="Src\Animation.cpp" />
+    <ClCompile Include="Src\Audio.cpp" />
     <ClCompile Include="Src\Collision.cpp" />
     <ClCompile Include="Src\GamePad.cpp" />
     <ClCompile Include="Src\Graphics.cpp" />
@@ -184,6 +185,7 @@
   <ItemGroup>
     <ClInclude Include="Src\Action.h" />
     <ClInclude Include="Src\Animation.h" />
+    <ClInclude Include="Src\Audio.h" />
     <ClInclude Include="Src\Collision.h" />
     <ClInclude Include="Src\d3dx12.h" />
     <ClInclude Include="Src\GamePad.h" />
