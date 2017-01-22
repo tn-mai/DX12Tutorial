@@ -132,7 +132,7 @@ static HRESULT WaveFindFormatAndData(
 	const WAVEFORMATEX** pwfx,
 	const uint8_t** pdata,
 	uint32_t* dataSize,
-	bool& dpds, bool& seek, bool& ex)
+	bool& dpds, bool& seek)
 {
 	if (!wavData || !pwfx)
 		return E_POINTER;
@@ -179,7 +179,6 @@ static HRESULT WaveFindFormatAndData(
 	}
 
 	auto wf = reinterpret_cast<const WAVEFORMAT*>(ptr);
-	ex = fmtChunk->size > ((sizeof(WAVEFORMAT) + 3) & ~3);
 
 	// Validate WAVEFORMAT (focused on chunk size and format tag, not other data that XAUDIO2 will validate)
 	switch (wf->wFormatTag)
@@ -479,8 +478,8 @@ bool LoadWavDataFromFile(const wchar_t* filename, BufferType& buf, WavData& wd)
 		return false;
 	}
 
-	bool dpds, seek, ex;
-	if (FAILED(WaveFindFormatAndData(buf.data(), bytesRead, &wd.wfx, &wd.startAudio, &wd.audioBytes, dpds, seek, ex))) {
+	bool dpds, seek;
+	if (FAILED(WaveFindFormatAndData(buf.data(), bytesRead, &wd.wfx, &wd.startAudio, &wd.audioBytes, dpds, seek))) {
 		return false;
 	}
 
