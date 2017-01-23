@@ -7,6 +7,7 @@
 #include <list>
 #include <stdint.h>
 #include <wrl/client.h>
+#include <algorithm>
 
 #pragma comment(lib, "xaudio2.lib")
 
@@ -15,6 +16,14 @@ using Microsoft::WRL::ComPtr;
 namespace Audio {
 
 typedef std::vector<uint8_t> BufferType;
+
+struct ScopedHandle
+{
+	ScopedHandle(HANDLE h) : handle(h == INVALID_HANDLE_VALUE ? 0 : h) {}
+	~ScopedHandle() { if (handle) { CloseHandle(handle); } }
+	operator HANDLE() { return handle; }
+	HANDLE handle;
+};
 
 /**
 * WAVデータ.
@@ -452,7 +461,7 @@ static HRESULT WaveFindTable(_In_reads_bytes_(wavDataSize) const uint8_t* wavDat
 bool LoadWavDataFromFile(const wchar_t* filename, BufferType& buf, WavData& wd)
 {
 	wd = WavData{};
-	HANDLE hFile = CreateFile2(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, nullptr);
+	ScopedHandle hFile = CreateFile2(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, nullptr);
 	if (!hFile) {
 		return false;
 	}
@@ -499,49 +508,239 @@ bool LoadWavDataFromFile(const wchar_t* filename, BufferType& buf, WavData& wd)
 	return true;
 }
 
+
+bool Read(HANDLE hFile, void* buf, DWORD size)
+{
+	DWORD readSize;
+	if (!ReadFile(hFile, buf, size, &readSize, nullptr) || readSize != size) {
+		return false;
+	}
+	return true;
+}
+
+struct WF
+{
+	WAVEFORMATEX waveFormat;
+	size_t dataOffset;
+	size_t dataSize;
+	size_t seekOffset;
+	size_t seekSize;
+};
+
+// フォーマット情報を取得
+bool LoadWaveFile(const wchar_t* filename, WAVEFORMATEX* wfx, BufferType* data)
+{
+	ScopedHandle hFile = CreateFile2(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, nullptr);
+	if (!hFile) {
+		return false;
+	}
+
+	RIFFChunk riffChunk;
+	if (!Read(hFile, &riffChunk, sizeof(riffChunk))) {
+		return false;
+	}
+	if (riffChunk.tag != FOURCC_RIFF_TAG) {
+		return false;
+	}
+
+	uint32_t fourcc;
+	if (!Read(hFile, &fourcc, sizeof(fourcc))) {
+		return false;
+	}
+	if (fourcc != FOURCC_WAVE_FILE_TAG) {
+		return false;
+	}
+
+	bool hasWaveFormat = false;
+	bool hasData = false;
+	size_t offset = 12;
+	do {
+		if (SetFilePointer(hFile, offset, nullptr, FILE_BEGIN) != offset) {
+			break;
+		}
+
+		RIFFChunk chunk;
+		if (!Read(hFile, &chunk, sizeof(chunk))) {
+			break;
+		}
+
+		if (chunk.tag  == FOURCC_FORMAT_TAG) {
+			if (!Read(hFile, wfx, std::min(chunk.size, sizeof(WAVEFORMATEX)))) {
+				break;
+			}
+			if (wfx->wFormatTag == WAVE_FORMAT_PCM) {
+				wfx->cbSize = 0;
+			}
+			hasWaveFormat = true;
+		} else if (chunk.tag == FOURCC_DATA_TAG) {
+			data->resize(chunk.size);
+			if (!Read(hFile, data->data(), chunk.size)) {
+				return false;
+			}
+			hasData = true;
+		}
+		offset += chunk.size + sizeof(RIFFChunk);
+	} while (!hasWaveFormat || !hasData);
+
+	return hasWaveFormat && hasData;
+}
+
+// フォーマット情報を取得
+bool GetWaveFormat(HANDLE hFile, WF& wf)
+{
+	bool hasWaveFormat = false;
+	bool hasData = false;
+	bool hasDpds = false;
+	size_t offset = 12;
+	do {
+		SetFilePointer(hFile, offset, nullptr, FILE_BEGIN);
+
+		RIFFChunk chunk;
+		if (!Read(hFile, &chunk, sizeof(chunk))) {
+			break;
+		}
+
+		if (chunk.tag == FOURCC_FORMAT_TAG) {
+			if (!Read(hFile, &wf.waveFormat, std::min(chunk.size, sizeof(WAVEFORMATEX)))) {
+				break;
+			}
+			if (wf.waveFormat.wFormatTag == WAVE_FORMAT_PCM) {
+				wf.waveFormat.cbSize = 0;
+				wf.seekSize = 0;
+				wf.seekOffset = 0;
+				hasDpds = true;
+			}
+			hasWaveFormat = true;
+		} else if (chunk.tag == FOURCC_DATA_TAG) {
+			wf.dataOffset = offset + sizeof(RIFFChunk);
+			wf.dataSize = chunk.size;
+			hasData = true;
+		} else if (chunk.tag == FOURCC_XWMA_DPDS) {
+			wf.seekOffset = offset + sizeof(RIFFChunk);
+			wf.seekSize = chunk.size / 4;
+			hasDpds = true;
+		}
+		offset += chunk.size + sizeof(RIFFChunk);
+	} while (!hasWaveFormat || !hasData || !hasDpds);
+	return hasWaveFormat && hasData && hasDpds;
+}
+
 /**
 * Soundの実装.
 */
 class SoundImpl : public Sound
 {
 public:
-	SoundImpl() : started(false), sourceVoice(nullptr) {}
-	virtual ~SoundImpl() {
+	SoundImpl() :
+		started(false), paused(false), sourceVoice(nullptr) {}
+	virtual ~SoundImpl() override {
 		if (sourceVoice) {
 			sourceVoice->DestroyVoice();
 		}
 	}
-	virtual bool Play() {
-		if (started) {
-			sourceVoice->Stop();
-			sourceVoice->FlushSourceBuffers();
-			sourceVoice->SubmitSourceBuffer(&buffer);
+	virtual bool Play() override {
+		if (started && !paused) {
+			Stop();
 		}
 		started = true;
+		paused = false;
+		sourceVoice->SubmitSourceBuffer(&buffer);
 		return SUCCEEDED(sourceVoice->Start());
 	}
-	virtual bool Pause() {
-		return SUCCEEDED(sourceVoice->Stop());
-	}
-	virtual bool Seek() {
-		return true;
-	}
-	virtual bool Stop() {
+	virtual bool Pause() override {
 		if (started) {
 			started = false;
 			return SUCCEEDED(sourceVoice->Stop());
 		}
 		return false;
 	}
-	virtual float SetVolume(float volume) {
+	virtual bool Seek() override {
+		return true;
+	}
+	virtual bool Stop() override {
+		if (started) {
+			started = false;
+			sourceVoice->Stop();
+			sourceVoice->FlushSourceBuffers();
+			return true;
+		}
+		return false;
+	}
+	virtual float SetVolume(float volume) override {
 		sourceVoice->SetVolume(volume);
 		return volume;
 	}
-	virtual float SetPitch(float pitch) {
+	virtual float SetPitch(float pitch) override {
 		sourceVoice->SetFrequencyRatio(pitch);
 		return pitch;
 	}
-	virtual State GetState() const {
+	virtual State GetState() const override {
+		XAUDIO2_VOICE_STATE state;
+		sourceVoice->GetState(&state);
+		if (state.BuffersQueued) {
+			return started ? State_Playing : State_Prepared;
+		}
+		return State_Stopped;
+	}
+	bool IsPlaying() const {
+		return started && !paused;
+	}
+
+	bool started;
+	bool paused;
+	IXAudio2SourceVoice* sourceVoice;
+	std::vector<uint8_t> file;
+	XAUDIO2_BUFFER buffer;
+};
+
+/**
+* Soundの実装.
+*/
+class StreamSoundImpl : public Sound
+{
+public:
+	StreamSoundImpl() = delete;
+	StreamSoundImpl(HANDLE h, size_t offset, size_t size) :
+		started(false), sourceVoice(nullptr), handle(h), dataOffset(offset), dataSize(size)
+	{
+		buf.resize(BUFFER_SIZE * MAX_BUFFER_COUNT);
+		currentPos = 0;
+		seekInfo.PacketCount = 0;
+	}
+	virtual ~StreamSoundImpl() override {
+		if (sourceVoice) {
+			sourceVoice->DestroyVoice();
+		}
+	}
+	virtual bool Play() override {
+		if (!started) {
+			started = true;
+//			return SUCCEEDED(sourceVoice->Start());
+		}
+		return false;
+	}
+	virtual bool Pause() override {
+		return SUCCEEDED(sourceVoice->Stop());
+	}
+	virtual bool Seek() override {
+		return true;
+	}
+	virtual bool Stop() override {
+		if (started) {
+			started = false;
+			return SUCCEEDED(sourceVoice->Stop());
+		}
+		return false;
+	}
+	virtual float SetVolume(float volume) override {
+		sourceVoice->SetVolume(volume);
+		return volume;
+	}
+	virtual float SetPitch(float pitch) override {
+		sourceVoice->SetFrequencyRatio(pitch);
+		return pitch;
+	}
+	virtual State GetState() const override {
 		XAUDIO2_VOICE_STATE state;
 		sourceVoice->GetState(&state);
 		if (state.BuffersQueued) {
@@ -550,10 +749,47 @@ public:
 		return State_Stopped;
 	}
 
+	bool Update() {
+		if (!started) {
+			return true;
+		}
+		DWORD cbValid = std::min(BUFFER_SIZE, dataSize - currentPos);
+		if (cbValid == 0) {
+			return false;
+		}
+		XAUDIO2_VOICE_STATE state;
+		sourceVoice->GetState(&state);
+		if (state.BuffersQueued < MAX_BUFFER_COUNT - 1) {
+			SetFilePointer(handle, dataOffset + currentPos, nullptr, FILE_BEGIN);
+			if (!Read(handle, &buf[BUFFER_SIZE * curBuf], cbValid)) {
+				return false;
+			}
+			XAUDIO2_BUFFER buffer = {};
+			buffer.AudioBytes = cbValid;
+			buffer.pAudioData = &buf[BUFFER_SIZE * curBuf];
+			buffer.Flags = XAUDIO2_END_OF_STREAM;
+			sourceVoice->SubmitSourceBuffer(&buffer, seekInfo.PacketCount ? &seekInfo : nullptr);
+			currentPos += cbValid;
+			curBuf = (curBuf + 1) % MAX_BUFFER_COUNT;
+			if (state.BuffersQueued == 0) {
+				sourceVoice->Start();
+			}
+		}
+		return true;
+	}
+
+	static const size_t BUFFER_SIZE = 0x10000;
+	static const int MAX_BUFFER_COUNT = 3;
 	bool started;
 	IXAudio2SourceVoice* sourceVoice;
-	BufferType file;
-	XAUDIO2_BUFFER buffer;
+	BufferType buf;
+	std::vector<UINT32> seekTable;
+	XAUDIO2_BUFFER_WMA seekInfo;
+	ScopedHandle handle;
+	size_t dataSize;
+	size_t dataOffset;
+	size_t currentPos;
+	int curBuf;
 };
 
 /**
@@ -562,8 +798,8 @@ public:
 class EngineImpl : public Engine
 {
 public:
-	EngineImpl() : Engine(), xaudio(), masteringVoice(nullptr) {}
-	virtual ~EngineImpl() {}
+//	EngineImpl() : Engine(), xaudio(), masteringVoice(nullptr) {}
+//	virtual ~EngineImpl() {}
 
 	virtual bool Initialize() override {
 		ComPtr<IXAudio2> tmpAudio;
@@ -590,6 +826,7 @@ public:
 	}
 
 	virtual void Destroy() override {
+		streamSound.reset();
 		soundList.clear();
 		xaudio.Reset();
 	}
@@ -609,37 +846,75 @@ public:
 				itr = soundList.erase(itr);
 			}
 		}
+		if (streamSound) {
+			if (!streamSound->Update()) {
+				streamSound.reset();
+			}
+		}
 		return true;
 	}
 
 	virtual SoundPtr Prepare(const wchar_t* filename) override {
-		WavData wavData;
+		WAVEFORMATEX wfx;
 		std::shared_ptr<SoundImpl> sound(new SoundImpl);
-		if (!LoadWavDataFromFile(filename, sound->file, wavData)) {
+		if (!LoadWaveFile(filename, &wfx, &sound->file)) {
 			return nullptr;
 		}
-		if (FAILED(xaudio->CreateSourceVoice(&sound->sourceVoice, wavData.wfx))) {
+		if (FAILED(xaudio->CreateSourceVoice(&sound->sourceVoice, &wfx))) {
 			return nullptr;
 		}
 
-		sound->buffer.pAudioData = wavData.startAudio;
+		sound->buffer = {};
+		sound->buffer.pAudioData = sound->file.data();
 		sound->buffer.Flags = XAUDIO2_END_OF_STREAM;
-		sound->buffer.AudioBytes = wavData.audioBytes;
-		if (wavData.loopLength > 0) {
-			sound->buffer.LoopBegin = wavData.loopStart;
-			sound->buffer.LoopLength = wavData.loopLength;
-			sound->buffer.LoopCount = 1;
-		}
-		if (FAILED(sound->sourceVoice->SubmitSourceBuffer(&sound->buffer))) {
-			return nullptr;
-		}
+		sound->buffer.AudioBytes = sound->file.size();
 
 		soundList.push_back(sound);
 		return sound;
 	}
 
+	virtual SoundPtr PrepareStream(const wchar_t* filename) override {
+		ScopedHandle hFile = CreateFile2(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, nullptr);
+		if (!hFile) {
+			return nullptr;
+		}
+		FILE_STANDARD_INFO fileInfo;
+		if (!GetFileInformationByHandleEx(hFile, FileStandardInfo, &fileInfo, sizeof(fileInfo))) {
+			return nullptr;
+		}
+		if (fileInfo.EndOfFile.HighPart > 0) {
+			return nullptr;
+		}
+		if (fileInfo.EndOfFile.LowPart < (sizeof(RIFFChunk) * 2 + sizeof(DWORD) + sizeof(WAVEFORMAT))) {
+			return nullptr;
+		}
+
+		WF wf;
+		if (!GetWaveFormat(hFile, wf)) {
+			return nullptr;
+		}
+
+		streamSound.reset(new StreamSoundImpl(hFile, wf.dataOffset, wf.dataSize));
+		hFile.handle = 0;
+		if (FAILED(xaudio->CreateSourceVoice(&streamSound->sourceVoice, &wf.waveFormat))) {
+			return nullptr;
+		}
+		if (wf.seekSize) {
+			streamSound->seekTable.resize(wf.seekSize);
+			if (!Read(streamSound->handle, streamSound->seekTable.data(), wf.seekSize * 4)) {
+				return nullptr;
+			}
+			for (auto& e : streamSound->seekTable) {
+				e = _byteswap_ulong(e);
+			}
+			streamSound->seekInfo.PacketCount = wf.seekSize;
+			streamSound->seekInfo.pDecodedPacketCumulativeBytes = streamSound->seekTable.data();
+		}
+		return streamSound;
+	}
+
 	virtual void SetMasterVolume(float vol) override {
-		if (masteringVoice) {
+		if (xaudio) {
 			masteringVoice->SetVolume(vol);
 		}
 	}
@@ -650,6 +925,7 @@ private:
 
 	typedef std::list<SoundPtr> SoundList;
 	SoundList soundList;
+	std::shared_ptr<StreamSoundImpl> streamSound;
 };
 
 Engine& Engine::Get()

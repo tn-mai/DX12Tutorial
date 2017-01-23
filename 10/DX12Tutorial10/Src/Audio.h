@@ -43,6 +43,7 @@ public:
 	virtual void Destroy() = 0;
 	virtual bool Update() = 0;
 	virtual SoundPtr Prepare(const wchar_t*) = 0;
+	virtual SoundPtr PrepareStream(const wchar_t*) = 0;
 	virtual void SetMasterVolume(float) = 0;
 
 private:
