@@ -20,7 +20,7 @@ enum State {
 class Sound
 {
 public:
-	virtual ~Sound() {}
+	virtual ~Sound() = default;
 	virtual bool Play() = 0;
 	virtual bool Pause() = 0;
 	virtual bool Seek() = 0;
@@ -38,7 +38,7 @@ public:
 	
 	Engine() = default;
 
-	virtual ~Engine() {}
+	virtual ~Engine() = default;
 	virtual bool Initialize() = 0;
 	virtual void Destroy() = 0;
 	virtual bool Update() = 0;

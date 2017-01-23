@@ -9,8 +9,6 @@
 #include <wrl/client.h>
 #include <algorithm>
 
-#pragma comment(lib, "xaudio2.lib")
-
 using Microsoft::WRL::ComPtr;
 
 namespace Audio {
@@ -811,17 +809,18 @@ public:
 		if (FAILED(hr)) {
 			return false;
 		}
-		if (flags & XAUDIO2_DEBUG_ENGINE) {
+		if (1) {
 			XAUDIO2_DEBUG_CONFIGURATION debug = {};
-			debug.TraceMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS;
+			debug.TraceMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS | XAUDIO2_LOG_MEMORY;
 			debug.BreakMask = XAUDIO2_LOG_ERRORS;
+			debug.LogFunctionName = TRUE;
 			tmpAudio->SetDebugConfiguration(&debug);
 		}
 		hr = tmpAudio->CreateMasteringVoice(&masteringVoice);
 		if (FAILED(hr)) {
 			return false;
 		}
-		xaudio = tmpAudio;
+		xaudio.Swap(std::move(tmpAudio));
 		return true;
 	}
 
@@ -832,14 +831,13 @@ public:
 	}
 
 	virtual bool Update() override {
-		for (SoundList::iterator itr = soundList.begin(); itr != soundList.end();) {
+		for (auto itr = soundList.begin(); itr != soundList.end();) {
 			if (!itr->unique()) {
 				++itr;
 				continue;
 			}
 			XAUDIO2_VOICE_STATE state;
-			SoundImpl* p = static_cast<SoundImpl*>(itr->get());
-			p->sourceVoice->GetState(&state);
+			(*itr)->sourceVoice->GetState(&state);
 			if (state.BuffersQueued > 0) {
 				++itr;
 			} else {
@@ -923,7 +921,7 @@ private:
 	ComPtr<IXAudio2> xaudio;
 	IXAudio2MasteringVoice* masteringVoice;
 
-	typedef std::list<SoundPtr> SoundList;
+	typedef std::list<std::shared_ptr<SoundImpl>> SoundList;
 	SoundList soundList;
 	std::shared_ptr<StreamSoundImpl> streamSound;
 };
