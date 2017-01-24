@@ -1,0 +1,4 @@
+3.3を4章の後に移動する
+3.3 スプライトに追加したコンストラクタを追加した -> スプライトにコンストラクタを追加した
+SpriteRenderer::Draw関数の修正についての項目を追加.
+6.1 if(time == 0.0f || time < targetTime) -> if(targetTime == 0.0f || time < targetTime)
