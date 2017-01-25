@@ -78,6 +78,7 @@ bool TitleScene::Load()
 	}
 
 	seStart = Audio::Engine::Get().Prepare(L"Res/SE/Start.wav");
+	Audio::Engine::Get().PrepareStream(L"Res/SE/bgm.xwm")->Play();
 
 	time = 0.0f;
 	started = 0.0f;

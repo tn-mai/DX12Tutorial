@@ -518,12 +518,54 @@ bool Read(HANDLE hFile, void* buf, DWORD size)
 
 struct WF
 {
-	WAVEFORMATEX waveFormat;
+	WAVEFORMATEXTENSIBLE waveFormat;
 	size_t dataOffset;
 	size_t dataSize;
 	size_t seekOffset;
 	size_t seekSize;
 };
+
+// フォーマット情報を取得
+bool GetWaveFormat(HANDLE hFile, WF& wf)
+{
+	bool hasWaveFormat = false;
+	bool hasData = false;
+	bool hasDpds = false;
+	size_t offset = 12;
+	do {
+		SetFilePointer(hFile, offset, nullptr, FILE_BEGIN);
+
+		RIFFChunk chunk;
+		if (!Read(hFile, &chunk, sizeof(chunk))) {
+			break;
+		}
+
+		if (chunk.tag == FOURCC_FORMAT_TAG) {
+			if (!Read(hFile, &wf.waveFormat, std::min(chunk.size, sizeof(WAVEFORMATEXTENSIBLE)))) {
+				break;
+			}
+			if (wf.waveFormat.Format.wFormatTag == WAVE_FORMAT_PCM) {
+				wf.waveFormat.Format.cbSize = 0;
+				wf.seekSize = 0;
+				wf.seekOffset = 0;
+				hasDpds = true;
+			}
+			hasWaveFormat = true;
+		}
+		else if (chunk.tag == FOURCC_DATA_TAG) {
+			wf.dataOffset = offset + sizeof(RIFFChunk);
+			wf.dataSize = chunk.size;
+			hasData = true;
+		}
+		else if (chunk.tag == FOURCC_XWMA_DPDS) {
+			wf.seekOffset = offset + sizeof(RIFFChunk);
+			wf.seekSize = chunk.size / 4;
+			hasDpds = true;
+		}
+		offset += chunk.size + sizeof(RIFFChunk);
+	} while (!hasWaveFormat || !hasData || !hasDpds);
+	return hasWaveFormat && hasData && hasDpds;
+}
 
 // フォーマット情報を取得
 bool LoadWaveFile(const wchar_t* filename, WAVEFORMATEX* wfx, BufferType* data)
@@ -549,78 +591,17 @@ bool LoadWaveFile(const wchar_t* filename, WAVEFORMATEX* wfx, BufferType* data)
 		return false;
 	}
 
-	bool hasWaveFormat = false;
-	bool hasData = false;
-	size_t offset = 12;
-	do {
-		if (SetFilePointer(hFile, offset, nullptr, FILE_BEGIN) != offset) {
-			break;
-		}
-
-		RIFFChunk chunk;
-		if (!Read(hFile, &chunk, sizeof(chunk))) {
-			break;
-		}
-
-		if (chunk.tag  == FOURCC_FORMAT_TAG) {
-			if (!Read(hFile, wfx, std::min(chunk.size, sizeof(WAVEFORMATEX)))) {
-				break;
-			}
-			if (wfx->wFormatTag == WAVE_FORMAT_PCM) {
-				wfx->cbSize = 0;
-			}
-			hasWaveFormat = true;
-		} else if (chunk.tag == FOURCC_DATA_TAG) {
-			data->resize(chunk.size);
-			if (!Read(hFile, data->data(), chunk.size)) {
-				return false;
-			}
-			hasData = true;
-		}
-		offset += chunk.size + sizeof(RIFFChunk);
-	} while (!hasWaveFormat || !hasData);
-
-	return hasWaveFormat && hasData;
-}
-
-// フォーマット情報を取得
-bool GetWaveFormat(HANDLE hFile, WF& wf)
-{
-	bool hasWaveFormat = false;
-	bool hasData = false;
-	bool hasDpds = false;
-	size_t offset = 12;
-	do {
-		SetFilePointer(hFile, offset, nullptr, FILE_BEGIN);
-
-		RIFFChunk chunk;
-		if (!Read(hFile, &chunk, sizeof(chunk))) {
-			break;
-		}
-
-		if (chunk.tag == FOURCC_FORMAT_TAG) {
-			if (!Read(hFile, &wf.waveFormat, std::min(chunk.size, sizeof(WAVEFORMATEX)))) {
-				break;
-			}
-			if (wf.waveFormat.wFormatTag == WAVE_FORMAT_PCM) {
-				wf.waveFormat.cbSize = 0;
-				wf.seekSize = 0;
-				wf.seekOffset = 0;
-				hasDpds = true;
-			}
-			hasWaveFormat = true;
-		} else if (chunk.tag == FOURCC_DATA_TAG) {
-			wf.dataOffset = offset + sizeof(RIFFChunk);
-			wf.dataSize = chunk.size;
-			hasData = true;
-		} else if (chunk.tag == FOURCC_XWMA_DPDS) {
-			wf.seekOffset = offset + sizeof(RIFFChunk);
-			wf.seekSize = chunk.size / 4;
-			hasDpds = true;
-		}
-		offset += chunk.size + sizeof(RIFFChunk);
-	} while (!hasWaveFormat || !hasData || !hasDpds);
-	return hasWaveFormat && hasData && hasDpds;
+	WF wf;
+	if (!GetWaveFormat(hFile, wf)) {
+		return false;
+	}
+	data->resize(wf.dataSize);
+	SetFilePointer(hFile, wf.dataOffset, nullptr, FILE_BEGIN);
+	if (!Read(hFile, data->data(), wf.dataSize)) {
+		return false;
+	}
+	*wfx = wf.waveFormat.Format;
+	return true;
 }
 
 /**
@@ -759,17 +740,32 @@ public:
 		sourceVoice->GetState(&state);
 		if (state.BuffersQueued < MAX_BUFFER_COUNT - 1) {
 			SetFilePointer(handle, dataOffset + currentPos, nullptr, FILE_BEGIN);
-			if (!Read(handle, &buf[BUFFER_SIZE * curBuf], cbValid)) {
-				return false;
-			}
+
 			XAUDIO2_BUFFER buffer = {};
-			buffer.AudioBytes = cbValid;
 			buffer.pAudioData = &buf[BUFFER_SIZE * curBuf];
-			buffer.Flags = XAUDIO2_END_OF_STREAM;
-			sourceVoice->SubmitSourceBuffer(&buffer, seekInfo.PacketCount ? &seekInfo : nullptr);
-			currentPos += cbValid;
+			buffer.Flags = cbValid == BUFFER_SIZE ? 0 : XAUDIO2_END_OF_STREAM;
+			if (!seekInfo.PacketCount) {
+				buffer.AudioBytes = cbValid;
+				if (!Read(handle, &buf[BUFFER_SIZE * curBuf], cbValid)) {
+					return false;
+				}
+				sourceVoice->SubmitSourceBuffer(&buffer, nullptr);
+				currentPos += cbValid;
+			}
+			else {
+				const size_t seekOffset = (currentPos / BUFFER_SIZE) * (BUFFER_SIZE / packetSize);
+				XAUDIO2_BUFFER_WMA bufWma = {};
+				bufWma.PacketCount = cbValid / packetSize;
+				bufWma.pDecodedPacketCumulativeBytes = seekInfo.pDecodedPacketCumulativeBytes + (currentPos / packetSize);
+				buffer.AudioBytes = bufWma.PacketCount * packetSize;
+				if (!Read(handle, &buf[BUFFER_SIZE * curBuf], buffer.AudioBytes)) {
+					return false;
+				}
+				sourceVoice->SubmitSourceBuffer(&buffer, &bufWma);
+				currentPos += buffer.AudioBytes;
+			}
 			curBuf = (curBuf + 1) % MAX_BUFFER_COUNT;
-			if (state.BuffersQueued == 0) {
+			if (started && state.BuffersQueued == 0) {
 				sourceVoice->Start();
 			}
 		}
@@ -787,6 +783,7 @@ public:
 	size_t dataSize;
 	size_t dataOffset;
 	size_t currentPos;
+	size_t packetSize;
 	int curBuf;
 };
 
@@ -846,7 +843,7 @@ public:
 		}
 		if (streamSound) {
 			if (!streamSound->Update()) {
-				streamSound.reset();
+				//streamSound.reset();
 			}
 		}
 		return true;
@@ -894,11 +891,12 @@ public:
 
 		streamSound.reset(new StreamSoundImpl(hFile, wf.dataOffset, wf.dataSize));
 		hFile.handle = 0;
-		if (FAILED(xaudio->CreateSourceVoice(&streamSound->sourceVoice, &wf.waveFormat))) {
+		if (FAILED(xaudio->CreateSourceVoice(&streamSound->sourceVoice, &wf.waveFormat.Format))) {
 			return nullptr;
 		}
 		if (wf.seekSize) {
 			streamSound->seekTable.resize(wf.seekSize);
+			SetFilePointer(streamSound->handle, wf.seekOffset, nullptr, FILE_BEGIN);
 			if (!Read(streamSound->handle, streamSound->seekTable.data(), wf.seekSize * 4)) {
 				return nullptr;
 			}
@@ -907,6 +905,7 @@ public:
 			}
 			streamSound->seekInfo.PacketCount = wf.seekSize;
 			streamSound->seekInfo.pDecodedPacketCumulativeBytes = streamSound->seekTable.data();
+			streamSound->packetSize = wf.waveFormat.Format.nBlockAlign;
 		}
 		return streamSound;
 	}
