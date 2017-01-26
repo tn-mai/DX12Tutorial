@@ -180,13 +180,14 @@ public:
 			sourceVoice->DestroyVoice();
 		}
 	}
-	virtual bool Play() override {
+	virtual bool Play(int flags) override {
 		if (!paused) {
 			Stop();
 			XAUDIO2_BUFFER buffer = {};
 			buffer.Flags = XAUDIO2_END_OF_STREAM;
 			buffer.AudioBytes = source.size();
 			buffer.pAudioData = source.data();
+			buffer.LoopCount = flags & Flag_Loop ? XAUDIO2_LOOP_INFINITE : XAUDIO2_NO_LOOP_REGION;
 			if (seekTable.empty()) {
 				if (FAILED(sourceVoice->SubmitSourceBuffer(&buffer))) {
 					return false;
@@ -255,7 +256,7 @@ class StreamSoundImpl : public Sound
 {
 public:
 	StreamSoundImpl() :
-		sourceVoice(nullptr), handle(0), started(false), paused(false), currentPos(0), curBuf(0)
+		sourceVoice(nullptr), handle(0), started(false), paused(false), loop(false), currentPos(0), curBuf(0)
 	{
 		buf.resize(BUFFER_SIZE * MAX_BUFFER_COUNT);
 	}
@@ -264,12 +265,13 @@ public:
 			sourceVoice->DestroyVoice();
 		}
 	}
-	virtual bool Play() override {
+	virtual bool Play(int flags) override {
 		if (!paused) {
 			Stop();
 		}
 		started = true;
 		paused = false;
+		loop = flags & Flag_Loop;
 		return SUCCEEDED(sourceVoice->Start());
 	}
 	virtual bool Pause() override {
@@ -346,6 +348,9 @@ public:
 				currentPos += buffer.AudioBytes;
 			}
 			curBuf = (curBuf + 1) % MAX_BUFFER_COUNT;
+			if (loop && currentPos >= dataSize) {
+				currentPos = 0;
+			}
 		}
 		return true;
 	}
@@ -362,6 +367,7 @@ public:
 
 	bool started;
 	bool paused;
+	bool loop;
 	std::vector<uint8_t> buf;
 	size_t currentPos;
 	int curBuf;

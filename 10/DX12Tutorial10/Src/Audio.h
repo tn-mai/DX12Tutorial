@@ -17,11 +17,17 @@ enum State {
 	State_Failed = 0x40,
 };
 
+enum Flag
+{
+	Flag_None = 0,
+	Flag_Loop = 0x01,
+};
+
 class Sound
 {
 public:
 	virtual ~Sound() = default;
-	virtual bool Play() = 0;
+	virtual bool Play(int flags = 0) = 0;
 	virtual bool Pause() = 0;
 	virtual bool Seek() = 0;
 	virtual bool Stop() = 0;
