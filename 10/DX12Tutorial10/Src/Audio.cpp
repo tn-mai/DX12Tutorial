@@ -256,7 +256,7 @@ class StreamSoundImpl : public Sound
 {
 public:
 	StreamSoundImpl() :
-		sourceVoice(nullptr), handle(0), started(false), paused(false), loop(false), currentPos(0), curBuf(0)
+		sourceVoice(nullptr), handle(0), state(State_Create), loop(false), currentPos(0), curBuf(0)
 	{
 		buf.resize(BUFFER_SIZE * MAX_BUFFER_COUNT);
 	}
@@ -266,17 +266,16 @@ public:
 		}
 	}
 	virtual bool Play(int flags) override {
-		if (!paused) {
+		if (!(state & State_Pausing)) {
 			Stop();
 		}
-		started = true;
-		paused = false;
+		state = State_Playing;
 		loop = flags & Flag_Loop;
 		return SUCCEEDED(sourceVoice->Start());
 	}
 	virtual bool Pause() override {
-		if (started && !paused) {
-			paused = true;
+		if (state & State_Playing && !(state & State_Pausing)) {
+			state |= State_Pausing;
 			return SUCCEEDED(sourceVoice->Stop());
 		}
 		return false;
@@ -285,12 +284,11 @@ public:
 		return true;
 	}
 	virtual bool Stop() override {
-		if (started) {
-			started = false;
-			if (!paused && FAILED(sourceVoice->Stop())) {
+		if (state & State_Playing) {
+			if (!(state & State_Pausing) && FAILED(sourceVoice->Stop())) {
 				return false;
 			}
-			paused = false;
+			state = State_Stopped;
 			return SUCCEEDED(sourceVoice->FlushSourceBuffers());
 		}
 		return false;
@@ -304,18 +302,12 @@ public:
 		return pitch;
 	}
 	virtual int GetState() const override {
-		XAUDIO2_VOICE_STATE state;
-		sourceVoice->GetState(&state);
-		if (state.BuffersQueued) {
-			return started ? (!paused ? State_Playing : (State_Pausing | State_Playing) ) : State_Prepared;
-		}
-		return started ? State_Stopped : State_Preparing;
+		XAUDIO2_VOICE_STATE s;
+		sourceVoice->GetState(&s);
+		return s.BuffersQueued ? (state | State_Prepared) : State_Stopped;
 	}
 
 	bool Update() {
-		if (!started) {
-			return true;
-		}
 		const DWORD cbValid = std::min(BUFFER_SIZE, dataSize - currentPos);
 		if (cbValid == 0) {
 			return false;
@@ -365,8 +357,7 @@ public:
 	static const size_t BUFFER_SIZE = 0x10000;
 	static const int MAX_BUFFER_COUNT = 3;
 
-	bool started;
-	bool paused;
+	int state;
 	bool loop;
 	std::vector<uint8_t> buf;
 	size_t currentPos;
@@ -415,7 +406,7 @@ public:
 
 	virtual bool Update() override {
 		for (auto itr = soundList.begin(); itr != soundList.end();) {
-			if (!itr->unique()) {
+			if (itr->use_count() > 1) {
 				++itr;
 				continue;
 			}
@@ -428,8 +419,9 @@ public:
 			}
 		}
 		if (streamSound) {
-			if (!streamSound->Update()) {
-				//streamSound.reset();
+			streamSound->Update();
+			if ((streamSound.use_count() == 1) && streamSound->GetState() & State_Stopped) {
+				streamSound.reset();
 			}
 		}
 		return true;
