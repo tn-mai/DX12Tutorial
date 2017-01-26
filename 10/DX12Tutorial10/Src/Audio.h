@@ -10,11 +10,11 @@ namespace Audio {
 enum State {
 	State_Create = 0x01,
 	State_Preparing = 0x02,
-	State_Prepared = 0x03,
-	State_Playing = 0x04,
-	State_Stopped = 0x05,
-	State_Paused = 0x10,
-	State_Failed = 0x20,
+	State_Prepared = 0x04,
+	State_Playing = 0x08,
+	State_Stopped = 0x10,
+	State_Pausing = 0x20,
+	State_Failed = 0x40,
 };
 
 class Sound
@@ -27,7 +27,7 @@ public:
 	virtual bool Stop() = 0;
 	virtual float SetVolume(float) = 0;
 	virtual float SetPitch(float) = 0;
-	virtual State GetState() const = 0;
+	virtual int GetState() const = 0;
 };
 typedef std::shared_ptr<Sound> SoundPtr;
 
