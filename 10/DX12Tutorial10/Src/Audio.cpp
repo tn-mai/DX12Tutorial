@@ -174,14 +174,14 @@ class SoundImpl : public Sound
 {
 public:
 	SoundImpl() :
-		started(false), paused(false), sourceVoice(nullptr) {}
+		state(State_Create), sourceVoice(nullptr) {}
 	virtual ~SoundImpl() override {
 		if (sourceVoice) {
 			sourceVoice->DestroyVoice();
 		}
 	}
 	virtual bool Play(int flags) override {
-		if (!paused) {
+		if (!(state & State_Pausing)) {
 			Stop();
 			XAUDIO2_BUFFER buffer = {};
 			buffer.Flags = XAUDIO2_END_OF_STREAM;
@@ -199,14 +199,12 @@ public:
 				}
 			}
 		}
-		started = true;
-		paused = false;
+		state = State_Playing;
 		return SUCCEEDED(sourceVoice->Start());
 	}
 	virtual bool Pause() override {
-		if (started) {
-			started = false;
-			paused = true;
+		if (state & State_Playing) {
+			state |= State_Pausing;
 			return SUCCEEDED(sourceVoice->Stop());
 		}
 		return false;
@@ -215,12 +213,11 @@ public:
 		return true;
 	}
 	virtual bool Stop() override {
-		if (started) {
-			started = false;
-			if (!paused && FAILED(sourceVoice->Stop())) {
+		if (state & State_Playing) {
+			if (!(state & State_Pausing) && FAILED(sourceVoice->Stop())) {
 				return false;
 			}
-			paused = false;
+			state = State_Stopped;
 			return SUCCEEDED(sourceVoice->FlushSourceBuffers());
 		}
 		return false;
@@ -234,16 +231,12 @@ public:
 		return pitch;
 	}
 	virtual int GetState() const override {
-		XAUDIO2_VOICE_STATE state;
-		sourceVoice->GetState(&state);
-		if (state.BuffersQueued) {
-			return !paused ? State_Playing : (State_Playing | State_Pausing);
-		}
-		return started ? State_Stopped : State_Prepared;
+		XAUDIO2_VOICE_STATE s;
+		sourceVoice->GetState(&s);
+		return s.BuffersQueued ? state : (State_Stopped | State_Prepared);
 	}
 
-	bool started;
-	bool paused;
+	int state;
 	IXAudio2SourceVoice* sourceVoice;
 	std::vector<uint8_t> source;
 	std::vector<UINT32> seekTable;

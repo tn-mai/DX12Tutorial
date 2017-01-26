@@ -124,7 +124,7 @@ int TitleScene::Update(double delta)
 	}
 
 	if (started) {
-		if (seStart->GetState() == Audio::State_Stopped) {
+		if (seStart->GetState() & Audio::State_Stopped) {
 			return ExitCode_MainGame;
 		}
 	} else {
