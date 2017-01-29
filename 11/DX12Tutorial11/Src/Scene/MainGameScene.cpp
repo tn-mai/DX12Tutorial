@@ -92,8 +92,8 @@ const Collision::Shape colShapes[countof_CSID] = {
 
 enum class CollisionResult
 {
-	Nothing,
-	FilterOut,
+	Nothing, ///< 何もしない.
+	FilterOut, ///< 現在の左辺側オブジェクトの衝突判定を終了する.
 };
 
 typedef std::function<CollisionResult(Sprite::Sprite& lhs, Sprite::Sprite& rhs)> CollisionSolver;
@@ -443,6 +443,7 @@ void MainGameScene::SolveCollision()
 			b.SetCollisionId(CSID_None);
 			score += 100;
 			seBomb->Play();
+			VibrateGamePad(GamePadId_1P, 1);
 		}
 		return CollisionResult::FilterOut;
 	}
@@ -458,11 +459,13 @@ void MainGameScene::SolveCollision()
 			b.SetAction(Enemy00ActId_Destroyed);
 			b.SetCollisionId(CSID_None);
 			score += 100;
+			VibrateGamePad(GamePadId_1P, 0);
 		} else {
 			b.pos.y = -32;
 			b.actController.SetManualMove(0, 0);
 		}
-		return CollisionResult::Nothing;
+		seBomb->Play();
+		return CollisionResult::FilterOut;
 	}
 	);
 }

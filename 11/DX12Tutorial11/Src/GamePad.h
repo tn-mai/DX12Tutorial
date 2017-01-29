@@ -36,6 +36,8 @@ enum GamePadId
 };
 
 GamePad& GetGamePad(uint32_t id);
-void UpdateGamePad();
+void InitGamePad();
+void UpdateGamePad(double delta);
+void VibrateGamePad(uint32_t id, uint32_t seqNo);
 
 #endif // DX12TUTORIAL_SRC_GAMEPAD_H_

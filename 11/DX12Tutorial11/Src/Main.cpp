@@ -213,6 +213,8 @@ bool InitializeD3D()
 		return false;
 	}
 
+	InitGamePad();
+
 	sceneController.Initialize(transitionList, _countof(transitionList), creatorList, _countof(creatorList));
 	sceneController.Start(SceneId_Title);
 
@@ -262,7 +264,7 @@ bool Render()
 */
 void Update(double delta)
 {
-	UpdateGamePad();
+	UpdateGamePad(delta);
 	GamePad& gamepad = GetGamePad(GamePadId_1P);
 
 	Graphics::Graphics& graphics = Graphics::Graphics::Get();
