@@ -36,5 +36,6 @@ enum GamePadId
 };
 
 GamePad& GetGamePad(uint32_t id);
+void UpdateGamePad();
 
 #endif // DX12TUTORIAL_SRC_GAMEPAD_H_

@@ -262,9 +262,8 @@ bool Render()
 */
 void Update(double delta)
 {
+	UpdateGamePad();
 	GamePad& gamepad = GetGamePad(GamePadId_1P);
-	gamepad.trigger = ~gamepad.prevButtons & (gamepad.prevButtons ^ gamepad.buttons);
-	gamepad.prevButtons = gamepad.buttons;
 
 	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 	const float speed = static_cast<float>(200.0 * delta);
