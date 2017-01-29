@@ -71,6 +71,7 @@ private:
 
 	Audio::SoundPtr seBomb;
 	Audio::SoundPtr sePlayerShot;
+	Audio::SoundPtr bgm;
 
 	int playerShotCycle = 0;
 	float playerShotInterval = 0;

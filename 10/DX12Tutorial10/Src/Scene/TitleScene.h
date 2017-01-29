@@ -41,7 +41,6 @@ private:
 	double time;
 	bool started;
 	Audio::SoundPtr seStart;
-	Audio::SoundPtr bgm;
 };
 
 #endif // DX12TUTORIAL_SRC_SCENE_TITLESCENE_H_

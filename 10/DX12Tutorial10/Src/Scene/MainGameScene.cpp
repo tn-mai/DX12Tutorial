@@ -251,6 +251,8 @@ bool MainGameScene::Load()
 	Audio::Engine& audio = Audio::Engine::Get();
 	seBomb = audio.Prepare(L"Res/SE/Bomb.wav");
 	sePlayerShot = audio.Prepare(L"Res/SE/PlayerShot.wav");
+	bgm = Audio::Engine::Get().PrepareStream(L"Res/SE/MainGame.xwm");
+	bgm->Play(Audio::Flag_Loop);
 
 	time = 0.0f;
 
@@ -262,6 +264,8 @@ bool MainGameScene::Load()
 */
 bool MainGameScene::Unload()
 {
+	bgm->Stop();
+	bgm.reset();
 	seBomb.reset();
 	sePlayerShot.reset();
 	return true;

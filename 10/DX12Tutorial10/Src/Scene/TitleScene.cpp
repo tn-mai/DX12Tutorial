@@ -78,8 +78,6 @@ bool TitleScene::Load()
 	}
 
 	seStart = Audio::Engine::Get().Prepare(L"Res/SE/Start.wav");
-	bgm = Audio::Engine::Get().PrepareStream(L"Res/SE/bgm.xwm");
-	bgm->Play(Audio::Flag_Loop);
 
 	time = 0.0f;
 	started = 0.0f;
@@ -92,8 +90,6 @@ bool TitleScene::Load()
 */
 bool TitleScene::Unload()
 {
-	bgm->Stop();
-	bgm.reset();
 	seStart.reset();
 	return true;
 }
