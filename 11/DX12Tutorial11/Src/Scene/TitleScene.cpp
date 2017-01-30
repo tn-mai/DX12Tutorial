@@ -125,7 +125,7 @@ int TitleScene::Update(double delta)
 		}
 	} else {
 		const GamePad gamepad = GetGamePad(GamePadId_1P);
-		if (gamepad.trigger & (GamePad::A | GamePad::B | GamePad::START)) {
+		if (gamepad.buttonDown & (GamePad::A | GamePad::B | GamePad::START)) {
 			seStart->Play();
 			started = true;
 		}

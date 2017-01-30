@@ -102,7 +102,7 @@ int GameOverScene::Update(double delta)
 
 	if (time > 2) {
 		const GamePad gamepad = GetGamePad(GamePadId_1P);
-		if (gamepad.trigger & (GamePad::A | GamePad::B | GamePad::START)) {
+		if (gamepad.buttonDown & (GamePad::A | GamePad::B | GamePad::START)) {
 			return ExitCode_Exit;
 		}
 	}

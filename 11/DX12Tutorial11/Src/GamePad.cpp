@@ -4,7 +4,10 @@
 #include "GamePad.h"
 #include <Windows.h>
 #include <Xinput.h>
+#include <random>
 #include <vector>
+
+namespace /* unnamed */ {
 
 enum VibrationType
 {
@@ -55,11 +58,86 @@ static const VibrationEvent vib01[] = {
 static VibrationState vibrationState[countof_GamePadId];
 static std::vector<VibrationSequence> vibrationList;
 
+struct ConversionData
+{
+	uint32_t di;
+	uint32_t gp;
+};
+
+const ConversionData convMap[] = {
+	{ XINPUT_GAMEPAD_DPAD_UP, GamePad::DPAD_UP },
+	{ XINPUT_GAMEPAD_DPAD_DOWN, GamePad::DPAD_DOWN },
+	{ XINPUT_GAMEPAD_DPAD_LEFT, GamePad::DPAD_LEFT },
+	{ XINPUT_GAMEPAD_DPAD_RIGHT, GamePad::DPAD_RIGHT },
+	{ XINPUT_GAMEPAD_START, GamePad::START },
+	{ XINPUT_GAMEPAD_A, GamePad::A },
+	{ XINPUT_GAMEPAD_B, GamePad::B },
+	{ XINPUT_GAMEPAD_X, GamePad::X },
+	{ XINPUT_GAMEPAD_Y, GamePad::Y },
+	{ XINPUT_GAMEPAD_LEFT_SHOULDER, GamePad::L },
+	{ XINPUT_GAMEPAD_RIGHT_SHOULDER, GamePad::R },
+};
+
+const float minInterval = 3.0f; ///< 最小待ち時間. 
+const float maxInterval = 5.0f; ///< 最大待ち時間.
+
+std::mt19937 random;
+
+/**
+* XBOX360コントローラーの状態をGamePad構造体に反映する.
+*
+* @param id    コントローラーID.
+* @param delta 前回の呼び出しからの経過時間.
+*/
+void ApplyControllerState(uint32_t id, float delta)
+{
+	GamePad& gamepad = GetGamePad(id);
+	if (gamepad.connectionCheckInterval > 0.0f) {
+		gamepad.connectionCheckInterval -= delta;
+		return;
+	}
+	gamepad.connectionCheckInterval = 0;
+
+	XINPUT_STATE state;
+	if (XInputGetState(id, &state) != ERROR_SUCCESS) {
+		if (gamepad.buttons & GamePad::CONNECTED) {
+			OutputDebugStringA("DISCONNECTED\n");
+		}
+		const std::uniform_real_distribution<float> intervalRange(minInterval, maxInterval);
+		gamepad.connectionCheckInterval = intervalRange(random);
+		gamepad.buttons &= ~GamePad::CONNECTED;
+		return;
+	}
+
+	if (!(gamepad.buttons & GamePad::CONNECTED)) {
+		OutputDebugStringA("CONNECTED\n");
+	}
+	gamepad.buttons = GamePad::CONNECTED;
+	for (auto e : convMap) {
+		if (state.Gamepad.wButtons & e.di) {
+			gamepad.buttons |= e.gp;
+		}
+	}
+	if (state.Gamepad.sThumbLX < -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
+		gamepad.buttons |= GamePad::DPAD_LEFT;
+	} else if (state.Gamepad.sThumbLX > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
+		gamepad.buttons |= GamePad::DPAD_RIGHT;
+	}
+	if (state.Gamepad.sThumbLY < -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
+		gamepad.buttons |= GamePad::DPAD_DOWN;
+	} else if (state.Gamepad.sThumbLY > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
+		gamepad.buttons |= GamePad::DPAD_UP;
+	}
+}
+
+} // unnamed namespace
+  
 /**
 * ゲームパッドの初期化.
 */
 void InitGamePad()
 {
+	random.seed(std::random_device()());
 	for (auto& e : vibrationState) {
 		e = {};
 		e.sequenceNo = -1;
@@ -114,47 +192,15 @@ GamePad& GetGamePad(uint32_t id) {
 
 /**
 * ゲームパッドの状態を更新する.
+*
+* @param delta 前回の呼び出しからの経過時間.
 */
-void UpdateGamePad(double delta)
+void UpdateGamePad(float delta)
 {
-	static const struct { uint32_t di; uint32_t gp; } convMap[] = {
-		{ XINPUT_GAMEPAD_DPAD_UP, GamePad::DPAD_UP },
-		{ XINPUT_GAMEPAD_DPAD_DOWN, GamePad::DPAD_DOWN },
-		{ XINPUT_GAMEPAD_DPAD_LEFT, GamePad::DPAD_LEFT },
-		{ XINPUT_GAMEPAD_DPAD_RIGHT, GamePad::DPAD_RIGHT },
-		{ XINPUT_GAMEPAD_START, GamePad::START },
-		{ XINPUT_GAMEPAD_A, GamePad::A },
-		{ XINPUT_GAMEPAD_B, GamePad::B },
-		{ XINPUT_GAMEPAD_X, GamePad::X },
-		{ XINPUT_GAMEPAD_Y, GamePad::Y },
-		{ XINPUT_GAMEPAD_LEFT_SHOULDER, GamePad::L },
-		{ XINPUT_GAMEPAD_RIGHT_SHOULDER, GamePad::R },
-	};
-
 	for (uint32_t id = 0; id < countof_GamePadId; ++id) {
+		ApplyControllerState(id, delta);
 		GamePad& gamepad = GetGamePad(id);
-		XINPUT_STATE state;
-		if (XInputGetState(id, &state) == ERROR_SUCCESS) {
-			gamepad.buttons = 0;
-			for (auto e : convMap) {
-				if (state.Gamepad.wButtons & e.di) {
-					gamepad.buttons |= e.gp;
-				}
-			}
-			if (state.Gamepad.sThumbLX < -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
-				gamepad.buttons |= GamePad::DPAD_LEFT;
-			}
-			else if (state.Gamepad.sThumbLX > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
-				gamepad.buttons |= GamePad::DPAD_RIGHT;
-			}
-			if (state.Gamepad.sThumbLY < -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
-				gamepad.buttons |= GamePad::DPAD_DOWN;
-			}
-			else if (state.Gamepad.sThumbLY > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
-				gamepad.buttons |= GamePad::DPAD_UP;
-			}
-		}
-		gamepad.trigger = ~gamepad.prevButtons & (gamepad.prevButtons ^ gamepad.buttons);
+		gamepad.buttonDown = ~gamepad.prevButtons & gamepad.buttons;
 		gamepad.prevButtons = gamepad.buttons;
 
 		VibrationState& vibState = vibrationState[id];

@@ -264,7 +264,7 @@ bool Render()
 */
 void Update(double delta)
 {
-	UpdateGamePad(delta);
+	UpdateGamePad(static_cast<float>(delta));
 	GamePad& gamepad = GetGamePad(GamePadId_1P);
 
 	Graphics::Graphics& graphics = Graphics::Graphics::Get();

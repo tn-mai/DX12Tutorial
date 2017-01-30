@@ -497,7 +497,7 @@ int MainGameScene::Update(double delta)
 	if (sprPlayer[0].animeController.GetSeqIndex() == PlayerAnmId_Destroyed && sprPlayer[0].animeController.IsFinished()) {
 		return ExitCode_GameOver;
 	}
-	if (gamepad.trigger & GamePad::START) {
+	if (gamepad.buttonDown & GamePad::START) {
 		return ExitCode_Pause;
 	}
 	return ExitCode_Continue;

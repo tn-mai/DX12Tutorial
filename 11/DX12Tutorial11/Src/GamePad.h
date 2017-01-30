@@ -22,10 +22,12 @@ struct GamePad
 		Y = 0x0100,
 		L = 0x0200,
 		R = 0x0400,
+		CONNECTED = 0x80000000,
 	};
 	uint32_t buttons;
+	uint32_t buttonDown;
 	uint32_t prevButtons;
-	uint32_t trigger;
+	float connectionCheckInterval;
 };
 
 enum GamePadId
@@ -37,7 +39,7 @@ enum GamePadId
 
 GamePad& GetGamePad(uint32_t id);
 void InitGamePad();
-void UpdateGamePad(double delta);
+void UpdateGamePad(float delta);
 void VibrateGamePad(uint32_t id, uint32_t seqNo);
 
 #endif // DX12TUTORIAL_SRC_GAMEPAD_H_

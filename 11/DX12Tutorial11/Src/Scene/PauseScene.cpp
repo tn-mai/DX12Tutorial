@@ -92,7 +92,7 @@ int PauseScene::Update(double delta)
 	}
 
 	const GamePad gamepad = GetGamePad(GamePadId_1P);
-	if (gamepad.trigger & GamePad::START) {
+	if (gamepad.buttonDown & GamePad::START) {
 		return ExitCode_Exit;
 	}
 	return ExitCode_Continue;
