@@ -172,15 +172,21 @@ void VibrateGamePad(uint32_t id, uint32_t seqNo)
 }
 
 /**
+* 振動状態を更新.
 *
+* @param unit 更新する振動ユニット.
+* @param delta 前回の呼び出しからの経過時間.
+*
+* @return 振動パラメータ.
 */
-WORD GetVibration(const VibrationUnit& unit)
+WORD UpdateVibration(VibrationUnit& unit, float delta)
 {
 	float ratio = 1.0f;
-	if (unit.currentTime < unit.gateTime) {
+	if (unit.currentTime + delta < unit.gateTime) {
+		unit.currentTime += delta;
 		ratio = unit.currentTime / unit.gateTime;
 	}
-	return static_cast<WORD>(unit.startVelocity + (unit.targetVelocity - unit.startVelocity) * ratio * 65535.0f);
+	return static_cast<WORD>((unit.startVelocity + (unit.targetVelocity - unit.startVelocity) * ratio) * 65535.0f);
 }
 
 /**
@@ -236,8 +242,8 @@ void UpdateGamePad(float delta)
 			}
 
 			XINPUT_VIBRATION vib = {
-				GetVibration(vibState.unit[VibrationType_High]),
-				GetVibration(vibState.unit[VibrationType_Low])
+				UpdateVibration(vibState.unit[VibrationType_High], delta),
+				UpdateVibration(vibState.unit[VibrationType_Low], delta)
 			};
 			XInputSetState(id, &vib);
 		}
