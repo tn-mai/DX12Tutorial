@@ -55,6 +55,16 @@ static const VibrationEvent vib01[] = {
 	{ 0.1f, VibrationType_Low, 0.1f, 0.0f },
 };
 
+static const VibrationEvent vib02[] = {
+	{ 0.0f, VibrationType_Low, 0.5f, 1.0f },
+	{ 0.5f, VibrationType_Low, 1.0f, 0.0f },
+};
+
+static const VibrationEvent vib03[] = {
+	{ 0.0f, VibrationType_High, 0.5f, 1.0f },
+	{ 0.5f, VibrationType_High, 1.0f, 0.0f },
+};
+
 static VibrationState vibrationState[countof_GamePadId];
 static std::vector<VibrationSequence> vibrationList;
 
@@ -142,9 +152,11 @@ void InitGamePad()
 		e = {};
 		e.sequenceNo = -1;
 	}
-	vibrationList.resize(2);
+	vibrationList.resize(4);
 	vibrationList[0].assign(vib00, vib00 + _countof(vib00));
 	vibrationList[1].assign(vib01, vib01 + _countof(vib01));
+	vibrationList[2].assign(vib02, vib02 + _countof(vib02));
+	vibrationList[3].assign(vib03, vib03 + _countof(vib03));
 }
 
 /**

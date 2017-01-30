@@ -127,7 +127,14 @@ int TitleScene::Update(double delta)
 		const GamePad gamepad = GetGamePad(GamePadId_1P);
 		if (gamepad.buttonDown & (GamePad::A | GamePad::B | GamePad::START)) {
 			seStart->Play();
+			VibrateGamePad(GamePadId_1P, 2);
 			started = true;
+		}
+		if (gamepad.buttonDown & GamePad::X) {
+			VibrateGamePad(GamePadId_1P, 2);
+		}
+		if (gamepad.buttonDown & GamePad::Y) {
+			VibrateGamePad(GamePadId_1P, 3);
 		}
 	}
 	return ExitCode_Continue;
