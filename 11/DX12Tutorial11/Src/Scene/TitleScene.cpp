@@ -127,14 +127,23 @@ int TitleScene::Update(double delta)
 		const GamePad gamepad = GetGamePad(GamePadId_1P);
 		if (gamepad.buttonDown & (GamePad::A | GamePad::B | GamePad::START)) {
 			seStart->Play();
-			VibrateGamePad(GamePadId_1P, 2);
 			started = true;
 		}
+		static int vibSeqNo = 0;
 		if (gamepad.buttonDown & GamePad::X) {
-			VibrateGamePad(GamePadId_1P, 2);
+			VibrateGamePad(GamePadId_1P, vibSeqNo);
 		}
-		if (gamepad.buttonDown & GamePad::Y) {
-			VibrateGamePad(GamePadId_1P, 3);
+		if (gamepad.buttonDown & GamePad::L) {
+			++vibSeqNo;
+			if (vibSeqNo >= GetVibrationListSize()) {
+				vibSeqNo = 0;
+			}
+		}
+		if (gamepad.buttonDown & GamePad::R) {
+			if (vibSeqNo <= 0) {
+				vibSeqNo = GetVibrationListSize();
+			}
+			--vibSeqNo;
 		}
 	}
 	return ExitCode_Continue;

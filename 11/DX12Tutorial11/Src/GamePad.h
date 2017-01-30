@@ -41,5 +41,6 @@ GamePad& GetGamePad(uint32_t id);
 void InitGamePad();
 void UpdateGamePad(float delta);
 void VibrateGamePad(uint32_t id, uint32_t seqNo);
+size_t GetVibrationListSize();
 
 #endif // DX12TUTORIAL_SRC_GAMEPAD_H_
