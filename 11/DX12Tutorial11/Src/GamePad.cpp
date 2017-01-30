@@ -242,8 +242,8 @@ void UpdateGamePad(float delta)
 			}
 
 			XINPUT_VIBRATION vib = {
-				UpdateVibration(vibState.unit[VibrationType_High], delta),
-				UpdateVibration(vibState.unit[VibrationType_Low], delta)
+				UpdateVibration(vibState.unit[VibrationType_Low], delta),
+				UpdateVibration(vibState.unit[VibrationType_High], delta)
 			};
 			XInputSetState(id, &vib);
 		}
