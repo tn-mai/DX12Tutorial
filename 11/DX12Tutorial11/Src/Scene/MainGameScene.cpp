@@ -59,16 +59,45 @@ const MainGameScene::FormationData formationC[] = {
 	{ 0, 0.25f * 4,{ 0, 0 } }
 };
 
+const MainGameScene::FormationData formationD[] = {
+	{ 1, 0.25f * 0,{ 0, 0 } },
+	{ 1, 0.25f * 1,{ 0, 0 } },
+	{ 1, 0.25f * 2,{ 0, 0 } },
+	{ 1, 0.25f * 3,{ 0, 0 } },
+	{ 1, 0.25f * 4,{ 0, 0 } }
+};
+
+const MainGameScene::FormationData formationE[] = {
+	{ 5, 0.25f * 0,{ -81, 0 } },
+	{ 5, 0.25f * 1,{  79, 0 } },
+	{ 5, 0.25f * 2,{  20, 0 } },
+	{ 5, 0.25f * 3,{ -10, 0 } },
+	{ 5, 0.25f * 4,{  40, 0 } }
+};
+
 #define OCC_I(t, x, y, z, form) { t, {x, y, z}, form, form + _countof(form) }
 #define OCC(t, x, y, z, form) OCC_I(t, x, y, z, formation##form)
+#define OCC_END(t) { t, {}, nullptr, nullptr }
 
 const MainGameScene::Occurrence occurrenceList[] = {
 	OCC( 5, 600, 0, 0.5f, A),
 	OCC(10, 200, 0, 0.5f, B),
-	OCC(15, 300, 0, 0.5f, C),
+	OCC(15, 300, 0, 0.5f, D),
 	OCC(20, 600, 0, 0.5f, C),
 	OCC(30, 600, 0, 0.5f, A),
 	OCC(30, 200, 0, 0.5f, B),
+	OCC(33, 200, 0, 0.5f, D),
+	OCC(34, 300, 0, 0.5f, D),
+	OCC(35, 400, 0, 0.5f, D),
+	OCC(36.5f, 300, 0, 0.5f, E),
+	OCC(38, 500, 0, 0.5f, C),
+	OCC(39, 600, 0, 0.5f, C),
+	OCC(40, 700, 0, 0.5f, C),
+	OCC(41.5f, 600, 0, 0.5f, E),
+	OCC(42.0f, 400, 0, 0.5f, E),
+	OCC(45.0f, 300, 0, 0.5f, E),
+	OCC(45.5f, 500, 0, 0.5f, E),
+	OCC_END(60),
 };
 
 // Õ“Ë”»’èƒf[ƒ^
@@ -505,7 +534,7 @@ int MainGameScene::Update(double delta)
 
 	const GamePad gamepad = GetGamePad(GamePadId_1P);
 	static const uint32_t endingKey = GamePad::A | GamePad::START;
-	if (time > 45) {
+	if (pCurOccurrence == pEndOccurrence) {
 		return ExitCode_Ending;
 	}
 	if (sprPlayer[0].animeController.GetSeqIndex() == PlayerAnmId_Destroyed && sprPlayer[0].animeController.IsFinished()) {
