@@ -18,7 +18,7 @@ struct MainGameScene::FormationData {
 };
 
 struct MainGameScene::Occurrence {
-	uint32_t time;
+	float time;
 	XMFLOAT3 pos;
 	const FormationData* begin;
 	const FormationData* end;
