@@ -366,6 +366,39 @@ void MainGameScene::UpdatePlayer(double delta)
 }
 
 /**
+* ìGíeê∂ê¨äÌ.
+*/
+class EnemyShotGenerator
+{
+public:
+	EnemyShotGenerator() = default;
+	EnemyShotGenerator(const Sprite::Sprite& p, std::vector<Sprite::Sprite*>& fl) : player(p), freeList(fl), isActed(false) {}
+	void operator()(float delta, Sprite::Sprite* spr, float s, float r) {
+		if (isActed || freeList.empty()) {
+			return;
+		}
+		Sprite::Sprite* pSprite = freeList.back();
+		freeList.pop_back();
+		pSprite->pos = spr->pos;
+		XMVECTORF32 vec, angle;
+		vec.v = XMVector2Normalize(XMVectorSubtract(XMLoadFloat3(&player.pos), XMLoadFloat3(&spr->pos)));
+		angle.v = XMVectorACos(XMVectorSwizzle<1, 1, 1, 1>(vec));
+		pSprite->rotation = vec.f[0] < 0.0f ? angle.f[0] : -angle.f[0];
+		vec.v = XMVectorMultiply(vec, XMVectorSwizzle<0, 0, 0, 0>(XMLoadFloat(&s)));
+		XMFLOAT2 move;
+		XMStoreFloat2(&move, vec);
+		pSprite->actController.SetManualMove(move);
+		pSprite->SetSeqIndex(EnemyAnmId_Shot00);
+		pSprite->SetCollisionId(CSID_EnemyShot_Normal);
+		isActed = true;
+	}
+private:
+	const Sprite::Sprite& player;
+	std::vector<Sprite::Sprite*>& freeList;
+	bool isActed;
+};
+
+/**
 * ìGÇÃê∂ê¨.
 */
 void MainGameScene::GenerateEnemy(double delta)
@@ -392,6 +425,7 @@ void MainGameScene::GenerateEnemy(double delta)
 			pSprite->SetActionList(actionFile->Get(0));
 			pSprite->SetAction(itr->cur->actionId);
 			pSprite->SetCollisionId(CSID_Enemy00);
+			pSprite->actController.SetGenerator(EnemyShotGenerator(sprPlayer[0], freeEnemyShotList));
 			XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&itr->pos), XMLoadFloat2(&itr->cur->offset)));
 			++itr->cur;
 		}

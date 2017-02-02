@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <vector>
 #include <memory>
+#include <functional>
 
 namespace Sprite {
 struct Sprite;
@@ -20,6 +21,11 @@ namespace Action {
 struct List;
 enum class Type;
 enum InterporationType;
+
+/**
+* オブジェクト生成関数型.
+*/
+typedef std::function<void(float, Sprite::Sprite*, float, float)> GeneratorType;
 
 /**
 * パス生成のためのコントロールポイント型.
@@ -39,9 +45,11 @@ public:
 	Controller();
 	Controller(const List* l, uint32_t no = 0);
 	void SetList(const List*, uint32_t no = 0);
+	void SetGenerator(GeneratorType gen) { generator = gen; }
 	void Update(float delta, Sprite::Sprite*);
 	void SetSeqIndex(uint32_t no);
 	void SetManualMove(float degree, float speed);
+	void SetManualMove(const DirectX::XMFLOAT2& m) { move = m; }
 	void SetManualAccel(float degree, float accel);
 	void SetTime(float time);
 	float GetCurrentTime() const { return currentTime; }
@@ -50,7 +58,7 @@ public:
 	bool IsDeletable() const;
 
 private:
-	void Init();
+	void Init(Sprite::Sprite* = nullptr);
 	void UpdateSub(float delta, Sprite::Sprite*);
 
 private:
@@ -68,6 +76,9 @@ private:
 		std::vector<Point> cp;
 		InterporationType type;
 	} path;
+
+	bool isGeneratorActive;
+	GeneratorType generator;
 };
 
 /**

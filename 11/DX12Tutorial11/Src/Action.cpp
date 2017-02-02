@@ -80,7 +80,9 @@ enum ControlPointId
 
 enum GenParamId
 {
-	GenParamId_GeneratorId,
+	GenParamId_Speed,
+	GenParamId_DirectionDegree,
+	GenParamId_Option,
 };
 
 enum AnimeParamId
@@ -263,6 +265,7 @@ void Controller::SetList(const List* p, uint32_t no)
 	dataIndex = 0;
 	currentTime = 0;
 	totalTime = 0;
+	isGeneratorActive = false;
 	type = Type::ManualControl;
 	move = XMFLOAT2(0, 0);
 	accel = XMFLOAT2(0, 0);
@@ -276,7 +279,7 @@ void Controller::SetList(const List* p, uint32_t no)
 /**
 * アクションの現在の状態でコントローラを更新する.
 */
-void Controller::Init()
+void Controller::Init(Sprite::Sprite* pSprite)
 {
 	if (!list || seqIndex >= list->list.size() || type == Type::Vanishing) {
 		return;
@@ -336,6 +339,10 @@ void Controller::Init()
 		case Type::Animation:
 			break;
 		case Type::Generation:
+			if (generator) {
+				isGeneratorActive = true;
+				generator(0.0f, pSprite, data.param[GenParamId_Speed], data.param[GenParamId_DirectionDegree]);
+			}
 			break;
 		}
 	}
@@ -390,6 +397,9 @@ void Controller::UpdateSub(float delta, Sprite::Sprite* pSprite)
 */
 void Controller::Update(float delta, Sprite::Sprite* pSprite)
 {
+	if (type != Type::Vanishing && isGeneratorActive && generator) {
+		generator(delta, pSprite, 0, 0);
+	}
 	if (type == Type::ManualControl) {
 		const XMVECTOR d = XMVectorSwizzle(XMLoadFloat(&delta), 0, 0, 1, 1);
 		XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&pSprite->pos), XMVectorMultiply(d, XMLoadFloat2(&move))));
@@ -412,7 +422,7 @@ void Controller::Update(float delta, Sprite::Sprite* pSprite)
 		if (dataIndex >= list->list[seqIndex].size()) {
 			return;
 		}
-		Init();
+		Init(pSprite);
 		UpdateSub(std::min(std::max(0.0f, totalTime - currentTime), delta), pSprite);
 	}
 }
@@ -600,6 +610,7 @@ FilePtr LoadFromJsonFile(const wchar_t* filename)
 					{ "Move", Type::Move },
 					{ "Accel", Type::Accel },
 					{ "Wait", Type::Wait },
+					{ "Generate", Type::Generation },
 					{ "Delete", Type::Vanishing },
 				};
 				const auto itrTypePair = std::find(typeMap, typeMap + _countof(typeMap), data.object.find("type")->second.string);
