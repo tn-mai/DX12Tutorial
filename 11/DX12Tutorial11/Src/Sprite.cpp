@@ -42,27 +42,29 @@ XMFLOAT3 RotateZ(XMVECTOR c, float x, float y, float r)
 * @param v      頂点データを描き込むアドレス.
 * @param offset スクリーン左上座標.
 */
-void AddVertex(const Sprite& sprite, const Cell* cell, Vertex* v, XMFLOAT2 offset)
+void AddVertex(const Sprite& sprite, const Cell* cell, const AnimationData& anm, Vertex* v, XMFLOAT2 offset)
 {
 	const XMVECTORF32 center{ offset.x + sprite.pos.x, offset.y - sprite.pos.y, sprite.pos.z, 0.0f };
-	const XMFLOAT2 halfSize{ cell->ssize.x * 0.5f * sprite.scale.x, cell->ssize.y * 0.5f * sprite.scale.y };
+	const XMFLOAT2 halfSize{ cell->ssize.x * 0.5f * sprite.scale.x * anm.scale.x, cell->ssize.y * 0.5f * sprite.scale.y * anm.scale.y };
 
+	const XMVECTOR vcolor = XMVectorMultiply(XMLoadFloat4(&sprite.color), XMLoadFloat4(&anm.color));
 	for (int i = 0; i < 4; ++i) {
-		v[i].color = sprite.color;
+		XMStoreFloat4(&v[i].color, vcolor);
 	}
-	v[0].position = RotateZ(center, -halfSize.x, halfSize.y, sprite.rotation);
+	const float rot = sprite.rotation + anm.rotation;
+	v[0].position = RotateZ(center, -halfSize.x, halfSize.y, rot);
 	v[0].texcoord.x = cell->uv.x;
 	v[0].texcoord.y = cell->uv.y;
 
-	v[1].position = RotateZ(center, halfSize.x, halfSize.y, sprite.rotation);
+	v[1].position = RotateZ(center, halfSize.x, halfSize.y, rot);
 	v[1].texcoord.x = cell->uv.x + cell->tsize.x;
 	v[1].texcoord.y = cell->uv.y;
 
-	v[2].position = RotateZ(center, halfSize.x, -halfSize.y, sprite.rotation);
+	v[2].position = RotateZ(center, halfSize.x, -halfSize.y, rot);
 	v[2].texcoord.x = cell->uv.x + cell->tsize.x;
 	v[2].texcoord.y = cell->uv.y + cell->tsize.y;
 
-	v[3].position = RotateZ(center, -halfSize.x, -halfSize.y, sprite.rotation);
+	v[3].position = RotateZ(center, -halfSize.x, -halfSize.y, rot);
 	v[3].texcoord.x = cell->uv.x;
 	v[3].texcoord.y = cell->uv.y + cell->tsize.y;
 }
@@ -265,7 +267,7 @@ bool Renderer::Draw(const Sprite* first, const Sprite* last, const Cell* cellLis
 			continue;
 		}
 		const Cell* cell = cellList + sprite->GetCellIndex();
-		AddVertex(*sprite, cell, v, offset);
+		AddVertex(*sprite, cell, sprite->animeController.GetData(), v, offset);
 		++numSprite;
 		if (numSprite >= remainingSprite) {
 			break;
