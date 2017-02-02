@@ -231,9 +231,11 @@ bool MainGameScene::Load()
 
 	sprEnemy.resize(enemySpriteCount, Sprite::Sprite(anmObjects[0], XMFLOAT3(0, -100, 0.5f)));
 	for (int i = 0; i < enemyCount; ++i) {
+		sprEnemy[EID_Enemy + i].SetCollisionId(CSID_None);
 		freeEnemyList.push_back(&sprEnemy[EID_Enemy + i]);
 	}
 	for (int i = 0; i < enemyShotCount; ++i) {
+		sprEnemy[EID_EnemyShot + i].SetCollisionId(CSID_None);
 		freeEnemyShotList.push_back(&sprEnemy[EID_EnemyShot + i]);
 	}
 
@@ -377,17 +379,29 @@ void MainGameScene::UpdateEnemy(double delta)
 		sprite.Update(delta);
 	}
 	for (size_t i = EID_Enemy; i < EID_Enemy + enemyCount; ++i) {
-		if (sprEnemy[i].actController.IsDeletable()) {
-			sprEnemy[i].SetActionList(nullptr);
-			sprEnemy[i].pos.y = -100;
-			freeEnemyList.push_back(&sprEnemy[i]);
+		Sprite::Sprite& p = sprEnemy[i];
+		if (p.GetCollisionId() == CSID_None) {
+			continue;
+		}
+		if (p.actController.IsDeletable()) {
+			p.SetActionList(nullptr);
+			p.SetCollisionId(CSID_None);
+			p.pos.y = -100;
+			freeEnemyList.push_back(&p);
 		}
 	}
 	for (size_t i = EID_EnemyShot; i < EID_EnemyShot + enemyShotCount; ++i) {
-		if (sprEnemy[i].actController.IsDeletable()) {
-			sprEnemy[i].SetActionList(nullptr);
-			sprEnemy[i].pos.y = -100;
-			freeEnemyShotList.push_back(&sprEnemy[i]);
+		Sprite::Sprite& p = sprEnemy[i];
+		if (p.GetCollisionId() == CSID_None) {
+			continue;
+		}
+		if (p.actController.IsDeletable() ||
+			p.pos.x < -32 || p.pos.x >= 832 ||
+			p.pos.y < -32 || p.pos.y >= 632) {
+			p.SetActionList(nullptr);
+			p.SetCollisionId(CSID_None);
+			p.pos.y = -100;
+			freeEnemyShotList.push_back(&p);
 		}
 	}
 }
