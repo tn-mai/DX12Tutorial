@@ -305,7 +305,7 @@ void MainGameScene::UpdatePlayer(double delta)
 					Sprite::Sprite* pSprite = freePlayerShotList.back();
 					freePlayerShotList.pop_back();
 					XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&sprPlayer[0].pos), offset[playerShotCycle]));
-					pSprite->actController.SetManualMove(90, 32);
+					pSprite->actController.SetManualMove(90, 960);
 					pSprite->SetSeqIndex(PlayerAnmId_NormalShot);
 					pSprite->SetCollisionId(CSID_PlayerShot_Normal);
 					playerShotCycle = (playerShotCycle + 1) % _countof(offset);

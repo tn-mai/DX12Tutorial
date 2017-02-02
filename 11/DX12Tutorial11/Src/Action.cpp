@@ -391,8 +391,9 @@ void Controller::UpdateSub(float delta, Sprite::Sprite* pSprite)
 void Controller::Update(float delta, Sprite::Sprite* pSprite)
 {
 	if (type == Type::ManualControl) {
-		XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&pSprite->pos), XMLoadFloat2(&move)));
-		XMStoreFloat2(&move, XMVectorAdd(XMLoadFloat2(&move), XMLoadFloat2(&accel)));
+		const XMVECTOR d = XMVectorSwizzle(XMLoadFloat(&delta), 0, 0, 1, 1);
+		XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&pSprite->pos), XMVectorMultiply(d, XMLoadFloat2(&move))));
+		XMStoreFloat2(&move, XMVectorAdd(XMLoadFloat2(&move), XMVectorMultiply(d, XMLoadFloat2(&accel))));
 		if (currentTime < totalTime) {
 			currentTime += delta;
 		}
