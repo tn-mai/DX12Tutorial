@@ -110,13 +110,13 @@ int TitleScene::Update(double delta)
 	}
 
 	for (Sprite::Sprite& sprite : sprBackground) {
-		sprite.animeController.Update(delta);
+		sprite.Update(delta);
 	}
 	for (Sprite::Sprite& sprite : sprLogo) {
-		sprite.animeController.Update(delta);
+		sprite.Update(delta);
 	}
 	for (Sprite::Sprite& sprite : sprFont) {
-		sprite.animeController.Update(delta);
+		sprite.Update(delta);
 	}
 
 	if (started) {
@@ -129,7 +129,7 @@ int TitleScene::Update(double delta)
 			seStart->Play();
 			started = true;
 		}
-		static int vibSeqNo = 0;
+		static uint32_t vibSeqNo = 0;
 		if (gamepad.buttonDown & GamePad::X) {
 			VibrateGamePad(GamePadId_1P, vibSeqNo);
 		}
