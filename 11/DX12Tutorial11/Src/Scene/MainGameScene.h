@@ -67,9 +67,11 @@ private:
 	std::vector<Sprite::Sprite*> freeEnemyList;
 	std::vector<Sprite::Sprite*> freeEnemyShotList;
 	double time;
+	double clearTime;
 	uint32_t score;
 
 	Audio::SoundPtr seBomb;
+	Audio::SoundPtr seHit;
 	Audio::SoundPtr sePlayerShot;
 	Audio::SoundPtr bgm;
 

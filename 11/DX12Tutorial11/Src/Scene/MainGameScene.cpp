@@ -11,7 +11,17 @@
 
 using namespace DirectX;
 
+enum EnemyType
+{
+	EnemyType_None = -1,
+	EnemyType_Winp,
+	EnemyType_3Way,
+	EnemyType_Middle,
+	EnemyType_Boss1st,
+};
+
 struct MainGameScene::FormationData {
+	EnemyType type;
 	uint32_t actionId;
 	float interval;
 	XMFLOAT2 offset;
@@ -36,43 +46,63 @@ const Sprite::Cell cellList[] = {
 };
 
 const MainGameScene::FormationData formationA[] = {
-	{ 2, 0.25f * 0, { 0, 0 } },
-	{ 2, 0.25f * 1, { 0, 0 } },
-	{ 2, 0.25f * 2, { 0, 0 } },
-	{ 2, 0.25f * 3, { 0, 0 } },
-	{ 2, 0.25f * 4, { 0, 0 } }
+	{ EnemyType_Winp, 2, 0.25f * 0, { 0, 0 } },
+	{ EnemyType_Winp, 2, 0.25f * 1, { 0, 0 } },
+	{ EnemyType_Winp, 2, 0.25f * 2, { 0, 0 } },
+	{ EnemyType_Winp, 2, 0.25f * 3, { 0, 0 } },
+	{ EnemyType_Winp, 2, 0.25f * 4, { 0, 0 } }
 };
 
 const MainGameScene::FormationData formationB[] = {
-	{ 3, 0.25f * 0,{ 0, 0 } },
-	{ 3, 0.25f * 1,{ 0, 0 } },
-	{ 3, 0.25f * 2,{ 0, 0 } },
-	{ 3, 0.25f * 3,{ 0, 0 } },
-	{ 3, 0.25f * 4,{ 0, 0 } }
+	{ EnemyType_Winp, 3, 0.25f * 0,{ 0, 0 } },
+	{ EnemyType_Winp, 3, 0.25f * 1,{ 0, 0 } },
+	{ EnemyType_Winp, 3, 0.25f * 2,{ 0, 0 } },
+	{ EnemyType_Winp, 3, 0.25f * 3,{ 0, 0 } },
+	{ EnemyType_Winp, 3, 0.25f * 4,{ 0, 0 } }
 };
 
 const MainGameScene::FormationData formationC[] = {
-	{ 0, 0.25f * 0,{ 0, 0 } },
-	{ 0, 0.25f * 1,{ 0, 0 } },
-	{ 0, 0.25f * 2,{ 0, 0 } },
-	{ 0, 0.25f * 3,{ 0, 0 } },
-	{ 0, 0.25f * 4,{ 0, 0 } }
+	{ EnemyType_Winp, 0, 0.25f * 0,{ 0, 0 } },
+	{ EnemyType_Winp, 0, 0.25f * 1,{ 0, 0 } },
+	{ EnemyType_Winp, 0, 0.25f * 2,{ 0, 0 } },
+	{ EnemyType_Winp, 0, 0.25f * 3,{ 0, 0 } },
+	{ EnemyType_Winp, 0, 0.25f * 4,{ 0, 0 } }
 };
 
 const MainGameScene::FormationData formationD[] = {
-	{ 1, 0.25f * 0,{ 0, 0 } },
-	{ 1, 0.25f * 1,{ 0, 0 } },
-	{ 1, 0.25f * 2,{ 0, 0 } },
-	{ 1, 0.25f * 3,{ 0, 0 } },
-	{ 1, 0.25f * 4,{ 0, 0 } }
+	{ EnemyType_Winp, 1, 0.25f * 0,{ 0, 0 } },
+	{ EnemyType_Winp, 1, 0.25f * 1,{ 0, 0 } },
+	{ EnemyType_Winp, 1, 0.25f * 2,{ 0, 0 } },
+	{ EnemyType_Winp, 1, 0.25f * 3,{ 0, 0 } },
+	{ EnemyType_Winp, 1, 0.25f * 4,{ 0, 0 } }
 };
 
 const MainGameScene::FormationData formationE[] = {
-	{ 5, 0.25f * 0,{ -81, 0 } },
-	{ 5, 0.25f * 1,{  79, 0 } },
-	{ 5, 0.25f * 2,{  20, 0 } },
-	{ 5, 0.25f * 3,{ -10, 0 } },
-	{ 5, 0.25f * 4,{  40, 0 } }
+	{ EnemyType_Winp, 5, 0.25f * 0,{ -81, 0 } },
+	{ EnemyType_Winp, 5, 0.25f * 1,{ 79, 0 } },
+	{ EnemyType_Winp, 5, 0.25f * 2,{ 20, 0 } },
+	{ EnemyType_Winp, 5, 0.25f * 3,{ -10, 0 } },
+	{ EnemyType_Winp, 5, 0.25f * 4,{  40, 0 } }
+};
+
+const MainGameScene::FormationData formation3Way[] = {
+	{ EnemyType_3Way, 0, 0,{ 0, 0 } },
+};
+
+const MainGameScene::FormationData formationMiddleL[] = {
+	{ EnemyType_Middle, 0, 0,{ 0, 0 } },
+};
+
+const MainGameScene::FormationData formationMiddleR[] = {
+	{ EnemyType_Middle, 1, 0,{ 0, 0 } },
+};
+
+const MainGameScene::FormationData formationMiddle2[] = {
+	{ EnemyType_Middle, 3, 0,{ 0, 0 } },
+};
+
+const MainGameScene::FormationData formationBoss1st[] = {
+	{ EnemyType_Boss1st, 0, 0,{ 0, -32 } },
 };
 
 #define OCC_I(t, x, y, z, form) { t, {x, y, z}, form, form + _countof(form) }
@@ -80,10 +110,18 @@ const MainGameScene::FormationData formationE[] = {
 #define OCC_END(t) { t, {}, nullptr, nullptr }
 
 const MainGameScene::Occurrence occurrenceList[] = {
+#if 0
+	OCC( 5, 400, 0, 0.5f, Boss1st),
+#elif 0
+	OCC( 5, 400, 0, 0.5f, Middle2),
+#else
 	OCC( 5, 600, 0, 0.5f, A),
 	OCC(10, 200, 0, 0.5f, B),
 	OCC(15, 300, 0, 0.5f, D),
 	OCC(20, 600, 0, 0.5f, C),
+	OCC(24, 250, 0, 0.5f, 3Way),
+	OCC(25, 550, 0, 0.5f, 3Way),
+	OCC(26, 400, 0, 0.5f, 3Way),
 	OCC(30, 600, 0, 0.5f, A),
 	OCC(30, 200, 0, 0.5f, B),
 	OCC(33, 200, 0, 0.5f, D),
@@ -97,7 +135,29 @@ const MainGameScene::Occurrence occurrenceList[] = {
 	OCC(42.0f, 400, 0, 0.5f, E),
 	OCC(45.0f, 300, 0, 0.5f, E),
 	OCC(45.5f, 500, 0, 0.5f, E),
-	OCC_END(60),
+	OCC(47, 250, 0, 0.5f, 3Way),
+	OCC(48, 550, 0, 0.5f, 3Way),
+	OCC(49, 400, 0, 0.5f, 3Way),
+	OCC(51, 400, 0, 0.5f, MiddleL),
+	OCC(53, 200, 0, 0.5f, 3Way),
+	OCC(54, 350, 0, 0.5f, 3Way),
+	OCC(55, 500, 0, 0.5f, 3Way),
+	OCC(57, 600, 0, 0.5f, 3Way),
+	OCC(58, 450, 0, 0.5f, 3Way),
+	OCC(59, 300, 0, 0.5f, 3Way),
+	OCC(63, 600, 0, 0.5f, C),
+	OCC(64, 300, 0, 0.5f, D),
+	OCC(67, 600, 0, 0.5f, MiddleR),
+	OCC(72, 200, 0, 0.5f, MiddleL),
+	OCC(77, 400, 0, 0.5f, MiddleR),
+	OCC(82, 600, 0, 0.5f, 3Way),
+	OCC(82, 300, 0, 0.5f, 3Way),
+	OCC(85, 450, 0, 0.5f, 3Way),
+	OCC(88, 600, 0, 0.5f, MiddleR),
+	OCC(88, 200, 0, 0.5f, MiddleL),
+	OCC(100, 400, 0, 0.5f, Boss1st),
+#endif
+	OCC_END(165),
 };
 
 // 衝突判定データ
@@ -108,15 +168,21 @@ enum CollisionShapeId
 	CSID_Player = 0,
 	CSID_PlayerShot_Normal,
 	CSID_Enemy00,
+	CSID_Enemy3Way,
+	CSID_EnemyMiddle,
+	CSID_EnemyBoss1st,
 	CSID_EnemyShot_Normal,
 	countof_CSID
 };
 
 const Collision::Shape colShapes[countof_CSID] = {
-	Collision::Shape::MakeRectangle(XMFLOAT2(-16, -16), XMFLOAT2(16, 16)),
-	Collision::Shape::MakeRectangle(XMFLOAT2(-16,-64), XMFLOAT2(16, 64)),
-	Collision::Shape::MakeRectangle(XMFLOAT2(-32, -32), XMFLOAT2(32, 32)),
-	Collision::Shape::MakeCircle(8),
+	Collision::Shape::MakeRectangle(XMFLOAT2(-16, -8), XMFLOAT2(16, 24)),
+	Collision::Shape::MakeRectangle(XMFLOAT2(-8,-32), XMFLOAT2(8, 32)),
+	Collision::Shape::MakeRectangle(XMFLOAT2(-24, -24), XMFLOAT2(24, 24)),
+	Collision::Shape::MakeRectangle(XMFLOAT2(-24, -24), XMFLOAT2(24, 32)),
+	Collision::Shape::MakeRectangle(XMFLOAT2(-48, -48), XMFLOAT2(48, 48)),
+	Collision::Shape::MakeRectangle(XMFLOAT2(-240, -64), XMFLOAT2(240, 96)),
+	Collision::Shape::MakeCircle(2),
 };
 
 enum class CollisionResult
@@ -130,20 +196,20 @@ typedef std::function<CollisionResult(Sprite::Sprite& lhs, Sprite::Sprite& rhs)>
 template<typename Iterator>
 void DetectCollision(Iterator first0, Iterator last0, Iterator first1, Iterator last1, CollisionSolver solver)
 {
-	for (; first0 != last0; ++first0) {
-		if (first0->GetCollisionId() < 0) {
+	for (Iterator itr0 = first0; itr0 != last0; ++itr0) {
+		if (itr0->GetCollisionId() < 0) {
 			continue;
 		}
-		const Collision::Shape& shapeL = colShapes[first0->GetCollisionId()];
-		const XMFLOAT2 posL(first0->pos.x, first0->pos.y);
-		for (; first1 != last1; ++first1) {
-			if (first1->GetCollisionId() < 0) {
+		const Collision::Shape& shapeL = colShapes[itr0->GetCollisionId()];
+		const XMFLOAT2 posL(itr0->pos.x, itr0->pos.y);
+		for (Iterator itr1 = first1; itr1 != last1; ++itr1) {
+			if (itr1->GetCollisionId() < 0) {
 				continue;
 			}
-			const Collision::Shape& shapeR = colShapes[first1->GetCollisionId()];
-			const XMFLOAT2 posR(first1->pos.x, first1->pos.y);
+			const Collision::Shape& shapeR = colShapes[itr1->GetCollisionId()];
+			const XMFLOAT2 posR(itr1->pos.x, itr1->pos.y);
 			if (Collision::IsCollision(shapeL, posL, shapeR, posR)) {
-				if (solver(*first0, *first1) == CollisionResult::FilterOut) {
+				if (solver(*itr0, *itr1) == CollisionResult::FilterOut) {
 					break;
 				}
 			}
@@ -175,6 +241,11 @@ enum EnemyAnmId
 	EnemyAnmId_Shot01,
 	EnemyAnmId_Shot02,
 	EnemyAnmId_Destroyed,
+	EnemyAnmId_3Way_FrontMove,
+	EnemyAnmId_3Way_BackMove,
+	EnemyAnmId_3Way_Attack,
+	EnemyAnmId_MiddleFighter,
+	EnemyAnmId_Boss1st,
 };
 
 enum PlayerAnmId
@@ -182,6 +253,15 @@ enum PlayerAnmId
 	PlayerAnmId_Ship,
 	PlayerAnmId_NormalShot,
 	PlayerAnmId_Destroyed,
+};
+
+// アクションリストID.
+enum EnemyActListId
+{
+	EnemyActListId_Winp,
+	EnemyActListId_3Way,
+	EnemyActListId_Middle,
+	EnemyActListId_Boss1st,
 };
 
 // アクションID.
@@ -245,6 +325,7 @@ bool MainGameScene::Load()
 
 	pCurOccurrence = occurrenceList;
 	pEndOccurrence = occurrenceList + _countof(occurrenceList);
+	clearTime = (pEndOccurrence - 1)->time;
 
 	sprBackground.push_back(Sprite::Sprite(anmOthers[0], XMFLOAT3(400, 300, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
@@ -281,8 +362,10 @@ bool MainGameScene::Load()
 
 	Audio::Engine& audio = Audio::Engine::Get();
 	seBomb = audio.Prepare(L"Res/SE/Bomb.wav");
+	seHit = audio.Prepare(L"Res/SE/Hit.wav");
 	sePlayerShot = audio.Prepare(L"Res/SE/PlayerShot.wav");
 	bgm = Audio::Engine::Get().PrepareStream(L"Res/SE/MainGame.xwm");
+	bgm->SetVolume(2.0f);
 	bgm->Play(Audio::Flag_Loop);
 
 	time = 0.0f;
@@ -298,6 +381,7 @@ bool MainGameScene::Unload()
 	bgm->Stop();
 	bgm.reset();
 	seBomb.reset();
+	seHit.reset();
 	sePlayerShot.reset();
 	return true;
 }
@@ -336,13 +420,13 @@ void MainGameScene::UpdatePlayer(double delta)
 					Sprite::Sprite* pSprite = freePlayerShotList.back();
 					freePlayerShotList.pop_back();
 					XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&sprPlayer[0].pos), offset[playerShotCycle]));
-					pSprite->actController.SetManualMove(90, 960);
+					pSprite->actController.SetManualMove(90, 32 * 60);
 					pSprite->SetSeqIndex(PlayerAnmId_NormalShot);
 					pSprite->SetCollisionId(CSID_PlayerShot_Normal);
 					playerShotCycle = (playerShotCycle + 1) % _countof(offset);
 				}
 				sePlayerShot->Play();
-				playerShotInterval = 0.125f;
+				playerShotInterval = 0.125f / 1.0f;
 			}
 		} else {
 			playerShotInterval = 0.0f;
@@ -372,11 +456,27 @@ class EnemyShotGenerator
 {
 public:
 	EnemyShotGenerator() = default;
-	EnemyShotGenerator(const Sprite::Sprite& p, std::vector<Sprite::Sprite*>& fl) : player(p), freeList(fl), isActed(false) {}
+	EnemyShotGenerator(const Sprite::Sprite& p, std::vector<Sprite::Sprite*>& fl, uint32_t n = 1, float i = 2.0f) :
+		player(p), freeList(fl), stock(n), timer(0), interval(i), speed(-1)
+	{}
 	void operator()(float delta, Sprite::Sprite* spr, float s, float r) {
-		if (isActed || freeList.empty()) {
+		if (speed < 0) {
+			speed = s;
+		}
+		if (stock <= 0) {
 			return;
 		}
+		if (timer > delta) {
+			timer -= delta;
+			return;
+		}
+		timer = 0.0f;
+		if (freeList.empty()) {
+			return;
+		}
+		--stock;
+		timer = interval;
+
 		Sprite::Sprite* pSprite = freeList.back();
 		freeList.pop_back();
 		pSprite->pos = spr->pos;
@@ -384,18 +484,202 @@ public:
 		vec.v = XMVector2Normalize(XMVectorSubtract(XMLoadFloat3(&player.pos), XMLoadFloat3(&spr->pos)));
 		angle.v = XMVectorACos(XMVectorSwizzle<1, 1, 1, 1>(vec));
 		pSprite->rotation = vec.f[0] < 0.0f ? angle.f[0] : -angle.f[0];
-		vec.v = XMVectorMultiply(vec, XMVectorSwizzle<0, 0, 0, 0>(XMLoadFloat(&s)));
+		vec.v = XMVectorMultiply(vec, XMVectorSwizzle<0, 0, 0, 0>(XMLoadFloat(&speed)));
 		XMFLOAT2 move;
 		XMStoreFloat2(&move, vec);
 		pSprite->actController.SetManualMove(move);
 		pSprite->SetSeqIndex(EnemyAnmId_Shot00);
 		pSprite->SetCollisionId(CSID_EnemyShot_Normal);
-		isActed = true;
 	}
 private:
 	const Sprite::Sprite& player;
 	std::vector<Sprite::Sprite*>& freeList;
+	uint32_t stock;
+	float timer;
+	float interval;
+	float speed;
+};
+
+/**
+* 3 way 敵弾生成器.
+*/
+class Enemy3WayShotGenerator
+{
+public:
+	Enemy3WayShotGenerator() = default;
+	explicit Enemy3WayShotGenerator(std::vector<Sprite::Sprite*>& fl) : freeList(fl), isActed(false) {}
+	void operator()(float delta, Sprite::Sprite* spr, float s, float r) {
+		if (isActed) {
+			return;
+		}
+		static const struct {
+			float dir;
+			XMVECTORF32 pos;
+		} info[] = {
+			{ 270, { 0, 32 } },
+			{ 270 - 15, { -8, 32 } },
+			{ 270 + 15, { 8, 32 } },
+		};
+		for (auto itr = std::begin(info); itr != std::end(info); ++itr) {
+			if (freeList.empty()) {
+				break;
+			}
+			Sprite::Sprite* pSprite = freeList.back();
+			freeList.pop_back();
+			XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&spr->pos), itr->pos));
+			pSprite->rotation = (itr->dir - 270) * 3.1415926f / 180.0f;
+			pSprite->actController.SetManualMove(itr->dir, s);
+			pSprite->SetSeqIndex(EnemyAnmId_Shot00);
+			pSprite->SetCollisionId(CSID_EnemyShot_Normal);
+		}
+		isActed = true;
+	}
+private:
+	std::vector<Sprite::Sprite*>& freeList;
 	bool isActed;
+};
+
+/**
+* 敵弾生成器.
+*/
+class EnemyBoss1stShotGenerator
+{
+public:
+	EnemyBoss1stShotGenerator() = default;
+	EnemyBoss1stShotGenerator(const Sprite::Sprite& p, std::vector<Sprite::Sprite*>& fl, uint32_t n = 1, float i = 2.0f) :
+		player(p), freeList(fl), interval(i), speed(-1)
+	{}
+	void operator()(float delta, Sprite::Sprite* spr, float s, float r) {
+		if (speed < 0) {
+			speed = s;
+			timer[0] = timer[1] = timer[2] = 0;
+			stock[0] = 3;
+			stock[1] = 16;
+			stock[2] = 3;
+		}
+		Sequence0(delta, spr);
+		if (spr->hp < 300) {
+			Sequence2(delta, spr);
+		}
+		if (spr->hp < 150) {
+			Sequence1(delta, spr);
+		}
+	}
+
+	// 中央の二門の砲からの5連ショット.
+	void Sequence0(float delta, Sprite::Sprite* spr)
+	{
+		if (timer[0] > delta) {
+			timer[0] -= delta;
+			return;
+		}
+		timer[0] = 0.0f;
+
+		static const XMVECTORF32 pos[] = {
+			{ -24, 88 }, { 24, 88 }
+		};
+		for (int i = 0; i < 2; ++i) {
+			if (freeList.empty()) {
+				return;
+			}
+			Sprite::Sprite* pSprite = freeList.back();
+			freeList.pop_back();
+			XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&spr->pos), pos[i]));
+			pSprite->rotation = 0;
+			pSprite->actController.SetManualMove(270, 600);
+			pSprite->SetSeqIndex(EnemyAnmId_Shot01);
+			pSprite->SetCollisionId(CSID_EnemyShot_Normal);
+		}
+		if (--stock[0] <= 0) {
+			stock[0] = 3;
+			timer[0] += 2.0f;
+		} else {
+			timer[0] += 1.0f / 8.0f;
+		}
+	}
+
+	// 主翼上面砲台からの全方位ショット.
+	void Sequence1(float delta, Sprite::Sprite* spr)
+	{
+		if (timer[1] > delta) {
+			timer[1] -= delta;
+			return;
+		}
+		timer[1] = 0.0f;
+		static const XMVECTORF32 pos[] = {
+			{ -88, -24 },{ 88, -24 }
+		};
+		for (int i = 0; i < 2; ++i) {
+			if (freeList.empty()) {
+				return;
+			}
+			Sprite::Sprite* pSprite = freeList.back();
+			freeList.pop_back();
+			XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&spr->pos), pos[i]));
+			if (i == 0) {
+				pSprite->actController.SetManualMove((128 - stock[1] - 4) * 360.0f / 16.0f, 200);
+			} else {
+				pSprite->actController.SetManualMove((stock[1] - 4) * 360.0f / 16.0f, 200);
+			}
+			pSprite->rotation = 0;
+			pSprite->SetSeqIndex(EnemyAnmId_Shot02);
+			pSprite->SetCollisionId(CSID_EnemyShot_Normal);
+		}
+		if (--stock[1] <= 0) {
+			stock[1] = 64;
+			timer[1] += 4.0f;
+		} else {
+			timer[1] += 1.0f / 8.0f;
+		}
+	}
+
+	// 主翼縁の三門の砲からの狙いショット.
+	void Sequence2(float delta, Sprite::Sprite* spr)
+	{
+		if (timer[2] > delta) {
+			timer[2] -= delta;
+			return;
+		}
+		timer[2] = 0.0f;
+
+		static const XMVECTORF32 pos[][3] = {
+			{ { -136, 56 }, {-160, 64 }, { -184, 72 } },
+			{ { 136, 56 },{ 160, 64 },{ 184, 72 } },
+		};
+		for (int i = 0; i < 2; ++i) {
+			if (freeList.empty()) {
+				return;
+			}
+			Sprite::Sprite* pSprite = freeList.back();
+			freeList.pop_back();
+			XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&spr->pos), pos[i][(stock[2] % 3)]));
+
+			XMVECTORF32 vec, angle;
+			vec.v = XMVector2Normalize(XMVectorSubtract(XMLoadFloat3(&player.pos), XMLoadFloat3(&pSprite->pos)));
+			angle.v = XMVectorACos(XMVectorSwizzle<1, 1, 1, 1>(vec));
+			pSprite->rotation = vec.f[0] < 0.0f ? angle.f[0] : -angle.f[0];
+			vec.v = XMVectorMultiply(vec, XMVectorSwizzle<0, 0, 0, 0>(XMLoadFloat(&speed)));
+			XMFLOAT2 move;
+			XMStoreFloat2(&move, vec);
+			pSprite->actController.SetManualMove(move);
+			pSprite->SetSeqIndex(EnemyAnmId_Shot00);
+			pSprite->SetCollisionId(CSID_EnemyShot_Normal);
+		}
+		if (--stock[2] <= 0) {
+			stock[2] = 3;
+			timer[2] += 1.0f;
+		} else {
+			timer[2] += 1.0f / 8.0f;
+		}
+	}
+
+private:
+	const Sprite::Sprite& player;
+	std::vector<Sprite::Sprite*>& freeList;
+	int32_t stock[3];
+	float timer[3];
+	float interval;
+	float speed;
 };
 
 /**
@@ -421,12 +705,38 @@ void MainGameScene::GenerateEnemy(double delta)
 			}
 			Sprite::Sprite* pSprite = freeEnemyList.back();
 			freeEnemyList.pop_back();
-			pSprite->SetSeqIndex(EnemyAnmId_SmallFighter);
-			pSprite->SetActionList(actionFile->Get(0));
-			pSprite->SetAction(itr->cur->actionId);
-			pSprite->SetCollisionId(CSID_Enemy00);
-			pSprite->actController.SetGenerator(EnemyShotGenerator(sprPlayer[0], freeEnemyShotList));
 			XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&itr->pos), XMLoadFloat2(&itr->cur->offset)));
+			switch (itr->cur->type) {
+			case EnemyType_Winp:
+				pSprite->SetSeqIndex(EnemyAnmId_SmallFighter);
+				pSprite->SetActionList(actionFile->Get(EnemyActListId_Winp));
+				pSprite->actController.SetGenerator(EnemyShotGenerator(sprPlayer[0], freeEnemyShotList));
+				pSprite->SetAction(itr->cur->actionId);
+				pSprite->SetCollisionId(CSID_Enemy00);
+				pSprite->hp = 1;
+				break;
+			case EnemyType_3Way:
+				pSprite->SetActionList(actionFile->Get(EnemyActListId_3Way));
+				pSprite->SetAction(itr->cur->actionId);
+				pSprite->actController.SetGenerator(Enemy3WayShotGenerator(freeEnemyShotList));
+				pSprite->SetCollisionId(CSID_Enemy3Way);
+				pSprite->hp = 3;
+				break;
+			case EnemyType_Middle:
+				pSprite->SetActionList(actionFile->Get(EnemyActListId_Middle));
+				pSprite->SetAction(itr->cur->actionId);
+				pSprite->actController.SetGenerator(EnemyShotGenerator(sprPlayer[0], freeEnemyShotList, 5));
+				pSprite->SetCollisionId(CSID_EnemyMiddle);
+				pSprite->hp = 40;
+				break;
+			case EnemyType_Boss1st:
+				pSprite->SetActionList(actionFile->Get(EnemyActListId_Boss1st));
+				pSprite->SetAction(itr->cur->actionId);
+				pSprite->actController.SetGenerator(EnemyBoss1stShotGenerator(sprPlayer[0], freeEnemyShotList, 500, 0.25f));
+				pSprite->SetCollisionId(CSID_EnemyBoss1st);
+				pSprite->hp = 400;
+				break;
+			}
 			++itr->cur;
 		}
 		itr->time += static_cast<float>(delta);
@@ -451,7 +761,9 @@ void MainGameScene::UpdateEnemy(double delta)
 			p.SetCollisionId(CSID_None);
 			p.pos.y = -100;
 			freeEnemyList.push_back(&p);
+			continue;
 		}
+		p.color = XMFLOAT4(1, 1, 1, 1);
 	}
 	for (size_t i = EID_EnemyShot; i < EID_EnemyShot + enemyShotCount; ++i) {
 		Sprite::Sprite& p = sprEnemy[i];
@@ -506,7 +818,10 @@ void MainGameScene::SolveCollision()
 		sprEnemy.begin() + EID_Enemy, sprEnemy.begin() + enemyCount,
 		[this](Sprite::Sprite& a, Sprite::Sprite& b) {
 		if (a.pos.y <= -32) {
+			a.actController.SetManualMove(0, 0);
 			a.SetCollisionId(CSID_None);
+			a.SetActionList(nullptr);
+			freePlayerShotList.push_back(&a);
 			return CollisionResult::FilterOut;
 		}
 		a.pos.y = -32;
@@ -514,13 +829,50 @@ void MainGameScene::SolveCollision()
 		a.SetCollisionId(CSID_None);
 		a.SetActionList(nullptr);
 		freePlayerShotList.push_back(&a);
-		if (b.animeController.GetSeqIndex() == EnemyAnmId_SmallFighter) {
+		if (--b.hp > 0) {
+			score += 10;
+			b.color = XMFLOAT4(1, 0, 0, 1);
+			seHit->Play();
+			return CollisionResult::FilterOut;
+		}
+		switch (b.animeController.GetSeqIndex()) {
+		case EnemyAnmId_SmallFighter:
 			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
-			b.SetAction(Enemy00ActId_Destroyed);
 			b.SetCollisionId(CSID_None);
+			b.SetAction(Enemy00ActId_Destroyed);
 			score += 100;
 			seBomb->Play();
 			VibrateGamePad(GamePadId_1P, 1);
+			break;
+		case EnemyAnmId_3Way_FrontMove:
+		case EnemyAnmId_3Way_BackMove:
+		case EnemyAnmId_3Way_Attack:
+			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+			b.SetCollisionId(CSID_None);
+			b.SetAction(1);
+			score += 200;
+			seBomb->Play();
+			VibrateGamePad(GamePadId_1P, 1);
+			break;
+		case EnemyAnmId_MiddleFighter:
+			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+			b.scale = XMFLOAT2(2, 2);
+			b.SetCollisionId(CSID_None);
+			b.SetAction(2);
+			score += 800;
+			seBomb->Play();
+			VibrateGamePad(GamePadId_1P, 1);
+			break;
+		case EnemyAnmId_Boss1st:
+			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+			b.scale = XMFLOAT2(4, 4);
+			b.SetCollisionId(CSID_None);
+			b.SetAction(1);
+			score += 5000;
+			seBomb->Play();
+			VibrateGamePad(GamePadId_1P, 2);
+			clearTime = time + 5.0f;
+			break;
 		}
 		return CollisionResult::FilterOut;
 	}
@@ -568,7 +920,7 @@ int MainGameScene::Update(double delta)
 
 	const GamePad gamepad = GetGamePad(GamePadId_1P);
 	static const uint32_t endingKey = GamePad::A | GamePad::START;
-	if (pCurOccurrence == pEndOccurrence) {
+	if (time >= clearTime) {
 		return ExitCode_Ending;
 	}
 	if (sprPlayer[0].animeController.GetSeqIndex() == PlayerAnmId_Destroyed && sprPlayer[0].animeController.IsFinished()) {
