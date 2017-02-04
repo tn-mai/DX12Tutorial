@@ -337,9 +337,12 @@ void Controller::Init(Sprite::Sprite* pSprite)
 			type = Type::Vanishing;
 			return;
 		case Type::Animation:
+			if (pSprite && data.param[AnimeParamId_Id] >= 0) {
+				pSprite->SetSeqIndex(static_cast<uint32_t>(data.param[AnimeParamId_Id]));
+			}
 			break;
 		case Type::Generation:
-			if (generator) {
+			if (pSprite && generator) {
 				isGeneratorActive = true;
 				generator(0.0f, pSprite, data.param[GenParamId_Speed], data.param[GenParamId_DirectionDegree]);
 			}
@@ -611,6 +614,7 @@ FilePtr LoadFromJsonFile(const wchar_t* filename)
 					{ "Accel", Type::Accel },
 					{ "Wait", Type::Wait },
 					{ "Generate", Type::Generation },
+					{ "Animation", Type::Animation },
 					{ "Delete", Type::Vanishing },
 				};
 				const auto itrTypePair = std::find(typeMap, typeMap + _countof(typeMap), data.object.find("type")->second.string);
