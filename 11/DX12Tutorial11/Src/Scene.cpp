@@ -50,10 +50,10 @@ bool TransitionController::Initialize(const Transition* transitionList, size_t t
 * @retval true  正常に開始された.
 * @retval false 開始に失敗した.
 */
-bool TransitionController::Start(int startSceneId)
+bool TransitionController::Start(Context& context, int startSceneId)
 {
 	if (const Creator* creator = FindCreator(startSceneId)) {
-		LoadScene(creator);
+		LoadScene(context, creator);
 		return true;
 	}
 	return false;
@@ -63,11 +63,11 @@ bool TransitionController::Start(int startSceneId)
 /**
 * 遷移を終了する.
 */
-void TransitionController::Stop()
+void TransitionController::Stop(Context& context)
 {
 	const auto rend = sceneStack.rend();
 	for (auto ri = sceneStack.rbegin(); ri != rend; ++ri) {
-		ri->p->Unload();
+		ri->p->Unload(context);
 	}
 }
 
@@ -76,16 +76,16 @@ void TransitionController::Stop()
 *
 * @param delta 経過時間(秒).
 */
-void TransitionController::Update(double delta)
+void TransitionController::Update(Context& context, double delta)
 {
 	if (sceneStack.empty()) {
 		return;
 	}
 	const auto itrEndPausedScene = sceneStack.end() - 1;
 	for (auto itr = sceneStack.begin(); itr != itrEndPausedScene; ++itr) {
-		itr->p->UpdateForPause(delta);
+		itr->p->UpdateForPause(context, delta);
 	}
-	const int exitCode = sceneStack.back().p->Update(delta);
+	const int exitCode = sceneStack.back().p->Update(context, delta);
 	if (exitCode == Scene::ExitCode_Continue) {
 		return;
 	}
@@ -96,19 +96,19 @@ void TransitionController::Update(double delta)
 		switch (itr->trans.type) {
 		case TransitionType::Jump:
 			if (const Creator* creator = FindCreator(itr->trans.nextScene)) {
-				UnloadScene();
-				LoadScene(creator);
+				UnloadScene(context);
+				LoadScene(context, creator);
 			}
 			break;
 		case TransitionType::Push:
 			if (const Creator* creator = FindCreator(itr->trans.nextScene)) {
-				sceneStack.back().p->Pause();
-				LoadScene(creator);
+				sceneStack.back().p->Pause(context);
+				LoadScene(context, creator);
 			}
 			break;
 		case TransitionType::Pop:
-			UnloadScene();
-			sceneStack.back().p->Resume();
+			UnloadScene(context);
+			sceneStack.back().p->Resume(context);
 			break;
 		}
 	}
@@ -153,20 +153,20 @@ const Creator* TransitionController::FindCreator(int sceneId) const
 *
 * @param creator 開始するシーンの作成情報へのポインタ.
 */
-void TransitionController::LoadScene(const Creator* creator)
+void TransitionController::LoadScene(Context& context, const Creator* creator)
 {
 	sceneStack.push_back({ creator->id, creator->func() });
-	sceneStack.back().p->Load();
+	sceneStack.back().p->Load(context);
 	sceneStack.back().p->status = Scene::StatusCode::Runnable;
 }
 
 /**
 * シーンを終了する.
 */
-void TransitionController::UnloadScene()
+void TransitionController::UnloadScene(Context& context)
 {
 	sceneStack.back().p->status = Scene::StatusCode::Unloading;
-	sceneStack.back().p->Unload();
+	sceneStack.back().p->Unload(context);
 	sceneStack.back().p->status = Scene::StatusCode::Stopped;
 	sceneStack.pop_back();
 	Graphics::Graphics::Get().WaitForGpu();

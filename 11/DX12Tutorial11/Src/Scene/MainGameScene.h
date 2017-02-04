@@ -22,9 +22,9 @@ public:
 
 	static ::Scene::ScenePtr Create();
 
-	virtual bool Load() override;
-	virtual bool Unload() override;
-	virtual int Update(double delta) override;
+	virtual bool Load(::Scene::Context&) override;
+	virtual bool Unload(::Scene::Context&) override;
+	virtual int Update(::Scene::Context&, double delta) override;
 	virtual void Draw(Graphics::Graphics& graphics) const override;
 
 	struct Occurrence;
@@ -38,8 +38,8 @@ private:
 	void UpdatePlayer(double);
 	void GenerateEnemy(double);
 	void UpdateEnemy(double);
-	void UpdateScore();
-	void SolveCollision();
+	void UpdateScore(uint32_t);
+	void SolveCollision(::Scene::Context&);
 
 	Resource::Texture texBackground;
 	Resource::Texture texObjects;
@@ -68,7 +68,6 @@ private:
 	std::vector<Sprite::Sprite*> freeEnemyShotList;
 	double time;
 	double clearTime;
-	uint32_t score;
 
 	Audio::SoundPtr seBomb;
 	Audio::SoundPtr seHit;

@@ -13,10 +13,10 @@ class PauseScene : public Scene::Scene
 public:
 	static ::Scene::ScenePtr Create();
 
-	virtual bool Load();
-	virtual bool Unload();
-	virtual int Update(double delta);
-	virtual void Draw(Graphics::Graphics& graphics) const;
+	virtual bool Load(::Scene::Context&) override;
+	virtual bool Unload(::Scene::Context&) override;
+	virtual int Update(::Scene::Context&, double delta) override;
+	virtual void Draw(Graphics::Graphics& graphics) const override;
 
 private:
 	PauseScene();

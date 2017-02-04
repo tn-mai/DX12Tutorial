@@ -36,7 +36,7 @@ GameOverScene::GameOverScene() : Scene(L"GameOver")
 /**
 *
 */
-bool GameOverScene::Load()
+bool GameOverScene::Load(::Scene::Context& context)
 {
 	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 
@@ -59,16 +59,35 @@ bool GameOverScene::Load()
 	sprBackground.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 300, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
 
-	static const char text[] = "GAME OVER";
-	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 300, 0.8f);
-	for (const char c : text) {
-		if (c >= ' ' && c < '`') {
-			sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f)));
-			sprFont.back().SetSeqIndex(c - ' ');
-			textPos.x += 32.0f;
+	sprFont.reserve(256);
+	{
+		static const char text[] = "GAME OVER";
+		XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 300, 0.8f);
+		for (const char c : text) {
+			if (c >= ' ' && c < '`') {
+				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f)));
+				sprFont.back().SetSeqIndex(c - ' ');
+				textPos.x += 32.0f;
+			}
 		}
 	}
+	{
+		char text[32];
+		const int len = snprintf(text, _countof(text), "%08d", context.score);
+		XMFLOAT3 textPos(400 - (len - 1) * 16, 32, 0.1f);
+		float alpha = 0.5f;
+		for (const char c : text) {
+			if (c >= ' ' && c < '`') {
+				if (c > '0') {
+					alpha = 1.0f;
+				}
+				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, alpha)));
+				sprFont.back().SetSeqIndex(c - ' ');
+				textPos.x += 32.0f;
+			}
+		}
 
+	}
 	time = 0.0f;
 
 	return true;
@@ -77,7 +96,7 @@ bool GameOverScene::Load()
 /**
 *
 */
-bool GameOverScene::Unload()
+bool GameOverScene::Unload(::Scene::Context&)
 {
 	return true;
 }
@@ -85,12 +104,14 @@ bool GameOverScene::Unload()
 /**
 *
 */
-int GameOverScene::Update(double delta)
+int GameOverScene::Update(::Scene::Context&, double delta)
 {
 	time += delta;
 	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));
 	for (auto& e : sprFont) {
-		e.color.w = brightness;
+		if (e.color.x == 1.0f) {
+			e.color.w = brightness;
+		}
 	}
 
 	for (Sprite::Sprite& sprite : sprBackground) {

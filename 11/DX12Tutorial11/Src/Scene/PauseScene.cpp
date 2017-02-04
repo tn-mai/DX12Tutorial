@@ -36,7 +36,7 @@ PauseScene::PauseScene() : Scene(L"Pause")
 /**
 *
 */
-bool PauseScene::Load()
+bool PauseScene::Load(::Scene::Context&)
 {
 	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 
@@ -71,7 +71,7 @@ bool PauseScene::Load()
 /**
 *
 */
-bool PauseScene::Unload()
+bool PauseScene::Unload(::Scene::Context&)
 {
 	return true;
 }
@@ -79,7 +79,7 @@ bool PauseScene::Unload()
 /**
 *
 */
-int PauseScene::Update(double delta)
+int PauseScene::Update(::Scene::Context&, double delta)
 {
 	time += delta;
 	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0)) > 0.5f ? 1.0f : 0.0f;

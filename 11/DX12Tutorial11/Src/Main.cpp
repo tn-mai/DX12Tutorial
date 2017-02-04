@@ -33,6 +33,7 @@ HWND hwnd = nullptr;
 HRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 Scene::TransitionController sceneController;
+Scene::Context sceneContext;
 
 bool InitializeD3D();
 void FinalizeD3D();
@@ -216,14 +217,14 @@ bool InitializeD3D()
 	InitGamePad();
 
 	sceneController.Initialize(transitionList, _countof(transitionList), creatorList, _countof(creatorList));
-	sceneController.Start(SceneId_Title);
+	sceneController.Start(sceneContext, SceneId_Title);
 
 	return true;
 }
 
 void FinalizeD3D()
 {
-	sceneController.Stop();
+	sceneController.Stop(sceneContext);
 	Audio::Engine::Get().Destroy();
 	Graphics::Graphics::Get().Finalize();
 }
@@ -280,7 +281,7 @@ void Update(double delta)
 		graphics.spriteList[0].pos.y += speed;
 	}
 
-	sceneController.Update(delta);
+	sceneController.Update(sceneContext, delta);
 
 #if 0
 	spriteList[0].rotation += 0.1f;

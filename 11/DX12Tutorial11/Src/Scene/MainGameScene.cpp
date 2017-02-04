@@ -294,7 +294,7 @@ MainGameScene::MainGameScene() : Scene(L"MainGame")
 /**
 * メインゲームシーンの初期化.
 */
-bool MainGameScene::Load()
+bool MainGameScene::Load(::Scene::Context& context)
 {
 	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 
@@ -369,6 +369,7 @@ bool MainGameScene::Load()
 	bgm->Play(Audio::Flag_Loop);
 
 	time = 0.0f;
+	context.score = 0;
 
 	return true;
 }
@@ -376,7 +377,7 @@ bool MainGameScene::Load()
 /**
 * メインゲームシーンの終了処理.
 */
-bool MainGameScene::Unload()
+bool MainGameScene::Unload(::Scene::Context&)
 {
 	bgm->Stop();
 	bgm.reset();
@@ -784,7 +785,7 @@ void MainGameScene::UpdateEnemy(double delta)
 /**
 * スコア表示の更新.
 */
-void MainGameScene::UpdateScore()
+void MainGameScene::UpdateScore(uint32_t score)
 {
 	char text[] = "00000000";
 	snprintf(text, _countof(text), "%08d", score);
@@ -811,12 +812,12 @@ void MainGameScene::UpdateScore()
 /**
 * 衝突の解決.
 */
-void MainGameScene::SolveCollision()
+void MainGameScene::SolveCollision(::Scene::Context& context)
 {
 	DetectCollision(
 		sprPlayer.begin() + PID_PlayerShot, sprPlayer.end(),
 		sprEnemy.begin() + EID_Enemy, sprEnemy.begin() + enemyCount,
-		[this](Sprite::Sprite& a, Sprite::Sprite& b) {
+		[this, &context](Sprite::Sprite& a, Sprite::Sprite& b) {
 		if (a.pos.y <= -32) {
 			a.actController.SetManualMove(0, 0);
 			a.SetCollisionId(CSID_None);
@@ -830,7 +831,7 @@ void MainGameScene::SolveCollision()
 		a.SetActionList(nullptr);
 		freePlayerShotList.push_back(&a);
 		if (--b.hp > 0) {
-			score += 10;
+			context.score += 10;
 			b.color = XMFLOAT4(1, 0, 0, 1);
 			seHit->Play();
 			return CollisionResult::FilterOut;
@@ -840,7 +841,7 @@ void MainGameScene::SolveCollision()
 			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
 			b.SetCollisionId(CSID_None);
 			b.SetAction(Enemy00ActId_Destroyed);
-			score += 100;
+			context.score += 100;
 			seBomb->Play();
 			VibrateGamePad(GamePadId_1P, 1);
 			break;
@@ -850,7 +851,7 @@ void MainGameScene::SolveCollision()
 			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
 			b.SetCollisionId(CSID_None);
 			b.SetAction(1);
-			score += 200;
+			context.score += 200;
 			seBomb->Play();
 			VibrateGamePad(GamePadId_1P, 1);
 			break;
@@ -859,7 +860,7 @@ void MainGameScene::SolveCollision()
 			b.scale = XMFLOAT2(2, 2);
 			b.SetCollisionId(CSID_None);
 			b.SetAction(2);
-			score += 800;
+			context.score += 800;
 			seBomb->Play();
 			VibrateGamePad(GamePadId_1P, 1);
 			break;
@@ -868,7 +869,7 @@ void MainGameScene::SolveCollision()
 			b.scale = XMFLOAT2(4, 4);
 			b.SetCollisionId(CSID_None);
 			b.SetAction(1);
-			score += 5000;
+			context.score += 5000;
 			seBomb->Play();
 			VibrateGamePad(GamePadId_1P, 2);
 			clearTime = time + 5.0f;
@@ -880,14 +881,14 @@ void MainGameScene::SolveCollision()
 	DetectCollision(
 		sprPlayer.begin() + PID_Player, sprPlayer.begin() + playerCount,
 		sprEnemy.begin(), sprEnemy.end(),
-		[this](Sprite::Sprite& a, Sprite::Sprite& b) {
+		[this, &context](Sprite::Sprite& a, Sprite::Sprite& b) {
 		a.animeController.SetSeqIndex(PlayerAnmId_Destroyed);
 		a.SetCollisionId(CSID_None);
 		if (b.animeController.GetSeqIndex() == EnemyAnmId_SmallFighter) {
 			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
 			b.SetAction(Enemy00ActId_Destroyed);
 			b.SetCollisionId(CSID_None);
-			score += 100;
+			context.score += 100;
 			VibrateGamePad(GamePadId_1P, 0);
 		} else {
 			b.pos.y = -32;
@@ -902,7 +903,7 @@ void MainGameScene::SolveCollision()
 /**
 * ゲーム状態の更新.
 */
-int MainGameScene::Update(double delta)
+int MainGameScene::Update(::Scene::Context& context, double delta)
 {
 	time += delta;
 
@@ -910,9 +911,9 @@ int MainGameScene::Update(double delta)
 	UpdateEnemy(delta);
 	GenerateEnemy(delta);
 
-	SolveCollision();
+	SolveCollision(context);
 
-	UpdateScore();
+	UpdateScore(context.score);
 
 	for (Sprite::Sprite& sprite : sprBackground) {
 		sprite.Update(delta);

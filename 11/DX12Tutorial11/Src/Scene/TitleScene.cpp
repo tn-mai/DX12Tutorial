@@ -38,7 +38,7 @@ TitleScene::TitleScene() : Scene(L"Title")
 /**
 *
 */
-bool TitleScene::Load()
+bool TitleScene::Load(::Scene::Context&)
 {
 	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 
@@ -88,7 +88,7 @@ bool TitleScene::Load()
 /**
 *
 */
-bool TitleScene::Unload()
+bool TitleScene::Unload(::Scene::Context&)
 {
 	seStart.reset();
 	return true;
@@ -101,7 +101,7 @@ bool TitleScene::Unload()
 *
 * @return 終了コード.
 */
-int TitleScene::Update(double delta)
+int TitleScene::Update(::Scene::Context&, double delta)
 {
 	time += delta;
 	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));

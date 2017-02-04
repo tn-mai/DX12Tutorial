@@ -20,9 +20,9 @@ public:
 
 	static ::Scene::ScenePtr Create();
 
-	virtual bool Load() override;
-	virtual bool Unload() override;
-	virtual int Update(double delta) override;
+	virtual bool Load(::Scene::Context&) override;
+	virtual bool Unload(::Scene::Context&) override;
+	virtual int Update(::Scene::Context&, double delta) override;
 	virtual void Draw(Graphics::Graphics& graphics) const override;
 
 private:

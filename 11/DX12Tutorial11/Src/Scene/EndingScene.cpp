@@ -36,7 +36,7 @@ EndingScene::EndingScene() : Scene(L"Ending")
 /**
 *
 */
-bool EndingScene::Load()
+bool EndingScene::Load(::Scene::Context& context)
 {
 	Graphics::Graphics& graphics = Graphics::Graphics::Get();
 
@@ -64,17 +64,33 @@ bool EndingScene::Load()
 
 	sprLogo.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 200, 0.9f), 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f)));
 	sprLogo[0].SetSeqIndex(1);
-
-	static const char text[] = "CONGRATULATION";
-	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 24.0f, 400, 0.8f);
-	for (const char c : text) {
-		if (c >= ' ' && c < '`') {
-			sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1.5f, 1.5f), XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f)));
-			sprFont.back().SetSeqIndex(c - ' ');
-			textPos.x += 48.0f;
+	{
+		static const char text[] = "CONGRATULATION";
+		XMFLOAT3 textPos(400 - (_countof(text) - 2) * 24.0f, 300, 0.8f);
+		for (const char c : text) {
+			if (c >= ' ' && c < '`') {
+				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1.5f, 1.5f), XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f)));
+				sprFont.back().SetSeqIndex(c - ' ');
+				textPos.x += 48.0f;
+			}
 		}
 	}
-
+	{
+		char text[256];
+		const int len = snprintf(text, _countof(text), "SCORE: %08d", context.score);
+		XMFLOAT3 textPos(400 - (len - 1) * 16.0f, 500, 0.8f);
+		float alpha = 0.5f;
+		for (const char c : text) {
+			if (c >= ' ' && c < '`') {
+				if (c > '0') {
+					alpha = 1.0f;
+				}
+				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1.0f, 1.0f), XMFLOAT4(0.5f, 1.0f, 0.5f, alpha)));
+				sprFont.back().SetSeqIndex(c - ' ');
+				textPos.x += 32.0f;
+			}
+		}
+	}
 	time = 0.0f;
 
 	return true;
@@ -83,7 +99,7 @@ bool EndingScene::Load()
 /**
 *
 */
-bool EndingScene::Unload()
+bool EndingScene::Unload(::Scene::Context&)
 {
 	return true;
 }
@@ -91,12 +107,14 @@ bool EndingScene::Unload()
 /**
 *
 */
-int EndingScene::Update(double delta)
+int EndingScene::Update(::Scene::Context&, double delta)
 {
 	time += delta;
 	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));
 	for (auto& e : sprFont) {
-		e.color.w = brightness;
+		if (e.color.y == 0.0f) {
+			e.color.w = brightness;
+		}
 	}
 
 	for (Sprite::Sprite& sprite : sprBackground) {

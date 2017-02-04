@@ -13,6 +13,11 @@ namespace Scene {
 
 class TransitionController;
 
+struct Context
+{
+	int score;
+};
+
 /**
 * âÊñ Ç†ÇÈÇ¢ÇÕèÛë‘Çï\Ç∑ÉNÉâÉX.
 */
@@ -45,13 +50,13 @@ public:
 	StatusCode GetState() const { return status; }
 
 private:
-	virtual int Update(double) = 0;
+	virtual int Update(Context&, double) = 0;
 	virtual void Draw(Graphics::Graphics&) const = 0;
-	virtual bool Load() { return true; }
-	virtual bool Unload() { return true; }
-	virtual void UpdateForPause(double) {}
-	virtual void Pause() {}
-	virtual void Resume() {}
+	virtual bool Load(Context&) { return true; }
+	virtual bool Unload(Context&) { return true; }
+	virtual void UpdateForPause(Context&, double) {}
+	virtual void Pause(Context&) {}
+	virtual void Resume(Context&) {}
 
 private:
 	StatusCode status;
@@ -102,15 +107,15 @@ class TransitionController
 {
 public:
 	bool Initialize(const Transition* transitionList, size_t transitionCount, const Creator* creatorList, size_t creatorCount);
-	bool Start(int);
-	void Stop();
-	void Update(double delta);
+	bool Start(Context&, int);
+	void Stop(Context&);
+	void Update(Context&, double delta);
 	void Draw(Graphics::Graphics&) const;
 
 private:
 	const Creator* FindCreator(int) const;
-	void LoadScene(const Creator*);
-	void UnloadScene();
+	void LoadScene(Context&, const Creator*);
+	void UnloadScene(Context&);
 
 	struct SceneInfo {
 		int id;
