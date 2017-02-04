@@ -47,6 +47,7 @@ struct Sprite
 
 	AnimationController animeController;
 	Action::Controller actController;
+	int32_t hp;
 	int32_t collisionId;
 	DirectX::XMFLOAT3 pos; ///< スクリーン座標上のスプライトの位置.
 	float rotation; ///< 画像の回転角(ラジアン).
