@@ -74,9 +74,10 @@ bool GameOverScene::Load(::Scene::Context& context)
 	{
 		char text[32];
 		const int len = snprintf(text, _countof(text), "%08d", context.score);
-		XMFLOAT3 textPos(400 - (len - 1) * 16, 32, 0.1f);
+		XMFLOAT3 textPos(400 - static_cast<float>(len - 1) * 16, 32, 0.1f);
 		float alpha = 0.5f;
-		for (const char c : text) {
+		for (int i = 0; i < len; ++i) {
+			const char c = text[i];
 			if (c >= ' ' && c < '`') {
 				if (c > '0') {
 					alpha = 1.0f;

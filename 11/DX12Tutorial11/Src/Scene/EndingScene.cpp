@@ -66,7 +66,7 @@ bool EndingScene::Load(::Scene::Context& context)
 	sprLogo[0].SetSeqIndex(1);
 	{
 		static const char text[] = "CONGRATULATION";
-		XMFLOAT3 textPos(400 - (_countof(text) - 2) * 24.0f, 300, 0.8f);
+		XMFLOAT3 textPos(400 - (_countof(text) - 2) * 24.0f, 332, 0.8f);
 		for (const char c : text) {
 			if (c >= ' ' && c < '`') {
 				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1.5f, 1.5f), XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f)));
@@ -76,13 +76,16 @@ bool EndingScene::Load(::Scene::Context& context)
 		}
 	}
 	{
-		char text[256];
-		const int len = snprintf(text, _countof(text), "SCORE: %08d", context.score);
-		XMFLOAT3 textPos(400 - (len - 1) * 16.0f, 500, 0.8f);
-		float alpha = 0.5f;
-		for (const char c : text) {
+		char text[32];
+		const int len = snprintf(text, _countof(text), "SCORE/%08d", context.score);
+		XMFLOAT3 textPos(400 - static_cast<float>(len - 1) * 16.0f, 500, 0.8f);
+		float alpha = 1.0f;
+		for (int i = 0; i < len; ++i) {
+			const char c = text[i];
 			if (c >= ' ' && c < '`') {
-				if (c > '0') {
+				if (c == '/') {
+					alpha = 0.5f;
+				} else if (c > '0' && c <= '9') {
 					alpha = 1.0f;
 				}
 				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1.0f, 1.0f), XMFLOAT4(0.5f, 1.0f, 0.5f, alpha)));
