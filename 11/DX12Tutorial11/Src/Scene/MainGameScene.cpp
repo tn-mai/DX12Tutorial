@@ -700,6 +700,17 @@ private:
 */
 void MainGameScene::GenerateEnemy(double delta)
 {
+	struct local {
+		static Sprite::Sprite* GetSprite(std::vector<Sprite::Sprite*>& freeList, const MainGameScene::Formation& data) {
+			if (freeList.empty()) {
+				return nullptr;
+			}
+			Sprite::Sprite* p = freeList.back();
+			freeList.pop_back();
+			XMStoreFloat3(&p->pos, XMVectorAdd(XMLoadFloat3(&data.pos), XMLoadFloat2(&data.cur->offset)));
+			return p;
+		}
+	};
 	while (pCurOccurrence != pEndOccurrence) {
 		if (pCurOccurrence->time > time) {
 			break;
@@ -712,42 +723,43 @@ void MainGameScene::GenerateEnemy(double delta)
 			if (itr->cur->interval > itr->time) {
 				break;
 			}
-			if (freeEnemyList.empty()) {
-				++itr->cur;
-				continue;
-			}
-			Sprite::Sprite* pSprite = freeEnemyList.back();
-			freeEnemyList.pop_back();
-			XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&itr->pos), XMLoadFloat2(&itr->cur->offset)));
 			switch (itr->cur->type) {
 			case EnemyType_Winp:
-				pSprite->SetSeqIndex(EnemyAnmId_SmallFighter);
-				pSprite->SetActionList(actionFile->Get(EnemyActListId_Winp));
-				pSprite->actController.SetGenerator(EnemyShotGenerator(sprPlayer[0], freeEnemyShotList));
-				pSprite->SetAction(itr->cur->actionId);
-				pSprite->SetCollisionId(CSID_Enemy00);
-				pSprite->hp = 1;
+				if (Sprite::Sprite* pSprite = local::GetSprite(freeEnemyList, *itr)) {
+					pSprite->SetSeqIndex(EnemyAnmId_SmallFighter);
+					pSprite->SetActionList(actionFile->Get(EnemyActListId_Winp));
+					pSprite->actController.SetGenerator(EnemyShotGenerator(sprPlayer[0], freeEnemyShotList));
+					pSprite->SetAction(itr->cur->actionId);
+					pSprite->SetCollisionId(CSID_Enemy00);
+					pSprite->hp = 1;
+				}
 				break;
 			case EnemyType_3Way:
-				pSprite->SetActionList(actionFile->Get(EnemyActListId_3Way));
-				pSprite->SetAction(itr->cur->actionId);
-				pSprite->actController.SetGenerator(Enemy3WayShotGenerator(freeEnemyShotList));
-				pSprite->SetCollisionId(CSID_Enemy3Way);
-				pSprite->hp = 3;
+				if (Sprite::Sprite* pSprite = local::GetSprite(freeEnemyList, *itr)) {
+					pSprite->SetActionList(actionFile->Get(EnemyActListId_3Way));
+					pSprite->SetAction(itr->cur->actionId);
+					pSprite->actController.SetGenerator(Enemy3WayShotGenerator(freeEnemyShotList));
+					pSprite->SetCollisionId(CSID_Enemy3Way);
+					pSprite->hp = 3;
+				}
 				break;
 			case EnemyType_Middle:
-				pSprite->SetActionList(actionFile->Get(EnemyActListId_Middle));
-				pSprite->SetAction(itr->cur->actionId);
-				pSprite->actController.SetGenerator(EnemyShotGenerator(sprPlayer[0], freeEnemyShotList, 5));
-				pSprite->SetCollisionId(CSID_EnemyMiddle);
-				pSprite->hp = 40;
+				if (Sprite::Sprite* pSprite = local::GetSprite(freeEnemyList, *itr)) {
+					pSprite->SetActionList(actionFile->Get(EnemyActListId_Middle));
+					pSprite->SetAction(itr->cur->actionId);
+					pSprite->actController.SetGenerator(EnemyShotGenerator(sprPlayer[0], freeEnemyShotList, 5));
+					pSprite->SetCollisionId(CSID_EnemyMiddle);
+					pSprite->hp = 40;
+				}
 				break;
 			case EnemyType_Boss1st:
-				pSprite->SetActionList(actionFile->Get(EnemyActListId_Boss1st));
-				pSprite->SetAction(itr->cur->actionId);
-				pSprite->actController.SetGenerator(EnemyBoss1stShotGenerator(sprPlayer[0], freeEnemyShotList, 500, 0.25f));
-				pSprite->SetCollisionId(CSID_EnemyBoss1st);
-				pSprite->hp = 400;
+				if (Sprite::Sprite* pSprite = local::GetSprite(freeEnemyList, *itr)) {
+					pSprite->SetActionList(actionFile->Get(EnemyActListId_Boss1st));
+					pSprite->SetAction(itr->cur->actionId);
+					pSprite->actController.SetGenerator(EnemyBoss1stShotGenerator(sprPlayer[0], freeEnemyShotList, 500, 0.25f));
+					pSprite->SetCollisionId(CSID_EnemyBoss1st);
+					pSprite->hp = 400;
+				}
 				break;
 			case EnemyType_BgmStop:
 				bgmFadeOut = true;
