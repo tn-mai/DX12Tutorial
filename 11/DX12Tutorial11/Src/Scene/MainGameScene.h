@@ -73,6 +73,8 @@ private:
 	Audio::SoundPtr seHit;
 	Audio::SoundPtr sePlayerShot;
 	Audio::SoundPtr bgm;
+	bool bgmFadeOut = false;
+	float bgmVolume = 1.0f;
 
 	int playerShotCycle = 0;
 	float playerShotInterval = 0;

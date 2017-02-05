@@ -18,6 +18,8 @@ enum EnemyType
 	EnemyType_3Way,
 	EnemyType_Middle,
 	EnemyType_Boss1st,
+	EnemyType_BgmStop,
+	EnemyType_BgmBoss,
 };
 
 struct MainGameScene::FormationData {
@@ -105,6 +107,14 @@ const MainGameScene::FormationData formationBoss1st[] = {
 	{ EnemyType_Boss1st, 0, 0,{ 0, -32 } },
 };
 
+const MainGameScene::FormationData formationBgmStop[] = {
+	{ EnemyType_BgmStop },
+};
+
+const MainGameScene::FormationData formationBgmBoss[] = {
+	{ EnemyType_BgmBoss },
+};
+
 #define OCC_I(t, x, y, z, form) { t, {x, y, z}, form, form + _countof(form) }
 #define OCC(t, x, y, z, form) OCC_I(t, x, y, z, formation##form)
 #define OCC_END(t) { t, {}, nullptr, nullptr }
@@ -155,6 +165,8 @@ const MainGameScene::Occurrence occurrenceList[] = {
 	OCC(85, 450, 0, 0.5f, 3Way),
 	OCC(88, 600, 0, 0.5f, MiddleR),
 	OCC(88, 200, 0, 0.5f, MiddleL),
+	OCC(90, 0, 0, 0, BgmStop),
+	OCC(92, 0, 0, 0, BgmBoss),
 	OCC(100, 400, 0, 0.5f, Boss1st),
 #endif
 	OCC_END(165),
@@ -737,6 +749,17 @@ void MainGameScene::GenerateEnemy(double delta)
 				pSprite->SetCollisionId(CSID_EnemyBoss1st);
 				pSprite->hp = 400;
 				break;
+			case EnemyType_BgmStop:
+				bgmFadeOut = true;
+				break;
+			case EnemyType_BgmBoss:
+				bgmFadeOut = false;
+				bgm->Stop();
+				bgm = Audio::Engine::Get().PrepareStream(L"Res/SE/Boss1st.xwm");
+				OutputDebugStringA(bgm ? "Boss1st: OK\n" : "Boss1st: NG\n");
+				bgm->SetVolume(2.0f);
+				bgm->Play(Audio::Flag_Loop);
+				break;
 			}
 			++itr->cur;
 		}
@@ -906,6 +929,15 @@ void MainGameScene::SolveCollision(::Scene::Context& context)
 int MainGameScene::Update(::Scene::Context& context, double delta)
 {
 	time += delta;
+
+	if (bgmFadeOut) {
+		bgmVolume -= static_cast<float>(delta) * 0.5f;
+		if (bgmVolume < 0) {
+			bgmVolume = 0;
+			bgmFadeOut = false;
+		}
+		bgm->SetVolume(bgmVolume);
+	}
 
 	UpdatePlayer(delta);
 	UpdateEnemy(delta);
