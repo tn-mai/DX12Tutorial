@@ -169,6 +169,7 @@ const MainGameScene::Occurrence occurrenceList[] = {
 	OCC(92, 0, 0, 0, BgmBoss),
 	OCC(100, 400, 0, 0.5f, Boss1st),
 #endif
+	OCC(163, 0, 0, 0, BgmStop),
 	OCC_END(165),
 };
 
@@ -913,6 +914,7 @@ void MainGameScene::SolveCollision(::Scene::Context& context)
 			seBombBoss->Play();
 			VibrateGamePad(GamePadId_1P, 2);
 			clearTime = time + 5.0f;
+			bgmFadeOut = true;
 			{
 				static const XMVECTORF32 pos[] = { { 0, 0 }, {-100, 50}, { 100, 50 } };
 				for (int i = 0; i < _countof(pos); ++i) {
