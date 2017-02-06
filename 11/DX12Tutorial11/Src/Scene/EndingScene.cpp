@@ -83,7 +83,7 @@ bool EndingScene::Load(::Scene::Context& context)
 		for (int i = 0; i < len; ++i) {
 			const char c = text[i];
 			if (c >= ' ' && c < '`') {
-				if (c == '/') {
+				if (c == '0') {
 					alpha = 0.5f;
 				} else if (c > '0' && c <= '9') {
 					alpha = 1.0f;
