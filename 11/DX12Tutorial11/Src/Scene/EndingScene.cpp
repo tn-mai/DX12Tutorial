@@ -79,18 +79,21 @@ bool EndingScene::Load(::Scene::Context& context)
 		char text[32];
 		const int len = snprintf(text, _countof(text), "SCORE/%08d", context.score);
 		XMFLOAT3 textPos(400 - static_cast<float>(len - 1) * 16.0f, 500, 0.8f);
+		bool isNumber = false;
 		float alpha = 1.0f;
 		for (int i = 0; i < len; ++i) {
 			const char c = text[i];
 			if (c >= ' ' && c < '`') {
-				if (c == '0') {
-					alpha = 0.5f;
-				} else if (c > '0' && c <= '9') {
+				if (c > '0') {
 					alpha = 1.0f;
 				}
 				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1.0f, 1.0f), XMFLOAT4(0.5f, 1.0f, 0.5f, alpha)));
 				sprFont.back().SetSeqIndex(c - ' ');
 				textPos.x += 32.0f;
+				if (!isNumber && c == '/') {
+					isNumber = true;
+					alpha = 0.5f;
+				}
 			}
 		}
 	}
