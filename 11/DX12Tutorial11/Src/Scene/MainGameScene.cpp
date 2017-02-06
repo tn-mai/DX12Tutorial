@@ -120,9 +120,9 @@ const MainGameScene::FormationData formationBgmBoss[] = {
 #define OCC_END(t) { t, {}, nullptr, nullptr }
 
 const MainGameScene::Occurrence occurrenceList[] = {
-#if 0
+#if 0 // ボス動作テスト用.
 	OCC( 5, 400, 0, 0.5f, Boss1st),
-#elif 0
+#elif 0 // 中型機動作テスト用.
 	OCC( 5, 400, 0, 0.5f, Middle2),
 #else
 	OCC( 5, 600, 0, 0.5f, A),
@@ -375,6 +375,7 @@ bool MainGameScene::Load(::Scene::Context& context)
 	Audio::Engine& audio = Audio::Engine::Get();
 	seBomb = audio.Prepare(L"Res/SE/Bomb.wav");
 	seHit = audio.Prepare(L"Res/SE/Hit.wav");
+	seBombBoss = audio.Prepare(L"Res/SE/BombBoss.wav");
 	sePlayerShot = audio.Prepare(L"Res/SE/PlayerShot.wav");
 	bgm = Audio::Engine::Get().PrepareStream(L"Res/SE/MainGame.xwm");
 	bgm->SetVolume(2.0f);
@@ -393,6 +394,7 @@ bool MainGameScene::Unload(::Scene::Context&)
 {
 	bgm->Stop();
 	bgm.reset();
+	seBombBoss.reset();
 	seBomb.reset();
 	seHit.reset();
 	sePlayerShot.reset();
@@ -874,6 +876,7 @@ void MainGameScene::SolveCollision(::Scene::Context& context)
 		switch (b.animeController.GetSeqIndex()) {
 		case EnemyAnmId_SmallFighter:
 			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+			b.actController.SetGenerator(nullptr);
 			b.SetCollisionId(CSID_None);
 			b.SetAction(Enemy00ActId_Destroyed);
 			context.score += 100;
@@ -884,6 +887,7 @@ void MainGameScene::SolveCollision(::Scene::Context& context)
 		case EnemyAnmId_3Way_BackMove:
 		case EnemyAnmId_3Way_Attack:
 			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+			b.actController.SetGenerator(nullptr);
 			b.SetCollisionId(CSID_None);
 			b.SetAction(1);
 			context.score += 200;
@@ -892,6 +896,7 @@ void MainGameScene::SolveCollision(::Scene::Context& context)
 			break;
 		case EnemyAnmId_MiddleFighter:
 			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+			b.actController.SetGenerator(nullptr);
 			b.scale = XMFLOAT2(2, 2);
 			b.SetCollisionId(CSID_None);
 			b.SetAction(2);
@@ -901,13 +906,27 @@ void MainGameScene::SolveCollision(::Scene::Context& context)
 			break;
 		case EnemyAnmId_Boss1st:
 			b.animeController.SetSeqIndex(EnemyAnmId_Destroyed);
-			b.scale = XMFLOAT2(4, 4);
+			b.actController.SetGenerator(nullptr);
 			b.SetCollisionId(CSID_None);
-			b.SetAction(1);
+			b.SetActionList(nullptr);
 			context.score += 5000;
-			seBomb->Play();
+			seBombBoss->Play();
 			VibrateGamePad(GamePadId_1P, 2);
 			clearTime = time + 5.0f;
+			{
+				static const XMVECTORF32 pos[] = { { 0, 0 }, {-100, 50}, { 100, 50 } };
+				for (int i = 0; i < _countof(pos); ++i) {
+					if (freeEnemyList.empty()) {
+						break;
+					}
+					Sprite::Sprite* p = freeEnemyList.back();
+					freeEnemyList.pop_back();
+					XMStoreFloat3(&p->pos, XMVectorAdd(pos[i], XMLoadFloat3(&b.pos)));
+					p->animeController.SetSeqIndex(EnemyAnmId_Destroyed);
+					p->scale = XMFLOAT2(4, 4);
+					p->SetActionList(nullptr);
+				}
+			}
 			break;
 		}
 		return CollisionResult::FilterOut;

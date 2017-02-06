@@ -70,6 +70,7 @@ private:
 	double clearTime;
 
 	Audio::SoundPtr seBomb;
+	Audio::SoundPtr seBombBoss;
 	Audio::SoundPtr seHit;
 	Audio::SoundPtr sePlayerShot;
 	Audio::SoundPtr bgm;
