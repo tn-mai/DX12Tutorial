@@ -540,7 +540,7 @@ public:
 			Sprite::Sprite* pSprite = freeList.back();
 			freeList.pop_back();
 			XMStoreFloat3(&pSprite->pos, XMVectorAdd(XMLoadFloat3(&spr->pos), itr->pos));
-			pSprite->rotation = (itr->dir - 270) * 3.1415926f / 180.0f;
+			pSprite->rotation = (270 - itr->dir) * 3.1415926f / 180.0f;
 			pSprite->actController.SetManualMove(itr->dir, s);
 			pSprite->SetSeqIndex(EnemyAnmId_Shot00);
 			pSprite->SetCollisionId(CSID_EnemyShot_Normal);
