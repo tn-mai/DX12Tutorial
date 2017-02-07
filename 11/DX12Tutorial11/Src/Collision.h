@@ -4,56 +4,34 @@
 #ifndef DX12TUTORIAL_SRC_COLLISION_H_
 #define DX12TUTORIAL_SRC_COLLISION_H_
 #include <DirectXMath.h>
-#include <functional>
-#include <map>
 
+/**
+* 当たり判定名前空間.
+*/
 namespace Collision {
 
+/**
+* 当たり判定の形.
+*/
 enum class ShapeType
 {
-	Circle,
-	Rectangle,
+	Circle, ///< 円形.
+	Rectangle, ///< 長方形.
 };
 
+/**
+* 当たり判定用の形状オブジェクト.
+*
+* MakeCircle, MakeRectangle関数で形状を作成できる.
+*/
 struct Shape
 {
-	Shape() : type(ShapeType::Circle), circle{ 0.1f } {}
-	Shape(const Shape& src) : type(src.type)
-	{
-		switch (type) {
-		case ShapeType::Circle:
-			circle.radius = src.circle.radius;
-			break;
-		case ShapeType::Rectangle:
-			rect.leftTop = src.rect.leftTop;
-			rect.rightBottom = src.rect.rightBottom;
-			break;
-		}
-	}
+	static Shape MakeCircle(float r);
+	static Shape MakeRectangle(const DirectX::XMFLOAT2& lt, const DirectX::XMFLOAT2& rb);
+	Shape();
+	Shape(const Shape& src);
+	Shape& operator=(const Shape& src);
 	~Shape() {}
-
-	Shape& operator=(const Shape& src)
-	{
-		this->~Shape();
-		new(this) Shape(src);
-		return *this;
-	}
-
-	static Shape MakeCircle(float r)
-	{
-		Shape shape;
-		shape.type = ShapeType::Circle;
-		shape.circle.radius = r;
-		return shape;
-	}
-	static Shape MakeRectangle(const DirectX::XMFLOAT2& lt, const DirectX::XMFLOAT2& rb)
-	{
-		Shape shape;
-		shape.type = ShapeType::Rectangle;
-		shape.rect.leftTop = lt;
-		shape.rect.rightBottom = rb;
-		return shape;
-	}
 
 	ShapeType type;
 	int groupId;
