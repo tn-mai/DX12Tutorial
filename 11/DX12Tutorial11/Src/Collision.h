@@ -34,7 +34,6 @@ struct Shape
 	~Shape() {}
 
 	ShapeType type;
-	int groupId;
 	union {
 		struct Circle
 		{
