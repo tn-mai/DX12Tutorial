@@ -255,8 +255,8 @@ void InitGamePad()
 GamePad& GetGamePad(uint32_t id) {
 	static GamePad gamepad[countof_GamePadId] = {};
 	if (id >= countof_GamePadId) {
-		static GamePad dummy = {};
-		dummy.buttons = 0;
+		static GamePad dummy;
+		dummy = {};
 		return dummy;
 	}
 	return gamepad[id];
