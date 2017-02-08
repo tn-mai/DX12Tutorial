@@ -90,7 +90,6 @@ bool TitleScene::Load(::Scene::Context&)
 */
 bool TitleScene::Unload(::Scene::Context&)
 {
-	seStart.reset();
 	return true;
 }
 

@@ -394,11 +394,6 @@ bool MainGameScene::Load(::Scene::Context& context)
 bool MainGameScene::Unload(::Scene::Context&)
 {
 	bgm->Stop();
-	bgm.reset();
-	seBombBoss.reset();
-	seBomb.reset();
-	seHit.reset();
-	sePlayerShot.reset();
 	return true;
 }
 

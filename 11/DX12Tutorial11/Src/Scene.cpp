@@ -65,9 +65,8 @@ bool TransitionController::Start(Context& context, int startSceneId)
 */
 void TransitionController::Stop(Context& context)
 {
-	const auto rend = sceneStack.rend();
-	for (auto ri = sceneStack.rbegin(); ri != rend; ++ri) {
-		ri->p->Unload(context);
+	while (!sceneStack.empty()) {
+		UnloadScene(context);
 	}
 }
 
