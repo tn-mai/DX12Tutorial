@@ -13,12 +13,12 @@ using Microsoft::WRL::ComPtr;
 
 namespace Audio {
 
-const uint32_t FOURCC_RIFF_TAG = 'FFIR';
-const uint32_t FOURCC_FORMAT_TAG = ' tmf';
-const uint32_t FOURCC_DATA_TAG = 'atad';
-const uint32_t FOURCC_WAVE_FILE_TAG = 'EVAW';
-const uint32_t FOURCC_XWMA_FILE_TAG = 'AMWX';
-const uint32_t FOURCC_XWMA_DPDS = 'sdpd';
+const uint32_t FOURCC_RIFF_TAG = MAKEFOURCC('R', 'I', 'F', 'F');
+const uint32_t FOURCC_FORMAT_TAG = MAKEFOURCC('f', 'm', 't', ' ');
+const uint32_t FOURCC_DATA_TAG = MAKEFOURCC('d', 'a', 't', 'a');
+const uint32_t FOURCC_WAVE_FILE_TAG = MAKEFOURCC('W', 'A', 'V', 'E');
+const uint32_t FOURCC_XWMA_FILE_TAG = MAKEFOURCC('X', 'W', 'M', 'A');
+const uint32_t FOURCC_XWMA_DPDS = MAKEFOURCC('d', 'p', 'd', 's');
 
 struct RIFFChunk
 {
@@ -399,22 +399,12 @@ public:
 	}
 
 	virtual bool Update() override {
-		for (auto itr = soundList.begin(); itr != soundList.end();) {
-			if (itr->use_count() > 1) {
-				++itr;
-				continue;
-			}
-			XAUDIO2_VOICE_STATE state;
-			(*itr)->sourceVoice->GetState(&state);
-			if (state.BuffersQueued > 0) {
-				++itr;
-			} else {
-				itr = soundList.erase(itr);
-			}
-		}
+		soundList.remove_if(
+			[](const SoundList::value_type& p) { return (p.use_count() <= 1) && (p->GetState() & State_Stopped); }
+		);
 		if (streamSound) {
 			streamSound->Update();
-			if ((streamSound.use_count() == 1) && streamSound->GetState() & State_Stopped) {
+			if ((streamSound.use_count() <= 1) && (streamSound->GetState() & State_Stopped)) {
 				streamSound.reset();
 			}
 		}
