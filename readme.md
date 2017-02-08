@@ -1,3 +1,3 @@
-–^Š‚ÌuDirectX 12‚É‚æ‚é2DƒQ[ƒ€ì¬vu‹`‚ÉŽg‚Á‚½Ž‘—¿’u‚«ê‚Å‚·B
+æŸæ‰€ã®ã€ŒDirectX 12ã«ã‚ˆã‚‹2Dã‚²ãƒ¼ãƒ ä½œæˆã€è¬›ç¾©ã«ä½¿ã£ãŸè³‡æ–™ç½®ãå ´ã§ã™ã€‚
 
-‚¨‚©‚µ‚È‚Æ‚±‚ë‚ðŒ©‚Â‚¯‚½‚çPull-Request‚­‚¾‚³‚¢B
+ãŠã‹ã—ãªã¨ã“ã‚ã‚’è¦‹ã¤ã‘ãŸã‚‰Pull-Requestãã ã•ã„ã€‚
