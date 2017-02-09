@@ -212,6 +212,7 @@ bool InitializeD3D()
 
 void FinalizeD3D()
 {
+	sceneController.Stop();
 	Graphics::Graphics::Get().Finalize();
 }
 

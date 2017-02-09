@@ -60,6 +60,15 @@ bool TransitionController::Start(int startSceneId)
 }
 
 /**
+* 遷移を終了する.
+*/
+void TransitionController::Stop()
+{
+	while (!sceneStack.empty()) {
+		UnloadScene();
+	}
+}
+/**
 * シーンを更新する.
 *
 * @param delta 経過時間(秒).

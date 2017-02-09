@@ -103,6 +103,7 @@ class TransitionController
 public:
 	bool Initialize(const Transition* transitionList, size_t transitionCount, const Creator* creatorList, size_t creatorCount);
 	bool Start(int);
+	void Stop();
 	void Update(double delta);
 	void Draw(Graphics::Graphics&) const;
 
