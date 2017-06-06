@@ -72,6 +72,7 @@ ComPtr<ID3D12DescriptorHeap> csuDescriptorHeap;
 int csuDescriptorSize;
 Texture::Texture texNoise;
 Texture::Texture texBackground;
+Texture::Texture texTerrain;
 
 bool InitializeD3D();
 void FinalizeD3D();
@@ -673,7 +674,8 @@ void DrawRectangle()
 	PSO& pso = psoList[PSOType_NoiseTexture];
 	commandList->SetPipelineState(pso.pso.Get());
 	commandList->SetGraphicsRootSignature(pso.rootSignature.Get());
-	commandList->SetGraphicsRootDescriptorTable(0, texBackground.handle);
+//	commandList->SetGraphicsRootDescriptorTable(0, texBackground.handle);
+	commandList->SetGraphicsRootDescriptorTable(0, texTerrain.handle);
 	commandList->IASetIndexBuffer(&indexBufferView);
 	commandList->DrawIndexedInstanced(_countof(indices), 1, 0, triangleVertexCount, 0);
 }
@@ -762,6 +764,9 @@ bool LoadTexture()
 		return false;
 	}
 	if (!loader.LoadFromFile(texBackground, 0, L"Res/UnknownPlanet.png")) {
+		return false;
+	}
+	if (!loader.LoadFromFile(texTerrain, 0, L"Res/terrain.png")) {
 		return false;
 	}
 	if (!CreateNoiseTexture(loader)) {

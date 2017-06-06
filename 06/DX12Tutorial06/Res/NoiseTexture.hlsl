@@ -31,9 +31,9 @@ float4 main(PSInput input) : SV_TARGET
 	float scale = 0.5f;
 	float freq = 4.0f;
 	for (float i = 0; i <= 4; ++i) {
-		value += Noise(input.texcoord * freq) * scale;;
+		value += Noise(input.texcoord * freq) * scale;
 		scale *= 0.5f;
 		freq *= 2.0f;
 	}
-	return value + t0.Sample(s0, input.texcoord) * input.color;
+	return t0.Sample(s0, float2(value, input.texcoord.y * 4.0f)) * input.color;
 }
