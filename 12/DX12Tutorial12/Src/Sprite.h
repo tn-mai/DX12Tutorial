@@ -55,7 +55,7 @@ struct Sprite
 	DirectX::XMFLOAT3 pos; ///< スクリーン座標上のスプライトの位置.
 	float rotation; ///< 画像の回転角(ラジアン).
 	DirectX::XMFLOAT2 scale; ///< 画像の拡大率.
-	DirectX::XMFLOAT4 color; ///< 画像の色.
+	DirectX::XMFLOAT4 color[2]; ///< 画像の色.
 };
 
 /**
@@ -135,5 +135,6 @@ typedef std::shared_ptr<File> FilePtr;
 
 FilePtr LoadFromJsonFile(const wchar_t*);
 CellList LoadFontFromFile(const wchar_t*);
+float GetTextWidth(const CellList& cellList, const char* text);
 
 } // namespace Sprite

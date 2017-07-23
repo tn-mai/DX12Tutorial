@@ -46,29 +46,31 @@ XMFLOAT3 RotateZ(XMVECTOR c, float x, float y, float r)
 */
 void AddVertex(const Sprite& sprite, const Cell* cell, const AnimationData& anm, Vertex* v, XMFLOAT2 offset)
 {
-	const XMVECTORF32 center{ offset.x + sprite.pos.x + cell->offset.x * sprite.scale.x, offset.y - sprite.pos.y + cell->offset.y * sprite.scale.y, sprite.pos.z, 0.0f };
+	const XMVECTORF32 center{ offset.x + sprite.pos.x + cell->offset.x * sprite.scale.x, offset.y - sprite.pos.y - cell->offset.y * sprite.scale.y, sprite.pos.z, 0.0f };
 	const XMFLOAT2 halfSize{ cell->ssize.x * 0.5f * sprite.scale.x * anm.scale.x, cell->ssize.y * 0.5f * sprite.scale.y * anm.scale.y };
 
-	const XMVECTOR vcolor = XMVectorMultiply(XMLoadFloat4(&sprite.color), XMLoadFloat4(&anm.color));
-	for (int i = 0; i < 4; ++i) {
-		XMStoreFloat4(&v[i].color, vcolor);
-	}
+	const XMVECTOR vcolor0 = XMVectorMultiply(XMLoadFloat4(&sprite.color[0]), XMLoadFloat4(&anm.color));
+	const XMVECTOR vcolor1 = XMVectorMultiply(XMLoadFloat4(&sprite.color[1]), XMLoadFloat4(&anm.color));
 	const float rot = sprite.rotation + anm.rotation;
 	v[0].position = RotateZ(center, -halfSize.x, halfSize.y, rot);
 	v[0].texcoord.x = cell->uv.x;
 	v[0].texcoord.y = cell->uv.y;
+	XMStoreFloat4(&v[0].color, vcolor0);
 
 	v[1].position = RotateZ(center, halfSize.x, halfSize.y, rot);
 	v[1].texcoord.x = cell->uv.x + cell->tsize.x;
 	v[1].texcoord.y = cell->uv.y;
+	XMStoreFloat4(&v[1].color, vcolor0);
 
 	v[2].position = RotateZ(center, halfSize.x, -halfSize.y, rot);
 	v[2].texcoord.x = cell->uv.x + cell->tsize.x;
 	v[2].texcoord.y = cell->uv.y + cell->tsize.y;
+	XMStoreFloat4(&v[2].color, vcolor1);
 
 	v[3].position = RotateZ(center, -halfSize.x, -halfSize.y, rot);
 	v[3].texcoord.x = cell->uv.x;
 	v[3].texcoord.y = cell->uv.y + cell->tsize.y;
+	XMStoreFloat4(&v[3].color, vcolor1);
 }
 
 } // unnamed namedpace
@@ -80,7 +82,7 @@ Sprite::Sprite(const AnimationList* al, DirectX::XMFLOAT3 p, float rot, DirectX:
 	pos(p),
 	rotation(rot),
 	scale(s),
-	color(col)
+	color{ col, col }
 {
 }
 
@@ -461,9 +463,14 @@ CellList LoadFontFromFile(const wchar_t* filename)
   }
 
   int line = 1;
+  char name[128];
   size_t nextOffset = 0;
-  int ret = sscanf(&buffer[nextOffset], "info face=%*s size=%*d bold=%*d italic=%*d charset=%*s"
-    " unicode=%*d stretchH=%*d smooth=%*d aa=%*d padding=%*d,%*d,%*d,%*d spacing=%*d,%*d");
+  int ret = sscanf(&buffer[nextOffset], "info face=%127s size=%*d bold=%*d italic=%*d charset=%*s"
+    " unicode=%*d stretchH=%*d smooth=%*d aa=%*d padding=%*d,%*d,%*d,%*d spacing=%*d,%*d", name);
+  if (ret < 1) {
+	  std::cerr << "ERROR: '" << filename << "'‚Ì“Ç‚Ýž‚Ý‚ÉŽ¸”s(line=" << line << ")" << std::endl;
+	  return {};
+  }
   ++line;
 
   nextOffset = buffer.find('\n', nextOffset) + 1;
@@ -477,12 +484,7 @@ CellList LoadFontFromFile(const wchar_t* filename)
   ++line;
 
   nextOffset = buffer.find('\n', nextOffset) + 1;
-  char tex[128];
-  ret = sscanf(&buffer[nextOffset], " page id=%*d file=%127s", tex);
-  if (ret < 1) {
-    std::cerr << "ERROR: '" << filename << "'‚Ì“Ç‚Ýž‚Ý‚ÉŽ¸”s(line=" << line << ")" << std::endl;
-    return {};
-  }
+  ret = sscanf(&buffer[nextOffset], " page id=%*d file=%*s");
   ++line;
 
   nextOffset = buffer.find('\n', nextOffset) + 1;
@@ -495,7 +497,7 @@ CellList LoadFontFromFile(const wchar_t* filename)
   ++line;
 
   CellList fontList;
-  fontList.list.resize(128);
+  fontList.list.resize(256);
   for (int i = 0; i < charCount; ++i) {
     nextOffset = buffer.find('\n', nextOffset);
     if (nextOffset == std::string::npos) {
@@ -503,27 +505,46 @@ CellList LoadFontFromFile(const wchar_t* filename)
     }
     ++nextOffset;
 
-    int charCode;
+    unsigned int charCode;
     Cell cell;
     XMFLOAT2 uv, size, offset;
 	float xadvance;
-    ret = sscanf(&buffer[nextOffset], " char id=%d x=%f y=%f width=%f height=%f xoffset=%f yoffset=%f xadvance=%f page=%*d chnl=%*d", &charCode, &uv.x, &uv.y, &size.x, &size.y, &offset.x, &offset.y, &xadvance);
-    if (ret < 7) {
+    ret = sscanf(&buffer[nextOffset], " char id=%u x=%f y=%f width=%f height=%f xoffset=%f yoffset=%f xadvance=%f page=%*d chnl=%*d", &charCode, &uv.x, &uv.y, &size.x, &size.y, &offset.x, &offset.y, &xadvance);
+    if (ret < 8) {
       std::cerr << "ERROR: '" << filename << "'‚Ì“Ç‚Ýž‚Ý‚ÉŽ¸”s(line=" << line << ")" << std::endl;
       return {};
     }
     cell.uv = XMFLOAT2(uv.x * reciprocalScale.x, uv.y * reciprocalScale.y);
     cell.tsize = XMFLOAT2(size.x * reciprocalScale.x, size.y * reciprocalScale.y);
     cell.ssize = XMFLOAT2(size.x, size.y);
-	cell.offset = XMFLOAT2(-size.x * 0.5f + offset.x, -size.y * 0.5f - offset.y + 12);
+	cell.offset = XMFLOAT2(size.x * 0.5f + offset.x, size.y * 0.5f + offset.y);
 	cell.xadvance = xadvance;
-    if (charCode >= ' ' && charCode < 128) {
-      fontList.list[charCode - ' '] = cell;
+    if (charCode >= 0 && charCode < fontList.list.size()) {
+      fontList.list[charCode] = cell;
     }
     ++line;
   }
-  fontList.name.assign(tex + 1);
+  fontList.name.assign(name + 1);
+  fontList.name.pop_back();
   return fontList;
+}
+
+/**
+* •¶Žš—ñ‚Ì•`‰æ”ÍˆÍ‚Ì‰¡•‚ðŽæ“¾‚·‚é.
+*
+* @param cellList •¶ŽšƒtƒHƒ“ƒgî•ñ‚ðŠi”[‚µ‚Ä‚¢‚éƒZƒ‹ƒŠƒXƒg.
+* @param text     •¶Žš—ñ.
+*
+* @return •¶Žš—ñ‚Ì‰¡•.
+*/
+float GetTextWidth(const CellList& cellList, const char* text)
+{
+	float width = 0;
+	while (*text != '\0') {
+		width += cellList.list[*text].xadvance;
+		++text;
+	}
+	return width;
 }
 
 } // namespace Sprite

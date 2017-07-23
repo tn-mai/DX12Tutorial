@@ -6,6 +6,7 @@
 #include "../PSO.h"
 #include "../GamePad.h"
 #include <DirectXMath.h>
+#include <numeric>
 
 using namespace DirectX;
 
@@ -49,10 +50,7 @@ bool TitleScene::Load(::Scene::Context&)
 	if (!graphics.texMap.LoadFromFile(texLogo, L"Res/Title.png")) {
 		return false;
 	}
-	if (!graphics.texMap.LoadFromFile(texFont, L"Res/TextFont.png")) {
-		return false;
-	}
-	if (!graphics.texMap.LoadFromFile(texFont2, L"Res/Font.png")) {
+	if (!graphics.texMap.LoadFromFile(texFont, L"Res/FontPhenomena.png")) {
 		return false;
 	}
 	ID3D12CommandList* ppCommandLists[] = { graphics.texMap.End() };
@@ -60,7 +58,7 @@ bool TitleScene::Load(::Scene::Context&)
 
 	cellFile = Sprite::LoadFromJsonFile(L"Res/Cell/CellFont.json");
 	animationFile = LoadAnimationFromJsonFile(L"Res/Anm/AnmTitle.json");
-	fontCellList = Sprite::LoadFontFromFile(L"Res/Font.fnt");
+	fontCellList = Sprite::LoadFontFromFile(L"Res/FontPhenomena.fnt");
 
 	graphics.WaitForGpu();
 	graphics.texMap.ResetLoader();
@@ -68,20 +66,30 @@ bool TitleScene::Load(::Scene::Context&)
 	sprBackground.push_back(Sprite::Sprite(&animationFile[0], XMFLOAT3(400, 300, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
 
-	sprLogo.push_back(Sprite::Sprite(&animationFile[0], XMFLOAT3(400, 200, 0.9f)));
-	sprLogo[0].SetSeqIndex(1);
-
-	static const char text[] = "START";
-	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 400, 0.8f);
-	XMFLOAT3 textPos2(400 - (_countof(text) - 2) * 12, 450, 0.8f);
-	for (const char c : text) {
-		if (c >= ' ' && c < '`') {
-			sprFont2.push_back(Sprite::Sprite(nullptr, textPos2, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
-			sprFont2.back().SetCellIndex(c - ' ');
-			sprFont.push_back(Sprite::Sprite(nullptr, textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
-			sprFont.back().SetCellIndex(c - ' ');
-			textPos.x += 32.0f;
-			textPos2.x += fontCellList.list[c - ' '].xadvance;
+	{
+		static const char text[] = "RaNDoM MiX";
+		static const XMFLOAT2 scale(2, 4);
+		const float len = Sprite::GetTextWidth(fontCellList, text) * scale.x;
+		XMFLOAT3 textPos(400 - len * 0.5f, 50, 0.8f);
+		for (const char c : text) {
+			sprLogo.push_back(Sprite::Sprite(nullptr, textPos, 0, scale));
+			sprLogo.back().SetCellIndex(c);
+			sprLogo.back().color[0] = XMFLOAT4(0.5f, 1.0f, 1.0f, 1.0f);
+			sprLogo.back().color[1] = XMFLOAT4(0.25f, 0.125f, 1.0f, 1.0f);
+			textPos.x += fontCellList.list[c].xadvance * scale.x;
+		}
+	}
+	{
+		static const char text[] = "Push any button to start";
+		static const XMFLOAT2 scale(1, 1);
+		const float len = Sprite::GetTextWidth(fontCellList, text) * scale.x;
+		XMFLOAT3 textPos(400 - len * 0.5f, 400, 0.8f);
+		for (const char c : text) {
+			sprFont.push_back(Sprite::Sprite(nullptr, textPos, 0, scale));
+			sprFont.back().SetCellIndex(c);
+			sprFont.back().color[1] = XMFLOAT4(0.5f, 1.0f, 1.0f, 1.0f);
+			sprFont.back().color[0] = XMFLOAT4(0.25f, 0.5f, 1.0f, 1.0f);
+			textPos.x += fontCellList.list[c].xadvance * scale.x;
 		}
 	}
 
@@ -113,7 +121,8 @@ int TitleScene::Update(::Scene::Context&, double delta)
 	time += delta;
 	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));
 	for (auto& e : sprFont) {
-		e.color.w = brightness;
+		e.color[0].w = brightness;
+		e.color[1].w = brightness;
 	}
 
 	for (Sprite::Sprite& sprite : sprBackground) {
@@ -170,7 +179,6 @@ void TitleScene::Draw(Graphics::Graphics& graphics) const
 	spriteRenderingInfo.matViewProjection = graphics.matViewProjection;
 
 	graphics.spriteRenderer.Draw(sprBackground, cellList, GetPSO(PSOType_Sprite), texBackground, spriteRenderingInfo);
-	graphics.spriteRenderer.Draw(sprLogo, cellList, GetPSO(PSOType_Sprite), texLogo, spriteRenderingInfo);
-	graphics.spriteRenderer.Draw(sprFont, cellFile->Get(0)->list.data(), GetPSO(PSOType_Sprite), texFont, spriteRenderingInfo);
-    graphics.spriteRenderer.Draw(sprFont2, fontCellList.list.data(), GetPSO(PSOType_Sprite), texFont2, spriteRenderingInfo);
+	graphics.spriteRenderer.Draw(sprLogo, fontCellList.list.data(), GetPSO(PSOType_Sprite), texFont, spriteRenderingInfo);
+	graphics.spriteRenderer.Draw(sprFont, fontCellList.list.data(), GetPSO(PSOType_Sprite), texFont, spriteRenderingInfo);
 }

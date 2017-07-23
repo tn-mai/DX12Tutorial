@@ -84,7 +84,8 @@ int PauseScene::Update(::Scene::Context&, double delta)
 	time += delta;
 	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0)) > 0.5f ? 1.0f : 0.0f;
 	for (auto& e : sprFont) {
-		e.color.w = brightness;
+		e.color[0].w = brightness;
+		e.color[1].w = brightness;
 	}
 
 	for (Sprite::Sprite& sprite : sprFont) {

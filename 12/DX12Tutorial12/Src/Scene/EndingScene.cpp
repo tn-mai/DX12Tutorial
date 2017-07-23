@@ -118,8 +118,9 @@ int EndingScene::Update(::Scene::Context&, double delta)
 	time += delta;
 	const float brightness = static_cast<float>(std::fabs(std::fmod(time, 2.0) - 1.0));
 	for (auto& e : sprFont) {
-		if (e.color.y == 0.0f) {
-			e.color.w = brightness;
+		if (e.color[0].y == 0.0f) {
+			e.color[0].w = brightness;
+			e.color[1].w = brightness;
 		}
 	}
 

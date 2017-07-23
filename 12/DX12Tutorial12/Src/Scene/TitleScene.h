@@ -33,11 +33,9 @@ private:
 	Resource::Texture texBackground;
 	Resource::Texture texLogo;
 	Resource::Texture texFont;
-    Resource::Texture texFont2;
     std::vector<Sprite::Sprite> sprBackground;
 	std::vector<Sprite::Sprite> sprLogo;
 	std::vector<Sprite::Sprite> sprFont;
-    std::vector<Sprite::Sprite> sprFont2;
     Sprite::FilePtr cellFile;
     Sprite::CellList fontCellList;
 	AnimationFile animationFile;

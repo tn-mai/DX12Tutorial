@@ -797,7 +797,7 @@ void MainGameScene::UpdateEnemy(double delta)
 			freeEnemyList.push_back(&p);
 			continue;
 		}
-		p.color = XMFLOAT4(1, 1, 1, 1);
+		p.color[0] = p.color[1] = XMFLOAT4(1, 1, 1, 1);
 	}
 	for (size_t i = EID_EnemyShot; i < EID_EnemyShot + enemyShotCount; ++i) {
 		Sprite::Sprite& p = sprEnemy[i];
@@ -829,7 +829,8 @@ void MainGameScene::UpdateScore(uint32_t score)
 			if (c > '0') {
 				active = true;
 			}
-			sprFont[i].color.w = active ? 1.0f : 0.5f;
+			sprFont[i].color[0].w = active ? 1.0f : 0.5f;
+			sprFont[i].color[1].w = active ? 1.0f : 0.5f;
 			sprFont[i++].SetSeqIndex(c - ' ');
 		}
 	}
@@ -865,7 +866,7 @@ void MainGameScene::SolveCollision(::Scene::Context& context)
 		freePlayerShotList.push_back(&a);
 		if (--b.hp > 0) {
 			context.score += 10;
-			b.color = XMFLOAT4(1, 0, 0, 1);
+			b.color[0] = b.color[1] = XMFLOAT4(1, 0, 0, 1);
 			seHit->Play();
 			return CollisionResult::FilterOut;
 		}

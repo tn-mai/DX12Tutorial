@@ -10,5 +10,7 @@ struct PSInput
 
 float4 main(PSInput input) : SV_TARGET
 {
-	return t0.Sample(s0, input.texcoord) * input.color;
+	float4 tex = t0.Sample(s0, input.texcoord);
+	tex.a = smoothstep(0.4, 0.6, tex.a);
+	return tex * input.color;
 }

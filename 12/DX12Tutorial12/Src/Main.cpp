@@ -289,15 +289,6 @@ void Update(double delta)
 		spriteList[0].rotation -= 3.1415f * 2.0f;
 	}
 #endif
-	static uint32_t seqNo = 0;
-	if (gamepad.buttons & GamePad::A) {
-		++seqNo;
-		if (seqNo >= graphics.spriteList[0].animeController.GetSeqCount()) {
-			seqNo = 0;
-		}
-		graphics.spriteList[0].animeController.SetSeqIndex(seqNo);
-	}
-
 	for (Sprite::Sprite& sprite : graphics.spriteList) {
 		sprite.animeController.Update(delta);
 	}
