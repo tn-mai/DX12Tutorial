@@ -56,7 +56,7 @@ bool GameOverScene::Load(::Scene::Context& context)
 	graphics.WaitForGpu();
 	graphics.texMap.ResetLoader();
 
-	sprBackground.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 300, 1.0f)));
+	sprBackground.push_back(Sprite::Sprite(&animationFile[0], XMFLOAT3(400, 300, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
 
 	sprFont.reserve(256);
@@ -65,7 +65,7 @@ bool GameOverScene::Load(::Scene::Context& context)
 		XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 300, 0.8f);
 		for (const char c : text) {
 			if (c >= ' ' && c < '`') {
-				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f)));
+				sprFont.push_back(Sprite::Sprite(&animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f)));
 				sprFont.back().SetSeqIndex(c - ' ');
 				textPos.x += 32.0f;
 			}
@@ -82,7 +82,7 @@ bool GameOverScene::Load(::Scene::Context& context)
 				if (c > '0') {
 					alpha = 1.0f;
 				}
-				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, alpha)));
+				sprFont.push_back(Sprite::Sprite(&animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, alpha)));
 				sprFont.back().SetSeqIndex(c - ' ');
 				textPos.x += 32.0f;
 			}

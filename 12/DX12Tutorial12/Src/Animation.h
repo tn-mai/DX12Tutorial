@@ -46,9 +46,14 @@ typedef std::vector<AnimationList> AnimationFile;
 class AnimationController
 {
 public:
-	AnimationController() = delete;
-	explicit AnimationController(const AnimationList& list);
-	void SetSeqIndex(uint32_t no);
+	AnimationController() = default;
+	explicit AnimationController(const AnimationList* list);
+	AnimationController(const AnimationController&) = default;
+	~AnimationController() = default;
+	AnimationController& operator=(const AnimationController&) = default;
+
+	void SetSeqIndex(uint32_t index);
+	void SetCellIndex(uint32_t index);
 	void Update(double delta);
 	const AnimationData& GetData() const;
 	size_t GetSeqCount() const;
@@ -56,10 +61,10 @@ public:
 	bool IsFinished() const;
 
 private:
-	const AnimationList& list;
-	uint32_t seqIndex;
-	uint32_t cellIndex;
-	double time;
+	const AnimationList* list = nullptr;
+	uint32_t seqIndex = 0;
+	uint32_t cellIndex = 0;
+	double time = 0;
 };
 
 const AnimationList& GetAnimationList();

@@ -61,18 +61,18 @@ bool TitleScene::Load(::Scene::Context&)
 	graphics.WaitForGpu();
 	graphics.texMap.ResetLoader();
 
-	sprBackground.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 300, 1.0f)));
+	sprBackground.push_back(Sprite::Sprite(&animationFile[0], XMFLOAT3(400, 300, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
 
-	sprLogo.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 200, 0.9f)));
+	sprLogo.push_back(Sprite::Sprite(&animationFile[0], XMFLOAT3(400, 200, 0.9f)));
 	sprLogo[0].SetSeqIndex(1);
 
 	static const char text[] = "START";
 	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 400, 0.8f);
 	for (const char c : text) {
 		if (c >= ' ' && c < '`') {
-			sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
-			sprFont.back().SetSeqIndex(c - ' ');
+			sprFont2.push_back(Sprite::Sprite(nullptr, textPos2, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
+			sprFont2.back().SetCellIndex(c - ' ');
 			textPos.x += 32.0f;
 		}
 	}

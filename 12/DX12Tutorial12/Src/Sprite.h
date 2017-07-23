@@ -32,8 +32,9 @@ struct Cell {
 struct Sprite
 {
 	Sprite() = delete;
-	Sprite(const AnimationList& al, DirectX::XMFLOAT3 p, float rot = 0, DirectX::XMFLOAT2 s = DirectX::XMFLOAT2(1, 1), DirectX::XMFLOAT4 col = DirectX::XMFLOAT4(1, 1, 1, 1));
+	Sprite(const AnimationList* al, DirectX::XMFLOAT3 p, float rot = 0, DirectX::XMFLOAT2 s = DirectX::XMFLOAT2(1, 1), DirectX::XMFLOAT4 col = DirectX::XMFLOAT4(1, 1, 1, 1));
 	void SetSeqIndex(uint32_t no) { animeController.SetSeqIndex(no); }
+	void SetCellIndex(uint32_t no) { animeController.SetCellIndex(no); }
 	void SetActionList(const Action::List* al) { actController.SetList(al); }
 	void SetAction(uint32_t no) { actController.SetSeqIndex(no); }
 	void SetCollisionId(int32_t id) { collisionId = id; }

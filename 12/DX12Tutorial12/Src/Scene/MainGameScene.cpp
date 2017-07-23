@@ -340,19 +340,19 @@ bool MainGameScene::Load(::Scene::Context& context)
 	pEndOccurrence = occurrenceList + _countof(occurrenceList);
 	clearTime = (pEndOccurrence - 1)->time;
 
-	sprBackground.push_back(Sprite::Sprite(anmOthers[0], XMFLOAT3(400, 300, 1.0f)));
+	sprBackground.push_back(Sprite::Sprite(&anmOthers[0], XMFLOAT3(400, 300, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
 
 	sprPlayer.reserve(playerSpriteCount);
-	sprPlayer.push_back(Sprite::Sprite(anmObjects[1], XMFLOAT3(400, 550, 0.4f)));
+	sprPlayer.push_back(Sprite::Sprite(&anmObjects[1], XMFLOAT3(400, 550, 0.4f)));
 	sprPlayer[0].SetSeqIndex(0);
 	sprPlayer[0].SetCollisionId(CSID_Player);
-	sprPlayer.resize(playerSpriteCount, Sprite::Sprite(anmObjects[1], XMFLOAT3(0, -100, 0.4f)));
+	sprPlayer.resize(playerSpriteCount, Sprite::Sprite(&anmObjects[1], XMFLOAT3(0, -100, 0.4f)));
 	for (int i = 0; i < playerShotCount; ++i) {
 		freePlayerShotList.push_back(&sprPlayer[PID_PlayerShot + i]);
 	}
 
-	sprEnemy.resize(enemySpriteCount, Sprite::Sprite(anmObjects[0], XMFLOAT3(0, -100, 0.5f)));
+	sprEnemy.resize(enemySpriteCount, Sprite::Sprite(&anmObjects[0], XMFLOAT3(0, -100, 0.5f)));
 	for (int i = 0; i < enemyCount; ++i) {
 		sprEnemy[EID_Enemy + i].SetCollisionId(CSID_None);
 		freeEnemyList.push_back(&sprEnemy[EID_Enemy + i]);
@@ -367,7 +367,7 @@ bool MainGameScene::Load(::Scene::Context& context)
 	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 32, 0.1f);
 	for (const char c : text) {
 		if (c >= ' ' && c < '`') {
-			sprFont.push_back(Sprite::Sprite(anmOthers[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 0.5f)));
+			sprFont.push_back(Sprite::Sprite(&anmOthers[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 0.5f)));
 			sprFont.back().SetSeqIndex(c - ' ');
 			textPos.x += 32.0f;
 		}

@@ -59,17 +59,17 @@ bool EndingScene::Load(::Scene::Context& context)
 	graphics.WaitForGpu();
 	graphics.texMap.ResetLoader();
 
-	sprBackground.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 300, 1.0f), 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f)));
+	sprBackground.push_back(Sprite::Sprite(&animationFile[0], XMFLOAT3(400, 300, 1.0f), 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f)));
 	sprBackground[0].SetSeqIndex(0);
 
-	sprLogo.push_back(Sprite::Sprite(animationFile[0], XMFLOAT3(400, 200, 0.9f), 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f)));
+	sprLogo.push_back(Sprite::Sprite(&animationFile[0], XMFLOAT3(400, 200, 0.9f), 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f)));
 	sprLogo[0].SetSeqIndex(1);
 	{
 		static const char text[] = "CONGRATULATION";
 		XMFLOAT3 textPos(400 - (_countof(text) - 2) * 24.0f, 348, 0.8f);
 		for (const char c : text) {
 			if (c >= ' ' && c < '`') {
-				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1.5f, 1.5f), XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f)));
+				sprFont.push_back(Sprite::Sprite(&animationFile[1], textPos, 0, XMFLOAT2(1.5f, 1.5f), XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f)));
 				sprFont.back().SetSeqIndex(c - ' ');
 				textPos.x += 48.0f;
 			}
@@ -87,7 +87,7 @@ bool EndingScene::Load(::Scene::Context& context)
 				if (c > '0') {
 					alpha = 1.0f;
 				}
-				sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1.0f, 1.0f), XMFLOAT4(0.5f, 1.0f, 0.5f, alpha)));
+				sprFont.push_back(Sprite::Sprite(&animationFile[1], textPos, 0, XMFLOAT2(1.0f, 1.0f), XMFLOAT4(0.5f, 1.0f, 0.5f, alpha)));
 				sprFont.back().SetSeqIndex(c - ' ');
 				textPos.x += 32.0f;
 				if (!isNumber && c == '/') {

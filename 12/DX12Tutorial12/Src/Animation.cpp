@@ -13,27 +13,38 @@
 *
 * @param al 設定するアニメーションリスト.
 */
-AnimationController::AnimationController(const AnimationList& al)
-	: list(al)
-	, seqIndex(0)
-	, cellIndex(0)
-	, time(0.0f)
+AnimationController::AnimationController(const AnimationList* al) : list(al)
 {
 }
 
 /**
 * アニメーションシーケンスのインデックスを設定する.
 *
-* @param idx 設定するシーケンスインデックス.
+* @param index 設定するシーケンスインデックス.
 */
-void AnimationController::SetSeqIndex(uint32_t idx)
+void AnimationController::SetSeqIndex(uint32_t index)
 {
-	if (idx >= list.list.size()) {
+	if (!list || index >= list->list.size()) {
 		return;
 	}
-	seqIndex = idx;
+	seqIndex = index;
 	cellIndex = 0;
 	time = 0.0f;
+}
+
+/**
+* セルインデックスを直接設定する.
+*
+* @param index 設定するセルインデックス.
+*
+* アニメーションリストが設定されていない場合のみ有効.
+* 設定されている場合は何もしない.
+*/
+void AnimationController::SetCellIndex(uint32_t index)
+{
+	if (!list) {
+		cellIndex = index;
+	}
 }
 
 /**
@@ -43,19 +54,19 @@ void AnimationController::SetSeqIndex(uint32_t idx)
 */
 void AnimationController::Update(double delta)
 {
-	if (seqIndex >= list.list.size() || list.list[seqIndex].empty()) {
+	if (!list || seqIndex >= list->list.size() || list->list[seqIndex].empty()) {
 		return;
 	}
 
 	time += delta;
 	for (;;) {
-		const float targetTime = list.list[seqIndex][cellIndex].time;
+		const float targetTime = list->list[seqIndex][cellIndex].time;
 		if (targetTime <= 0.0f || time < targetTime) {
 			break;
 		}
 		time -= targetTime;
 		++cellIndex;
-		if (cellIndex >= list.list[seqIndex].size()) {
+		if (cellIndex >= list->list[seqIndex].size()) {
 			cellIndex = 0;
 		}
 	}
@@ -68,11 +79,12 @@ void AnimationController::Update(double delta)
 */
 const AnimationData& AnimationController::GetData() const
 {
-	if (seqIndex >= list.list.size() || list.list[seqIndex].empty()) {
-		static const AnimationData dummy{};
+	if (!list || seqIndex >= list->list.size() || list->list[seqIndex].empty()) {
+		static AnimationData dummy{ 0, 0, 0, {1, 1}, {1,1,1,1} };
+		dummy.cellIndex = cellIndex;
 		return dummy;
 	}
-	return list.list[seqIndex][cellIndex];
+	return list->list[seqIndex][cellIndex];
 }
 
 /**
@@ -82,7 +94,7 @@ const AnimationData& AnimationController::GetData() const
 */
 size_t AnimationController::GetSeqCount() const
 {
-	return list.list.size();
+	return list ? list->list.size() : 0;
 }
 
 /**
@@ -93,10 +105,10 @@ size_t AnimationController::GetSeqCount() const
 */
 bool AnimationController::IsFinished() const
 {
-	if (seqIndex >= list.list.size() || list.list[seqIndex].empty()) {
+	if (!list || seqIndex >= list->list.size() || list->list[seqIndex].empty()) {
 		return true;
 	}
-	return list.list[seqIndex][cellIndex].time < 0;
+	return list->list[seqIndex][cellIndex].time < 0;
 }
 
 /**

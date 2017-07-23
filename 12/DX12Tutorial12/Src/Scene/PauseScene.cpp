@@ -57,7 +57,7 @@ bool PauseScene::Load(::Scene::Context&)
 	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16.0f, 400, 0.0f);
 	for (const char c : text) {
 		if (c >= ' ' && c < '`') {
-			sprFont.push_back(Sprite::Sprite(animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
+			sprFont.push_back(Sprite::Sprite(&animationFile[1], textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
 			sprFont.back().SetSeqIndex(c - ' ');
 			textPos.x += 32.0f;
 		}

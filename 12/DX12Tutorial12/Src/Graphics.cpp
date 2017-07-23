@@ -272,7 +272,6 @@ bool Graphics::Initialize(HWND hwnd, int clientWidth, int clientHeight)
 	if (!LoadTexture()) {
 		return false;
 	}
-	spriteList.push_back(Sprite::Sprite(GetAnimationList(), XMFLOAT3(100, 100, 0.1f), 0, XMFLOAT2(1, 1), XMFLOAT4(1, 1, 1, 1)));
 
 	return true;
 }

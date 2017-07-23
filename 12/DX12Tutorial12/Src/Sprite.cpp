@@ -71,7 +71,7 @@ void AddVertex(const Sprite& sprite, const Cell* cell, const AnimationData& anm,
 
 } // unnamed namedpace
 
-Sprite::Sprite(const AnimationList& al, DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col) :
+Sprite::Sprite(const AnimationList* al, DirectX::XMFLOAT3 p, float rot, DirectX::XMFLOAT2 s, DirectX::XMFLOAT4 col) :
 	animeController(al),
 	actController(),
 	collisionId(-1),
