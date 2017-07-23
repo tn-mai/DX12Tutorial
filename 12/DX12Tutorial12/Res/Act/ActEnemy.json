@@ -1,0 +1,240 @@
+[
+  {
+    "name" : "WinpFighter",
+    "list" : [
+      [
+        { "type" : "Move", "args" : [ 270, 200 ] },
+        { "type" : "Accel", "args" : [ 180, 800 ] },
+        { "type" : "Wait", "args" : [ 0.5 ] },
+        { "type" : "Generate", "args" :  [ 300 ] },
+        { "type" : "Accel", "args" : [ 0, 800 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Accel", "args" : [ 180, 800 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Accel", "args" : [ 0, 800 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Move", "args" : [ 270, 200 ] },
+        { "type" : "Accel", "args" : [ 0, 800 ] },
+        { "type" : "Wait", "args" : [ 0.5 ] },
+        { "type" : "Generate", "args" :  [ 300 ] },
+        { "type" : "Accel", "args" : [ 180, 800 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Accel", "args" : [ 0, 800 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Accel", "args" : [ 180, 800 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Move", "args" : [ 240, 400 ] },
+        { "type" : "Accel", "args" : [ 60, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Generate", "args" :  [ 300 ] },
+        { "type" : "Move", "args" : [ 0, 0 ] },
+        { "type" : "Accel", "args" : [ 90, 400 ] },
+        { "type" : "Wait", "args" : [ 3.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Move", "args" : [ 300, 400 ] },
+        { "type" : "Accel", "args" : [ 120, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Generate", "args" :  [ 300 ] },
+        { "type" : "Move", "args" : [ 0, 0 ] },
+        { "type" : "Accel", "args" : [ 90, 400 ] },
+        { "type" : "Wait", "args" : [ 3.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 0.5 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Move", "args" : [ 270, 200 ] },
+        { "type" : "Accel", "args" : [ 270, 600 ] },
+        { "type" : "Wait", "args" : [ 5.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ]
+    ]
+  },
+  {
+    "name" : "3WayShooter",
+    "list" : [
+      [
+        { "type" : "Wait", "args" : [ 0.0 ] },
+        { "type" :  "Animation", "args" : [ 5 ] },
+        { "type" : "Move", "args" : [ 270, 400 ] },
+        { "type" : "Accel", "args" : [ 90, 800 ] },
+        { "type" : "Wait", "args" : [ 0.25 ] },
+        { "type" :  "Animation", "args" : [ 6 ] },
+        { "type" : "Wait", "args" : [ 0.125 ] },
+        { "type" : "Move", "args" : [ 0, 0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" :  "Animation", "args" : [ 7 ] },
+        { "type" : "Wait", "args" : [ 0.25 ] },
+        { "type" : "Generate", "args" :  [ 450 ] },
+        { "type" : "Wait", "args" : [ 0.75 ] },
+        { "type" :  "Animation", "args" : [ 6 ] },
+        { "type" : "Accel", "args" : [ 90, 800 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 0.5 ] },
+        { "type" : "Delete", "args" : [] }
+      ]
+    ]
+  },
+  {
+    "name" : "MiddleClassFighter",
+    "list" : [
+      [
+        { "type" : "Wait", "args" : [ 0.0 ] },
+        { "type" :  "Animation", "args" : [ 8 ] },
+        { "type" : "Move", "args" : [ 270, 300 ] },
+        { "type" : "Accel", "args" : [ 90, 300 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Generate", "args" :  [ 300 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Move", "args" : [ 0, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 180, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 0, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 180, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 0, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 180, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 0, 0 ] },
+        { "type" : "Accel", "args" : [ 90, 400 ] },
+        { "type" : "Wait", "args" : [ 3.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Wait", "args" : [ 0.0 ] },
+        { "type" :  "Animation", "args" : [ 8 ] },
+        { "type" : "Move", "args" : [ 270, 300 ] },
+        { "type" : "Accel", "args" : [ 90, 300 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Generate", "args" :  [ 300 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Move", "args" : [ 180, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 0, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 180, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 0, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 180, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 0, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 0, 0 ] },
+        { "type" : "Accel", "args" : [ 90, 400 ] },
+        { "type" : "Wait", "args" : [ 3.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 0.5 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Wait", "args" : [ 0.0 ] },
+        { "type" :  "Animation", "args" : [ 8 ] },
+        { "type" : "Move", "args" : [ 270, 200 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 120.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ]
+    ]
+  },
+  {
+    "name" : "1st Boss",
+    "list" : [
+      [
+        { "type" : "Wait", "args" : [ 0.0 ] },
+        { "type" :  "Animation", "args" : [ 9 ] },
+        { "type" : "Move", "args" : [ 270, 200 ] },
+        { "type" : "Wait", "args" : [ 0.5 ] },
+        { "type" : "Accel", "args" : [ 90, 400 ] },
+        { "type" : "Wait", "args" : [ 0.25 ] },
+        { "type" : "Move", "args" : [ 0, 0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+
+        { "type" : "Generate", "args" :  [ 450 ] },
+        { "type" : "Accel", "args" : [ 180, 50 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+
+        { "type" : "Accel", "args" : [ 0, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+        { "type" : "Accel", "args" : [ 180, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+
+        { "type" : "Accel", "args" : [ 0, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+        { "type" : "Accel", "args" : [ 180, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+
+        { "type" : "Accel", "args" : [ 0, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+        { "type" : "Accel", "args" : [ 180, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+
+        { "type" : "Accel", "args" : [ 0, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+        { "type" : "Accel", "args" : [ 180, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+
+        { "type" : "Accel", "args" : [ 0, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+        { "type" : "Accel", "args" : [ 180, 50 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 2.0 ] },
+
+        { "type" : "Accel", "args" : [ 0, 50 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Move", "args" : [ 0, 0 ] },
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 1.0 ] },
+        { "type" : "Accel", "args" : [ 90, 200 ] },
+        { "type" : "Wait", "args" : [ 4.0 ] },
+        { "type" : "Delete", "args" : [] }
+      ],
+      [
+        { "type" : "Accel", "args" : [ 0, 0 ] },
+        { "type" : "Wait", "args" : [ 0.5 ] },
+        { "type" : "Delete", "args" : [] }
+      ]
+    ]
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "name" : "enemy",
+    "list" : [
+      [
+        { "cell" : 0, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 1, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 2, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 4, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 5, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 6, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 7, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 8, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 9, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 10, "time" : 0.125, "rotation" : 0, "scale" : [ 1.0, 1.0 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 10, "time" : 0.125, "rotation" : 0, "scale" : [ 0.9, 0.9 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 10, "time" : 0.125, "rotation" : 0, "scale" : [ 1.0, 1.0 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 10, "time" : 0.125, "rotation" : 0, "scale" : [ 1.1, 1.1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 11, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 11, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 12, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 13, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 14, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 14, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 0.75, 0.75, 0.75, 0.5 ] },
+        { "cell" : 15, "time" : -1, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 16, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 17, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 18, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 19, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 20, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 21, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 22, "time" : 0.5,   "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 21, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 20, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 23, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 24, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 25, "time" : 0.0, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ]
+    ]
+  },
+  {
+    "name" : "player",
+    "list" : [
+      [
+        { "cell" : 0, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 1, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 2, "time" : 0.125, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 1.0, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 0.9, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 0.8, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 3, "time" : 0.125, "rotation" : 0, "scale" : [ 0.9, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ],
+      [
+        { "cell" : 4, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 4, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 5, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 6, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 7, "time" : 0.10, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 7, "time" : 0.05, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 0.75, 0.75, 0.75, 0.5 ] },
+        { "cell" : 8, "time" : 2, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] },
+        { "cell" : 8, "time" : -1, "rotation" : 0, "scale" : [ 1, 1 ], "color" : [ 1, 1, 1, 1 ] }
+      ]
+    ]
+  }
+]
