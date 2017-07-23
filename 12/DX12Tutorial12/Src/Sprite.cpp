@@ -82,7 +82,8 @@ Sprite::Sprite(const AnimationList* al, DirectX::XMFLOAT3 p, float rot, DirectX:
 	pos(p),
 	rotation(rot),
 	scale(s),
-	color{ col, col }
+	color{ col, col },
+	velocity{ 0, 0 }
 {
 }
 

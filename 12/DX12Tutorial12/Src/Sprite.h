@@ -9,6 +9,8 @@
 #include <wrl/client.h>
 #include <vector>
 
+#include "Collision.h"
+
 namespace Resource {
 struct Texture;
 class ResourceLoader;
@@ -56,6 +58,9 @@ struct Sprite
 	float rotation; ///< ‰æ‘œ‚Ì‰ñ“]Šp(ƒ‰ƒWƒAƒ“).
 	DirectX::XMFLOAT2 scale; ///< ‰æ‘œ‚ÌŠg‘å—¦.
 	DirectX::XMFLOAT4 color[2]; ///< ‰æ‘œ‚ÌF.
+	DirectX::XMFLOAT2 velocity;
+	int param[4];
+	Collision::Shape collisionShape;
 };
 
 /**

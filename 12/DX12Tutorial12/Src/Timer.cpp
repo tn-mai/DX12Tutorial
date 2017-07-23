@@ -28,7 +28,10 @@ double Timer::GetFrameDelta()
 {
 	LARGE_INTEGER i;
 	QueryPerformanceCounter(&i);
-	const double delta = static_cast<double>(i.QuadPart - lastFrameTime) / frequency;
+	double delta = static_cast<double>(i.QuadPart - lastFrameTime) / frequency;
+	if (delta > 1) {
+		delta = 1.0 / 60.0;
+	}
 
 	++fpsFrames;
 	fpsDelta += delta;

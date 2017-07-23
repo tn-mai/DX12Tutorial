@@ -269,17 +269,6 @@ void Update(double delta)
 	GamePad& gamepad = GetGamePad(GamePadId_1P);
 
 	Graphics::Graphics& graphics = Graphics::Graphics::Get();
-	const float speed = static_cast<float>(200.0 * delta);
-	if (gamepad.buttons & GamePad::DPAD_LEFT) {
-		graphics.spriteList[0].pos.x -= speed;
-	} else if (gamepad.buttons & GamePad::DPAD_RIGHT) {
-		graphics.spriteList[0].pos.x += speed;
-	}
-	if (gamepad.buttons & GamePad::DPAD_UP) {
-		graphics.spriteList[0].pos.y -= speed;
-	} else if (gamepad.buttons & GamePad::DPAD_DOWN) {
-		graphics.spriteList[0].pos.y += speed;
-	}
 
 	sceneController.Update(sceneContext, delta);
 

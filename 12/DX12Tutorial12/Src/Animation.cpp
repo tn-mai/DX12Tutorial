@@ -108,7 +108,7 @@ bool AnimationController::IsFinished() const
 	if (!list || seqIndex >= list->list.size() || list->list[seqIndex].empty()) {
 		return true;
 	}
-	return list->list[seqIndex][cellIndex].time < 0;
+	return list->list[seqIndex][cellIndex].time <= 0;
 }
 
 /**

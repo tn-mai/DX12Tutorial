@@ -8,6 +8,7 @@
 #include "../Sprite.h"
 #include "../Animation.h"
 #include "../Audio.h"
+#include <random>
 
 class TitleScene : public Scene::Scene
 {
@@ -29,6 +30,12 @@ private:
 	TitleScene();
 	TitleScene(const TitleScene&) = delete;
 	TitleScene& operator=(const TitleScene&) = delete;
+	void UpdatePlayer(double delta);
+	void UpdatePlayerShot(double delta);
+	void UpdateEnemy(double delta);
+	void UpdateEnemyShot(double delta);
+	void GenerateEnemy(double delta);
+	void CollisionPlayerShotAndEnemy();
 
 	Resource::Texture texBackground;
 	Resource::Texture texLogo;
@@ -42,6 +49,17 @@ private:
 	double time;
 	bool started;
 	Audio::SoundPtr seStart;
+
+	Audio::SoundPtr sePlayerShot;
+	Audio::SoundPtr seBlast;
+	Resource::Texture texCharacter;
+	std::mt19937 rnd;
+	std::vector<Sprite::Sprite> sprPlayer;
+	std::vector<Sprite::Sprite*> sprPlayerShotFree;
+	std::vector<Sprite::Sprite> sprEnemy;
+	std::vector<Sprite::Sprite*> sprEnemyFree;
+	std::vector<Sprite::Sprite*> sprEnemyShotFree;
+	double entryTimer;
 };
 
 #endif // DX12TUTORIAL_SRC_SCENE_TITLESCENE_H_

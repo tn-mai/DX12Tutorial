@@ -12,5 +12,8 @@ float4 main(PSInput input) : SV_TARGET
 {
 	float4 tex = t0.Sample(s0, input.texcoord);
 	tex.a = smoothstep(0.4, 0.6, tex.a);
+	if (tex.a == 0) {
+		discard;
+	}
 	return tex * input.color;
 }
