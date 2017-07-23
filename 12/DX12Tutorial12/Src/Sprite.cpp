@@ -6,6 +6,8 @@
 #include "PSO.h"
 #include "Json.h"
 #include "d3dx12.h"
+#include <memory>
+#include <iostream>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -44,7 +46,7 @@ XMFLOAT3 RotateZ(XMVECTOR c, float x, float y, float r)
 */
 void AddVertex(const Sprite& sprite, const Cell* cell, const AnimationData& anm, Vertex* v, XMFLOAT2 offset)
 {
-	const XMVECTORF32 center{ offset.x + sprite.pos.x, offset.y - sprite.pos.y, sprite.pos.z, 0.0f };
+	const XMVECTORF32 center{ offset.x + sprite.pos.x + cell->offset.x * sprite.scale.x, offset.y - sprite.pos.y + cell->offset.y * sprite.scale.y, sprite.pos.z, 0.0f };
 	const XMFLOAT2 halfSize{ cell->ssize.x * 0.5f * sprite.scale.x * anm.scale.x, cell->ssize.y * 0.5f * sprite.scale.y * anm.scale.y };
 
 	const XMVECTOR vcolor = XMVectorMultiply(XMLoadFloat4(&sprite.color), XMLoadFloat4(&anm.color));
@@ -420,12 +422,108 @@ FilePtr LoadFromJsonFile(const wchar_t* filename)
 			const Json::Array& ssize = data.object.find("ssize")->second.array;
 			cell.ssize.x = ssize.size() > 0 ? static_cast<float>(ssize[0].number) : 0.0f;
 			cell.ssize.y = ssize.size() > 1 ? static_cast<float>(ssize[1].number) : 0.0f;
+			cell.offset = XMFLOAT2(0, 0);
+			cell.xadvance = cell.ssize.x;
 			al.list.push_back(cell);
 		}
 		af->clList.push_back(al);
 	}
 
 	return af;
+}
+
+/**
+* フォントファイルを読み込む.
+*
+* @param filename フォントファイル名.
+*
+* @retval true  読み込み成功.
+* @retval false 読み込み失敗.
+*/
+CellList LoadFontFromFile(const wchar_t* filename)
+{
+  std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&CloseHandle)> h(
+    CreateFileW(filename, GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr),
+    CloseHandle
+  );
+  if (h.get() == INVALID_HANDLE_VALUE) {
+    return {};
+  }
+  LARGE_INTEGER size;
+  if (!GetFileSizeEx(h.get(), &size)) {
+    return {};
+  }
+  std::string buffer;
+  buffer.resize(static_cast<size_t>(size.QuadPart));
+  DWORD readBytes;
+  if (!ReadFile(h.get(), &buffer[0], buffer.size(), &readBytes, nullptr)) {
+    return {};
+  }
+
+  int line = 1;
+  size_t nextOffset = 0;
+  int ret = sscanf(&buffer[nextOffset], "info face=%*s size=%*d bold=%*d italic=%*d charset=%*s"
+    " unicode=%*d stretchH=%*d smooth=%*d aa=%*d padding=%*d,%*d,%*d,%*d spacing=%*d,%*d");
+  ++line;
+
+  nextOffset = buffer.find('\n', nextOffset) + 1;
+  XMFLOAT2 scale;
+  ret = sscanf(&buffer[nextOffset], " common lineHeight=%*d base=%*d scaleW=%f scaleH=%f pages=%*d packed=%*d", &scale.x, &scale.y);
+  if (ret < 2) {
+    std::cerr << "ERROR: '" << filename << "'の読み込みに失敗(line=" << line << ")" << std::endl;
+    return {};
+  }
+  const XMFLOAT2 reciprocalScale(1.0f / scale.x, 1.0f / scale.y);
+  ++line;
+
+  nextOffset = buffer.find('\n', nextOffset) + 1;
+  char tex[128];
+  ret = sscanf(&buffer[nextOffset], " page id=%*d file=%127s", tex);
+  if (ret < 1) {
+    std::cerr << "ERROR: '" << filename << "'の読み込みに失敗(line=" << line << ")" << std::endl;
+    return {};
+  }
+  ++line;
+
+  nextOffset = buffer.find('\n', nextOffset) + 1;
+  int charCount;
+  ret = sscanf(&buffer[nextOffset], " chars count=%d", &charCount);
+  if (ret < 1) {
+    std::cerr << "ERROR: '" << filename << "'の読み込みに失敗(line=" << line << ")" << std::endl;
+    return {};
+  }
+  ++line;
+
+  CellList fontList;
+  fontList.list.resize(128);
+  for (int i = 0; i < charCount; ++i) {
+    nextOffset = buffer.find('\n', nextOffset);
+    if (nextOffset == std::string::npos) {
+      break;
+    }
+    ++nextOffset;
+
+    int charCode;
+    Cell cell;
+    XMFLOAT2 uv, size, offset;
+	float xadvance;
+    ret = sscanf(&buffer[nextOffset], " char id=%d x=%f y=%f width=%f height=%f xoffset=%f yoffset=%f xadvance=%f page=%*d chnl=%*d", &charCode, &uv.x, &uv.y, &size.x, &size.y, &offset.x, &offset.y, &xadvance);
+    if (ret < 7) {
+      std::cerr << "ERROR: '" << filename << "'の読み込みに失敗(line=" << line << ")" << std::endl;
+      return {};
+    }
+    cell.uv = XMFLOAT2(uv.x * reciprocalScale.x, uv.y * reciprocalScale.y);
+    cell.tsize = XMFLOAT2(size.x * reciprocalScale.x, size.y * reciprocalScale.y);
+    cell.ssize = XMFLOAT2(size.x, size.y);
+	cell.offset = XMFLOAT2(-size.x * 0.5f + offset.x, -size.y * 0.5f - offset.y + 12);
+	cell.xadvance = xadvance;
+    if (charCode >= ' ' && charCode < 128) {
+      fontList.list[charCode - ' '] = cell;
+    }
+    ++line;
+  }
+  fontList.name.assign(tex + 1);
+  return fontList;
 }
 
 } // namespace Sprite

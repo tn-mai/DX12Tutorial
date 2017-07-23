@@ -52,11 +52,15 @@ bool TitleScene::Load(::Scene::Context&)
 	if (!graphics.texMap.LoadFromFile(texFont, L"Res/TextFont.png")) {
 		return false;
 	}
+	if (!graphics.texMap.LoadFromFile(texFont2, L"Res/Font.png")) {
+		return false;
+	}
 	ID3D12CommandList* ppCommandLists[] = { graphics.texMap.End() };
 	graphics.commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	cellFile = Sprite::LoadFromJsonFile(L"Res/Cell/CellFont.json");
 	animationFile = LoadAnimationFromJsonFile(L"Res/Anm/AnmTitle.json");
+	fontCellList = Sprite::LoadFontFromFile(L"Res/Font.fnt");
 
 	graphics.WaitForGpu();
 	graphics.texMap.ResetLoader();
@@ -69,11 +73,15 @@ bool TitleScene::Load(::Scene::Context&)
 
 	static const char text[] = "START";
 	XMFLOAT3 textPos(400 - (_countof(text) - 2) * 16, 400, 0.8f);
+	XMFLOAT3 textPos2(400 - (_countof(text) - 2) * 12, 450, 0.8f);
 	for (const char c : text) {
 		if (c >= ' ' && c < '`') {
 			sprFont2.push_back(Sprite::Sprite(nullptr, textPos2, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
 			sprFont2.back().SetCellIndex(c - ' ');
+			sprFont.push_back(Sprite::Sprite(nullptr, textPos, 0, XMFLOAT2(1, 1), XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f)));
+			sprFont.back().SetCellIndex(c - ' ');
 			textPos.x += 32.0f;
+			textPos2.x += fontCellList.list[c - ' '].xadvance;
 		}
 	}
 
@@ -164,4 +172,5 @@ void TitleScene::Draw(Graphics::Graphics& graphics) const
 	graphics.spriteRenderer.Draw(sprBackground, cellList, GetPSO(PSOType_Sprite), texBackground, spriteRenderingInfo);
 	graphics.spriteRenderer.Draw(sprLogo, cellList, GetPSO(PSOType_Sprite), texLogo, spriteRenderingInfo);
 	graphics.spriteRenderer.Draw(sprFont, cellFile->Get(0)->list.data(), GetPSO(PSOType_Sprite), texFont, spriteRenderingInfo);
+    graphics.spriteRenderer.Draw(sprFont2, fontCellList.list.data(), GetPSO(PSOType_Sprite), texFont2, spriteRenderingInfo);
 }

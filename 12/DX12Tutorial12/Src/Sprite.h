@@ -24,6 +24,8 @@ struct Cell {
 	DirectX::XMFLOAT2 uv; ///< テクスチャ上の左上座標.
 	DirectX::XMFLOAT2 tsize; ///< テクスチャ上の縦横サイズ.
 	DirectX::XMFLOAT2 ssize; ///< スクリーン座標上の縦横サイズ.
+	DirectX::XMFLOAT2 offset; ///< スクリーン座標上の表示位置補正.
+	float xadvance; ///< 次のセルのX座標.
 };
 
 /**
@@ -132,5 +134,6 @@ public:
 typedef std::shared_ptr<File> FilePtr;
 
 FilePtr LoadFromJsonFile(const wchar_t*);
+CellList LoadFontFromFile(const wchar_t*);
 
 } // namespace Sprite
